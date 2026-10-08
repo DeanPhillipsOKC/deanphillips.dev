@@ -1,0 +1,9 @@
+// Cloudflare Worker that serves the static site in public/ at deanphillips.dev.
+{
+  "name": "deanphillips-dev",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
