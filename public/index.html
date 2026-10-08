@@ -9,6 +9,7 @@
 <meta property="og:description" content="20+ years of production software. Now building apps with an AI-first workflow. Maker of RepBunny.">
 <meta property="og:image" content="https://deanphillips.dev/img/dean-640.webp">
 <link rel="icon" href="img/dean-256.webp">
+<script>if (new URLSearchParams(location.search).has('noart')) document.documentElement.classList.add('noart')</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -115,6 +116,25 @@
     transition: transform .2s, border-color .2s;
   }
   .step:hover { transform: translateY(-3px); border-color: var(--teal); }
+  .step .art {
+    height: 126px; padding: 8px; margin: -6px -6px 16px; border-radius: 14px; display: grid; place-items: center;
+    background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--teal) 10%, transparent), transparent 70%), var(--bg-2);
+    border: 1px solid var(--line);
+  }
+  .step:nth-child(even) .art { background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 70%), var(--bg-2); }
+  .art svg { width: 100%; max-width: 240px; height: 100%; stroke-width: 2.5; }
+  .art .t { stroke: var(--teal); }
+  .art .v { stroke: var(--violet); }
+  .art .tf { fill: color-mix(in srgb, var(--teal) 16%, transparent); }
+  .art .vf { fill: color-mix(in srgb, var(--violet) 16%, transparent); }
+  .art .dim { stroke: var(--muted); opacity: 0.45; }
+  .art .dots circle { fill: var(--muted); opacity: 0.5; }
+  .art .ok { stroke: #3ddc97; stroke-width: 3; }
+  .art .ok.big { stroke-width: 4.5; }
+  .art .spark { fill: var(--violet); opacity: 0.8; }
+  .art .flame { stroke: #f2879c; fill: color-mix(in srgb, #f2879c 30%, transparent); }
+  .art .cursor { fill: var(--teal); animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
   .step .icon {
     width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px;
     background: color-mix(in srgb, var(--teal) 16%, transparent); color: var(--teal);
@@ -144,6 +164,10 @@
   /* Loop illustration */
   .loop { margin: 0 0 28px; }
   .loop img { display: block; width: 100%; height: auto; border-radius: 24px; border: 1px solid var(--line); }
+
+  /* ?noart hides the cartoon illustrations, for comparing */
+  .noart .loop, .noart .about .robot { display: none; }
+  .noart .about { grid-template-columns: 1fr; }
 
   /* About */
   .about { display: grid; grid-template-columns: 240px 1fr; gap: 36px; align-items: center; }
@@ -177,7 +201,7 @@
     .shots { gap: 8px; }
     .shots img { border-radius: 10px; }
   }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .step { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .step { transition: none; } .art .cursor { animation: none; } }
 </style>
 </head>
 <body>
@@ -242,32 +266,71 @@
     </figure>
     <div class="pipeline">
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="dim"><rect x="22" y="22" width="34" height="26" rx="5"/><path d="M29 31h20M29 39h13"/><rect x="186" y="58" width="34" height="26" rx="5"/><path d="M193 67h20M193 75h12"/></g>
+<circle class="tf" cx="120" cy="46" r="24"/>
+<path class="t" d="M108 66c-7-5-12-12-12-20a24 24 0 0 1 48 0c0 8-5 15-12 20v8h-24z"/>
+<path class="t" d="M110 84h20M113 92h14"/>
+<path class="v" d="M114 46l6 8 6-8M120 54v12"/>
+<g class="v"><path d="M120 8v-2M86 20l-3-3M154 20l3-3M78 46h-4M162 46h4"/></g>
+<g class="spark"><path d="M70 82l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M172 18l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/></g></svg></div>
         <h3><small>01 Ideate</small>AI product and UX reviews</h3>
         <p>Agents walk the app like a product manager and a UX designer would, then file the gaps they find as scored backlog items.</p>
       </div>
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="dim" x="28" y="12" width="184" height="88" rx="10"/>
+<path class="dim" d="M89 22v68M151 22v68"/>
+<rect class="tf t" x="38" y="24" width="42" height="16" rx="4"/><rect class="tf t" x="38" y="46" width="42" height="16" rx="4"/><rect class="tf t" x="38" y="68" width="42" height="16" rx="4"/>
+<rect class="vf v" x="99" y="24" width="42" height="16" rx="4"/><rect class="vf v" x="99" y="46" width="42" height="16" rx="4"/>
+<rect class="tf t" x="161" y="24" width="42" height="16" rx="4"/>
+<path class="ok" d="M174 32l4 4 8-8"/>
+<path class="v" d="M84 54c4 0 6-3 10-3" stroke-dasharray="2 4"/></svg></div>
         <h3><small>02 Plan</small>Rough ideas become clear specs</h3>
         <p>A quick note from my phone gets researched against the code and rewritten into a buildable spec, scored by effort and value.</p>
       </div>
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="dim" x="34" y="10" width="172" height="90" rx="10"/>
+<path class="dim" d="M34 28h172"/>
+<g class="dots"><circle cx="48" cy="19" r="3"/><circle cx="58" cy="19" r="3"/><circle cx="68" cy="19" r="3"/></g>
+<path class="v" d="M50 44l-8 8 8 8"/><path class="v" d="M190 44l8 8-8 8"/>
+<path class="t" d="M64 42h44M64 52h70M76 62h52M76 72h34M64 82h24"/>
+<path class="v" d="M116 42h22M142 52h20M118 72h30"/>
+<rect class="cursor" x="94" y="77" width="3" height="10" rx="1"/></svg></div>
         <h3><small>03 Build</small>Agents work the backlog</h3>
         <p>An automated runner picks the highest-value issue, builds it, and moves on to the next. I set direction and make the calls only a person should make.</p>
       </div>
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="dim" x="56" y="8" width="58" height="96" rx="11"/>
+<path class="dim" d="M78 15h14"/>
+<g class="ok"><path d="M66 32l3 3 6-6"/><path d="M66 50l3 3 6-6"/><path d="M66 68l3 3 6-6"/></g>
+<path class="t" d="M82 32h22M82 50h18M82 68h22"/>
+<path class="tf t" d="M162 18l30 10v22c0 20-14 32-30 38-16-6-30-18-30-38V28z"/>
+<path class="ok big" d="M149 52l9 9 18-18"/>
+<g class="spark"><path d="M206 80l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/></g></svg></div>
         <h3><small>04 Verify</small>Nothing ships untested</h3>
         <p>Every change has to pass a full build and more than 560 end-to-end tests before it reaches anyone's phone.</p>
       </div>
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2z"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="v" d="M24 100C70 98 120 80 160 38" stroke-dasharray="3 7"/>
+<g transform="translate(176 26) rotate(45)">
+<path class="tf t" d="M0-26c10 8 12 22 8 36H-8c-4-14-2-28 8-36z"/>
+<circle class="t" cx="0" cy="-6" r="4"/>
+<path class="t" d="M-8 4l-8 10 8-1M8 4l8 10-8-1"/>
+<path class="flame" d="M-5 13c1 7 3 10 5 14 2-4 4-7 5-14"/></g>
+<g class="spark"><path d="M40 24l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/><path d="M210 78l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/><path d="M96 30l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/></g>
+<g class="dim"><circle cx="70" cy="56" r="1.5"/><circle cx="214" cy="30" r="1.5"/><circle cx="130" cy="96" r="1.5"/></g></svg></div>
         <h3><small>05 Ship</small>Cloud builds for both phones</h3>
         <p>iPhone builds are signed and sent to TestFlight from the cloud with no Mac in the house, and Android builds go out on their own every night.</p>
       </div>
       <div class="step">
-        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="dim" d="M40 46h84v52H40z"/>
+<path class="dim" d="M40 46l42 30 42-30"/>
+<rect class="vf v" x="54" y="14" width="56" height="44" rx="5"/>
+<path class="v" d="M63 26h38M63 35h30M63 44h34"/>
+<path class="t" d="M134 62c18 0 30-10 34-26" />
+<path class="t" d="M162 36l6 0 0 6"/>
+<circle class="tf t" cx="192" cy="68" r="18"/>
+<path class="ok big" d="M184 68l6 6 11-11"/>
+<g class="spark"><path d="M206 28l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/></g></svg></div>
         <h3><small>06 Support</small>Support and marketing, too</h3>
         <p>AI reads incoming support email, turns real bugs into backlog issues once I OK them, and drafts a reply that I review, edit, and approve before it goes out. Store screenshots and how-to guides are captured automatically too.</p>
       </div>
