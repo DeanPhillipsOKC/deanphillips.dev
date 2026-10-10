@@ -4,7 +4,7 @@ import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     title: z.string(),
     // Short title for the browser tab; falls back to title.
     tabTitle: z.string().optional(),
@@ -17,6 +17,8 @@ const blog = defineCollection({
     readMinutes: z.number(),
     // 1200x630 link-preview image under public/, e.g. /img/og/<slug>.jpg.
     image: z.string().optional(),
+    // Wide art with no text, shown as the post banner and the Writing-page thumbnail.
+    cover: image().optional(),
     draft: z.boolean().default(false),
   }),
 });
