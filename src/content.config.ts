@@ -17,7 +17,7 @@ const blog = defineCollection({
     readMinutes: z.number(),
     // 1200x630 link-preview image under public/, e.g. /img/og/<slug>.jpg.
     image: z.string().optional(),
-    // Wide art with no text, shown as the post banner and the Writing-page thumbnail.
+    // Art with no text, shown as the post's thumbnail on the Writing page.
     cover: image().optional(),
     draft: z.boolean().default(false),
   }),
