@@ -15,6 +15,8 @@ const blog = defineCollection({
     dek: z.string(),
     date: z.coerce.date(),
     readMinutes: z.number(),
+    // 1200x630 link-preview image under public/, e.g. /img/og/<slug>.jpg.
+    image: z.string().optional(),
     draft: z.boolean().default(false),
   }),
 });
