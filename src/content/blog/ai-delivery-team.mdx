@@ -3,7 +3,7 @@ title: "I ship an app while I'm at work. Here's the AI team that does it."
 titleAccent: "Here's the AI team that does it."
 tabTitle: My AI Delivery Team
 description: How RepBunny's backlog, tests, releases, and monthly reviews run on AI agents, GitHub Issues, and a handful of labels.
-dek: RepBunny went from first commit to 223 closed issues in 19 days. I have a full-time job, so most of that work happened while I was somewhere else. This is how the delivery side is wired up.
+dek: RepBunny went from first commit to 223 closed issues in 19 days. I have a full-time job, so most of that work happened while I was somewhere else. This is an experiment in how far that can go, run on an app that keeps all its data on the user's phone.
 date: 2026-10-10
 readMinutes: 12
 ---
@@ -22,9 +22,11 @@ import Callout from '../../components/blog/Callout.astro';
   { value: '635', label: 'end-to-end tests run before every merge' },
 ]} />
 
+<Callout title="This is an experiment, and I picked a safe place to run it.">RepBunny keeps every workout on the phone it was logged on. There are no user accounts, no shared database, and no servers of mine holding anyone's data. So when I let AI agents ship code with no human review, the worst a bad change can do is break the app on a phone. It can't leak anyone's information, because I never have it. I wouldn't run this setup on an app that held other people's data.</Callout>
+
 ## The short version
 
-RepBunny is a strength training log for iPhone, Android, and the web. I'm the only developer. Behind it is a set of AI agents (Claude Code, mostly) that each have one job: turn my rough notes into specs, build the next most valuable issue, test it, ship it, review the app every month, and ask me when something needs a human call.
+RepBunny is a strength training log for iPhone and Android. I'm the only developer. Behind it is a set of AI agents (Claude Code, mostly) that each have one job: turn my rough notes into specs, build the next most valuable issue, test it, ship it, review the app every month, and ask me when something needs a human call.
 
 None of that is one giant prompt. It's about ten small skills, a dozen GitHub Actions workflows, and a label scheme on GitHub Issues that every agent reads and writes. The issues are the team's shared memory. If it isn't on an issue, it didn't happen.
 
@@ -61,8 +63,8 @@ Not everything waits for me to think of it. Four review agents run once a month,
   dots={[5, 12, 19, 26]}
 />
 
-- **Security audit** checks row-level security on every database table (including a live attempt to read another user's data), keys in the client bundle, dependencies, headers, and secrets in git history.
-- **UX review** drives the app on a test account, takes 80 or so screenshots across the main journeys, and files real usability problems.
+- **Security audit** looks for secrets in the code and git history, vulnerable dependencies, and loose permissions in the build pipeline. It also checks that no change has started sending workout data off the phone.
+- **UX review** drives the app, takes 80 or so screenshots across the main journeys, and files real usability problems.
 - **Product review** compares what's shipped against the brand guide and roadmap and files missing features.
 - **Process review** acts like a DevOps engineer looking at the delivery system itself: flaky tests, slow workflows, wasted tokens, and any human task that's blocking the agents.
 
@@ -86,7 +88,7 @@ Early on I ran one agent in a loop on my laptop. It worked, but it meant the lap
 
 The dispatcher is the part I'm proudest of, mostly because it's boring. It's a short Node script. It costs about one free Actions minute per run and zero AI usage. An empty backlog costs nothing, and a lane starts its next issue as soon as the last one ships.
 
-Lanes run in parallel, so two agents can be running the test suite at the same moment. Each lane gets its own set of test accounts (plus-addressed emails like `+e2e-bugs-sonnet-a-w1`) so they don't trip over each other's data.
+Lanes run in parallel, so two agents can be running the test suite at the same moment. Each lane gets its own isolated test data, so they don't trip over each other.
 
 ## 3. The gate is the code review
 
@@ -105,9 +107,9 @@ Here's the decision that surprises people: there's no human code review. An agen
   <b>If the gate stays red</b> after a few honest fix attempts, the agent stops, labels the issue <code>status:blocked</code>, writes down what it tried, and commits nothing.
 </Steps>
 
-I spent years as an embedded tester, so trusting tests over eyeballs isn't new to me. A reviewer skimming a diff catches some things. A suite of 635 end-to-end tests running in a real browser against a real database catches the things users would actually hit, and it does it the same way every time. The rule for the agents is that every change ships with tests, and a test that only passes because it was weakened counts as a failure.
+I spent years as an embedded tester, so trusting tests over eyeballs isn't new to me. A reviewer skimming a diff catches some things. A suite of 635 end-to-end tests driving the real app catches the things users would actually hit, and it does it the same way every time. The rule for the agents is that every change ships with tests, and a test that only passes because it was weakened counts as a failure.
 
-<Callout title="This is a pilot-sized decision.">It's two people using the app right now. The docs say plainly that if the project grows past that, the no-review approach gets revisited before anyone relies on it further.</Callout>
+<Callout title="This only makes sense because of what's at stake.">Two people use the app right now, and none of their data ever leaves their phones. The project docs say plainly that if that changes, the no-review approach gets revisited first.</Callout>
 
 ## 4. Shipping and support
 
