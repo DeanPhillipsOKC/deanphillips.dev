@@ -22,7 +22,7 @@ import Callout from '../../components/blog/Callout.astro';
   { value: '635', label: 'end-to-end tests run before every merge' },
 ]} />
 
-<Callout title="This is an experiment, and I picked a safe place to run it.">RepBunny keeps every workout on the phone it was logged on. There are no user accounts, no shared database, and no servers of mine holding anyone's data. So when I let AI agents ship code with no human review, the worst a bad change can do is break the app on a phone. It can't leak anyone's information, because I never have it. I wouldn't run this setup on an app that held other people's data.</Callout>
+<Callout title="This is an experiment, and I picked a safe place to run it.">RepBunny keeps every workout on the phone it was logged on. There are no user accounts, no shared database, and no servers of mine holding anyone's data. So when I let AI agents merge code with no human code review, the worst a bad change can do is break the app on a phone, and a person still tests every release on a real phone before it goes public. It can't leak anyone's information, because I never have it. I wouldn't run this setup on an app that held other people's data.</Callout>
 
 ## The short version
 
@@ -40,7 +40,7 @@ None of that is one giant prompt. It's about ten small skills, a dozen GitHub Ac
     { who: 'auto', title: 'Gate', text: 'Full build plus 635 end-to-end tests. Red means fix or stop.' },
     { who: 'ai', title: 'Merge', text: 'Green means the agent merges its own PR and closes the issue.' },
     { who: 'auto', title: 'Tell me', text: 'A "shipped" email lands with what changed and how it was tested.' },
-    { who: 'me', title: 'Release', text: 'I tap a button in the GitHub app to cut a build for testers.' },
+    { who: 'me', title: 'Release', text: 'I cut a release candidate and smoke test it on a real phone before it goes public.' },
   ]}
 />
 
@@ -92,7 +92,7 @@ Lanes run in parallel, so two agents can be running the test suite at the same m
 
 ## 3. The gate is the code review
 
-Here's the decision that surprises people: there's no human code review. An agent that gets a green gate merges its own pull request.
+Here's the decision that surprises people: there's no human code review. An agent that gets a green gate merges its own pull request. That's merging to main, though, not shipping to the public. Releases still go through a person (section 4).
 
 <Steps
   caption="What every build run does, in order."
@@ -111,11 +111,26 @@ I spent years as an embedded tester, so trusting tests over eyeballs isn't new t
 
 <Callout title="This only makes sense because of what's at stake.">Two people use the app right now, and none of their data ever leaves their phones. The project docs say plainly that if that changes, the no-review approach gets revisited first.</Callout>
 
-## 4. Shipping and support
+## 4. Nothing reaches the public without a person
 
 When an issue closes, a workflow emails me the agent's close-out note: files touched, what changed, and the test result. That's how I keep up with what my "team" did today, usually from the phone at lunch.
 
-Releases are a button. A *Cut release* workflow in the GitHub app tags a build. iPhone builds are signed and sent to TestFlight from a cloud Mac (there's no Mac in my house), and Android builds go out on their own. My tester Christa gets them without me opening a laptop.
+Agents merge to main on their own. They don't release to the public. A *Cut release* workflow in the GitHub app tags a release candidate. iPhone builds are signed and sent to TestFlight from a cloud Mac (there's no Mac in my house), and Android builds go out on their own. My tester Christa gets them without me opening a laptop.
+
+Then a person tests the candidate by hand on a real phone. Every build gets a quick smoke test, and a store release gets the full manual pass. This is the part end-to-end tests can't cover well: how the app feels in your hand, and what happens to people who already have it installed.
+
+That second part matters most for an app like this. All of a user's workouts live in a database on their phone, so every new version has to upgrade that database in place without crashing or losing a single set. So I keep the previous store build around, load it with realistic data, and update it to the candidate to prove the upgrade works. A script generates that test data fresh before each pass, since a lot of it depends on today's date ("this week", "last month").
+
+<Steps
+  caption="What happens between a green merge and a public release."
+  steps={[
+    { title: 'Merge', text: 'An agent merges a change after the full automated gate passes.' },
+    { title: 'Cut', text: 'I tap <em>Cut release</em> in the GitHub app to tag a candidate.' },
+    { title: 'Build', text: 'Cloud builds sign the iPhone and Android apps for testers.' },
+    { title: 'Smoke test', text: 'A person runs it on a real phone, including updating from the last public version.' },
+    { title: 'Release', text: 'Only then does it go to the stores.' },
+  ]}
+/>
 
 Support email goes through a `triage-support` skill. It reads only the support label in Gmail, sorts real bugs from questions, suggests an issue for each bug, and drafts a reply. I approve, edit, or toss each draft. Nothing gets sent or filed without me picking it.
 
@@ -159,7 +174,7 @@ Each of those became an issue, and most were fixed by the agents themselves.
 A few things I'd do again on day one:
 
 1. **Pick one source of truth** and make every agent read and write it. For me that's GitHub Issues and labels. Agents forget everything between runs. The issue tracker doesn't.
-2. **Invest in the test suite before the automation.** The gate is what lets you skip review. Without it, you're just shipping faster in the dark.
+2. **Invest in the test suite before the automation.** The gate is what lets you skip code review. Without it, you're just merging faster in the dark. And keep a human between the gate and your users.
 3. **Keep the glue dumb.** The dispatcher, emails, and ask-the-owner flow have no AI in them. They're cheap, predictable, and easy to debug.
 4. **Write the rules down in the repo.** Every decision I make ends up in a docs file the agents read at the start of each run. That's how a choice I made on Tuesday still holds on Friday.
 5. **Plan for yourself as the bottleneck.** The more the agents do, the more your own to-do list becomes the thing everything waits on. Make your part fast and phone-sized.
