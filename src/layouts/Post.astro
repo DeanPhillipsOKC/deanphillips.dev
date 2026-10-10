@@ -1,0 +1,62 @@
+---
+import Base from './Base.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props { post: CollectionEntry<'blog'> }
+const { post } = Astro.props;
+const d = post.data;
+const month = d.date.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const headline = d.titleAccent ? d.title.replace(d.titleAccent, '').trim() : d.title;
+---
+<Base
+  title={`${d.tabTitle ?? d.title} | Dean Phillips`}
+  description={d.description}
+  ogTitle={d.title}
+  ogType="article"
+  current="writing"
+>
+  <div class="prose head">
+    <p class="eyebrow">{d.eyebrow} &middot; {month}</p>
+    <h1>{headline}{d.titleAccent && <> <span class="grad-text">{d.titleAccent}</span></>}</h1>
+    <p class="dek">{d.dek}</p>
+    <div class="byline">
+      <img src="/img/dean-256.webp" alt="" width="40" height="40">
+      <div><b>Dean Phillips</b><br><time datetime={d.date.toISOString().slice(0, 10)}>{month}</time> &middot; About a {d.readMinutes} minute read</div>
+    </div>
+  </div>
+  <article class="prose post-body">
+    <slot />
+  </article>
+</Base>
+
+<style>
+  .prose { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  .head { position: relative; z-index: 1; padding-top: 64px; padding-bottom: 8px; }
+  .head .eyebrow { margin-bottom: 14px; }
+  .head h1 { font-size: clamp(2.1rem, 5.4vw, 3.3rem); margin: 0 0 18px; line-height: 1.15; }
+  .dek { font-size: 1.2rem; color: var(--muted); margin: 0 0 22px; }
+  .byline { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+  .byline img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+  .byline b { color: var(--text); font-weight: 600; }
+  @media (max-width: 560px) { .head { padding-top: 40px; } }
+
+  /* Post body: Markdown output isn't scoped, so these reach it with :global. */
+  .post-body { font-size: 18px; line-height: 1.7; padding-bottom: 40px; }
+  .post-body :global(h2) { font-size: clamp(1.5rem, 3.4vw, 2rem); margin: 64px 0 14px; line-height: 1.15; }
+  .post-body :global(h3) { font-size: 1.2rem; margin: 32px 0 8px; }
+  .post-body :global(p), .post-body :global(li) { color: color-mix(in srgb, var(--text) 88%, var(--muted)); }
+  .post-body :global(ul), .post-body :global(ol) { padding-left: 1.2em; }
+  .post-body :global(li) { margin-bottom: 6px; }
+  .post-body :global(figure) { margin: 36px auto; }
+  .post-body :global(figcaption) { color: var(--muted); font-size: 0.9rem; margin-top: 12px; text-align: center; }
+  .post-body :global(.panel) { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; }
+  .post-body :global(.tag) { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; margin-right: 4px; line-height: 1.5; }
+  .post-body :global(.tag.await) { color: var(--warn); }
+  .post-body :global(.tag.replied) { color: var(--ok); }
+  .post-body :global(.end) { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 28px; color: var(--muted); font-size: 0.95rem; }
+  @media (min-width: 561px) { .post-body :global(.bleed) { margin-left: -20px; margin-right: -20px; } }
+  @media (max-width: 560px) {
+    .post-body { font-size: 17px; }
+    .post-body :global(.panel) { padding: 16px; border-radius: 18px; }
+  }
+</style>

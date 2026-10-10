@@ -1,9 +1,13 @@
-// Cloudflare Worker that serves the static site in public/ at deanphillips.dev.
+// Cloudflare Worker that serves the Astro build in dist/ at deanphillips.dev.
+// `wrangler deploy` runs the build first, so a push only needs the usual deploy step.
 {
   "name": "deanphillips-dev",
   "compatibility_date": "2026-10-01",
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
-    "directory": "./public",
+    "directory": "./dist",
     "not_found_handling": "404-page"
   }
 }

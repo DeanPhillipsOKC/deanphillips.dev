@@ -1,0 +1,47 @@
+---
+// Numbered steps on the left (default slot, an <ol>) beside a mock phone showing the exchange.
+interface Props {
+  issue: string;
+  question: string;
+  options: string[];
+  reply: string;
+  caption?: string;
+}
+const { issue, question, options, reply, caption } = Astro.props;
+---
+<figure class="panel">
+  <div class="ask">
+    <div class="steps"><slot /></div>
+    <div class="phone" aria-hidden="true">
+      <div class="bar"></div>
+      <p class="issue"><b>{issue}</b><br><span class="tag replied">dean-replied</span></p>
+      <div class="bubble bot">
+        <span class="who">github-actions[bot]</span>@DeanPhillipsOKC {question}
+        {options.map((o, i) => <span class="opt"><b>{String.fromCharCode(65 + i)}</b> {o}</span>)}
+        <span class="opt">Reply A or B, plus any notes.</span>
+      </div>
+      <div class="bubble me">{reply}</div>
+    </div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .ask { display: grid; grid-template-columns: 1fr 300px; gap: 34px; align-items: center; }
+  .steps :global(ol) { margin: 0; padding-left: 1.2em; }
+  .steps :global(li) { font-size: 0.95rem; margin-bottom: 10px; }
+  .phone { border: 1px solid var(--line); background: var(--bg-2); border-radius: 34px; padding: 18px 14px 22px; box-shadow: 0 24px 50px rgba(0,0,0,.28); }
+  .bar { width: 70px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 14px; }
+  .issue { font-size: 0.78rem; color: var(--muted); margin: 0 4px 10px; }
+  .issue b { color: var(--text); }
+  .bubble { font-size: 0.82rem; line-height: 1.45; border-radius: 16px; padding: 10px 12px; margin-bottom: 10px; }
+  .bot { background: var(--card); border: 1px solid var(--line); border-top-left-radius: 4px; }
+  .who { font-size: 0.7rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 4px; }
+  .me { background: color-mix(in srgb, var(--teal) 20%, var(--card)); margin-left: 48px; border-top-right-radius: 4px; }
+  .opt { display: block; margin-top: 6px; }
+  .opt b { color: var(--teal); }
+  @media (max-width: 860px) {
+    .ask { grid-template-columns: 1fr; }
+    .phone { max-width: 320px; margin: 0 auto; width: 100%; }
+  }
+</style>

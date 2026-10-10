@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found | Dean Phillips" description="That page doesn't exist.">
+  <div class="wrap nf">
+    <p class="eyebrow">404</p>
+    <h1>That page isn't here.</h1>
+    <p>Try the <a href="/">home page</a> or the <a href="/blog/">writing</a>.</p>
+  </div>
+</Base>
+
+<style>
+  .nf { position: relative; z-index: 1; padding-top: 96px; padding-bottom: 96px; }
+  .nf h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 12px; }
+  .nf p { color: var(--muted); }
+</style>

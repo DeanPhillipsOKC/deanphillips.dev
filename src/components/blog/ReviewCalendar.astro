@@ -1,0 +1,45 @@
+---
+// A 28-day grid showing which review runs on which day of the month.
+interface Props {
+  events: { day: number; label: string; tone: 'sec' | 'ux' | 'pm' | 'ops' }[];
+  // Days that get a small dot (the weekly digest).
+  dots?: number[];
+  caption?: string;
+}
+const { events, dots = [], caption } = Astro.props;
+const days = Array.from({ length: 28 }, (_, i) => i + 1);
+const byDay = new Map(events.map((e) => [e.day, e]));
+const ord = (n: number) => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
+---
+<figure class="panel">
+  <div class="cal" aria-label="Monthly review calendar">
+    {days.map((d) => {
+      const e = byDay.get(d);
+      return <div class:list={[e && ['ev', e.tone], dots.includes(d) && 'digest']}>{d}{e && <span>{e.label}</span>}</div>;
+    })}
+  </div>
+  <div class="cal-key" aria-hidden="true">
+    {events.map((e) => <span class={e.tone}>{ord(e.day)}: {e.label}</span>)}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal div { aspect-ratio: 1.25; border-radius: 10px; background: var(--bg-2); border: 1px solid var(--line); font-size: 0.72rem; color: var(--muted); padding: 6px 7px; position: relative; overflow: hidden; }
+  .cal div.ev { border-color: currentColor; }
+  .cal div.ev span { position: absolute; left: 7px; right: 6px; bottom: 6px; font-size: 0.74rem; font-weight: 600; line-height: 1.2; }
+  .sec { color: var(--pink); }
+  .ux { color: var(--violet); }
+  .pm { color: var(--teal); }
+  .ops { color: var(--warn); }
+  .cal .digest::after { content: ""; position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .cal-key { display: none; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 14px 0 0; font-size: 0.82rem; font-weight: 600; }
+  @media (max-width: 560px) {
+    .cal { gap: 4px; }
+    .cal div { padding: 4px; font-size: 0.62rem; aspect-ratio: 0.9; }
+    .cal div.ev span { display: none; }
+    .cal div.ev { background: color-mix(in srgb, currentColor 14%, var(--bg-2)); }
+    .cal-key { display: grid; }
+  }
+</style>

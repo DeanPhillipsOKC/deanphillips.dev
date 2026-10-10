@@ -1,0 +1,19 @@
+---
+interface Props {
+  stats: { value: string; label: string }[];
+}
+const { stats } = Astro.props;
+---
+<div class="stats">
+  {stats.map((s) => <div class="stat"><b class="grad-text">{s.value}</b><span>{s.label}</span></div>)}
+</div>
+
+<style>
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 40px -110px 0; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+  .stat b { display: block; font-family: "Space Grotesk", sans-serif; font-size: 2rem; line-height: 1.1; }
+  .stat span { color: var(--muted); font-size: 0.88rem; line-height: 1.4; display: block; margin-top: 4px; }
+  @media (max-width: 980px) { .stats { margin-left: 0; margin-right: 0; } }
+  @media (max-width: 860px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .stat b { font-size: 1.6rem; } }
+</style>

@@ -1,0 +1,40 @@
+---
+interface Props {
+  lanes: { name: string; text: string; models: { model: 'Opus' | 'Sonnet'; when: string }[] }[];
+  caption?: string;
+}
+const { lanes, caption } = Astro.props;
+---
+<figure class="panel">
+  <div class="lanes">
+    {lanes.map((l) => (
+      <div class="lane">
+        <h3>{l.name}</h3>
+        <p>{l.text}</p>
+        {l.models.map((m) => <div class:list={['model', m.model.toLowerCase()]}><i></i>{m.model}<small>{m.when}</small></div>)}
+      </div>
+    ))}
+  </div>
+  <div class="dispatcher">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+    <span><slot /></span>
+  </div>
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .lanes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .lane { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .lane h3 { margin: 0 0 4px; font-size: 1.1rem; }
+  .lane p { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); line-height: 1.45; }
+  .model { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; padding: 7px 10px; border-radius: 10px; margin-top: 6px; border: 1px solid var(--line); background: var(--card); }
+  .model i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .model.opus i { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
+  .model.sonnet i { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+  .model small { color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .dispatcher { margin-top: 14px; display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--line); font-size: 0.9rem; color: var(--muted); }
+  .dispatcher :global(b) { color: var(--text); }
+  .dispatcher svg { flex: none; width: 34px; height: 34px; color: var(--teal); }
+  @media (max-width: 860px) { .lanes { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .lanes { grid-template-columns: 1fr; } }
+</style>
