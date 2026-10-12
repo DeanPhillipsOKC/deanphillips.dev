@@ -11,7 +11,9 @@ const { lanes, caption } = Astro.props;
       <div class="lane">
         <h3>{l.name}</h3>
         <p>{l.text}</p>
-        {l.models.map((m) => <div class:list={['model', m.model.toLowerCase()]}><i></i>{m.model}<small>{m.when}</small></div>)}
+        <div class="models">
+          {l.models.map((m) => <div class:list={['model', m.model.toLowerCase()]}><i></i>{m.model}<small>{m.when}</small></div>)}
+        </div>
       </div>
     ))}
   </div>
@@ -36,5 +38,11 @@ const { lanes, caption } = Astro.props;
   .dispatcher :global(b) { color: var(--text); }
   .dispatcher svg { flex: none; width: 34px; height: 34px; color: var(--teal); }
   @media (max-width: 860px) { .lanes { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 560px) { .lanes { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) {
+    .lanes { grid-template-columns: 1fr; gap: 10px; }
+    .lane { padding: 14px; }
+    .lane p { margin-bottom: 8px; }
+    .models { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
+    .model { margin-top: 0; }
+  }
 </style>

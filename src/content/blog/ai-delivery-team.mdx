@@ -16,6 +16,7 @@ import Lanes from '../../components/blog/Lanes.astro';
 import Steps from '../../components/blog/Steps.astro';
 import AskOwner from '../../components/blog/AskOwner.astro';
 import Callout from '../../components/blog/Callout.astro';
+import ChatThread from '../../components/blog/ChatThread.astro';
 
 <StatRow stats={[
   { value: '21', label: 'days since the first commit' },
@@ -151,6 +152,26 @@ When a build run ships one of those, it writes a full test case into the QA proc
 Support email goes through a `triage-support` skill. It started as something I ran by hand. Now a plain GitHub Actions job checks the support label in Gmail every six hours, read-only, and only starts the agent when something new is waiting. An empty inbox costs nothing.
 
 For each email the agent checks the report against the code, looks for duplicates, and opens a tracking issue with its recommendation and a drafted reply. Then it asks me through the same ask-the-owner loop in section 5: send the reply and file the fix, send the reply only, or park it. My answer starts the agent right away, and it sends exactly the text I approved. Nothing goes to a customer without my pick.
+
+Here's what that looks like from my side. It's based on a real report from the first day this ran, shortened a little.
+
+<ChatThread
+  title="Support: Restore doesn't work on Android"
+  subtitle="GitHub issue, on my phone"
+  caption="Bubbles are GitHub comments. The gray pills are things that happen with no AI involved: a scheduled job, a label flip, the dispatcher."
+  messages={[
+    { from: 'email', name: 'hello@repbunny.app', time: '7:48 PM', text: '"Restore from a backup doesn\'t work. I type RESTORE and the button stays gray. Also, should restore even be allowed while a workout is in progress?"' },
+    { from: 'event', text: 'Scheduled check finds <b>1 new support email</b> and starts the triage agent' },
+    { from: 'bot', time: '8:02 PM', text: 'Found two things. Android\'s autocomplete adds a space after RESTORE, and the confirm needs an exact match, so the button never turns on. Reset and Erase have the same problem. Also, Restore is only blocked while you\'re actively logging. If the app was closed mid-workout, it\'s allowed and quietly deletes that workout.<br><br>Proposed fix: ignore spaces and case on all three confirms, and block Restore until an unfinished workout is finished or discarded. Bug, effort 2, value 3.', options: ['File it as proposed (recommended)', 'Park it for later', 'Don\'t file it'] },
+    { from: 'me', time: '8:13 PM', text: 'Why does it need to be blocked? Doesn\'t restore delete everything anyway, including the workout in progress?' },
+    { from: 'event', text: 'My comment flips <b>awaiting-dean</b> to <b>dean-replied</b> and starts the agent' },
+    { from: 'bot', time: '8:15 PM', text: 'Yes, it deletes all of it. The block is there so nobody loses a workout they forgot was open. If you\'d rather allow it, B keeps the confirm fix and adds a warning that the unfinished workout will be erased too.', options: ['Block Restore during an unfinished workout (recommended)', 'Allow it, with the warning'] },
+    { from: 'me', time: '8:34 PM', text: 'B' },
+    { from: 'bot', time: '8:35 PM', text: 'Filed as a bug: forgiving confirms on Restore, Reset, and Erase, plus the warning instead of a block. Effort 2, value 3.' },
+    { from: 'event', text: 'Dispatcher sees work in the <b>Bugs</b> lane. Effort 2 is under 5, so it starts <b>Bugs (Sonnet)</b>' },
+    { from: 'event', text: 'Build plus <b>677 end-to-end tests</b> pass. The agent merges, closes the issue, and emails me what shipped' },
+  ]}
+/>
 
 ## 5. When the team needs me
 
