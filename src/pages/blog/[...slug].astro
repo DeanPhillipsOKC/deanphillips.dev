@@ -3,7 +3,9 @@ import { getCollection, render } from 'astro:content';
 import Post from '../../layouts/Post.astro';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', (p) => !p.data.draft);
+  // Drafts build too, as unlisted previews: Post.astro marks them noindex with a banner, and the
+  // Writing page, RSS, sitemap, and series nav all leave them out. Publishing is `draft: false`.
+  const posts = await getCollection('blog');
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 

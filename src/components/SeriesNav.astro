@@ -6,7 +6,8 @@ interface Props { post: CollectionEntry<'blog'>; position: 'top' | 'bottom' }
 const { post, position } = Astro.props;
 const series = post.data.series;
 const parts = series
-  ? (await getCollection('blog', (p) => !p.data.draft && p.data.series === series))
+  // A draft preview sees itself in the list; published posts never see drafts.
+  ? (await getCollection('blog', (p) => p.data.series === series && (!p.data.draft || p.id === post.id)))
       .sort((a, b) => (a.data.part ?? 0) - (b.data.part ?? 0))
   : [];
 const i = parts.findIndex((p) => p.id === post.id);
