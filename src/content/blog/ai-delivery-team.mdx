@@ -3,9 +3,9 @@ title: "I ship an app while I'm at work. Here's the AI team that does it."
 titleAccent: "Here's the AI team that does it."
 tabTitle: My AI Delivery Team
 description: How RepBunny's backlog, tests, releases, and monthly reviews run on AI agents, GitHub Issues, and a handful of labels.
-dek: RepBunny went from first commit to 223 closed issues in 19 days. I have a full-time job, so most of that work happened while I was somewhere else. This is an experiment in how far that can go, run on an app that keeps all its data on the user's phone.
+dek: RepBunny went from first commit to 251 closed issues in 21 days. I have a full-time job, so most of that work happened while I was somewhere else. This is an experiment in how far that can go, run on an app that keeps all its data on the user's phone.
 date: 2026-10-10
-readMinutes: 12
+readMinutes: 14
 image: /img/og/ai-delivery-team.jpg
 cover: ../../assets/blog/ai-delivery-team.png
 ---
@@ -18,11 +18,13 @@ import AskOwner from '../../components/blog/AskOwner.astro';
 import Callout from '../../components/blog/Callout.astro';
 
 <StatRow stats={[
-  { value: '19', label: 'days since the first commit' },
-  { value: '569', label: 'commits to main' },
-  { value: '223', label: 'GitHub issues closed' },
-  { value: '635', label: 'end-to-end tests run before every merge' },
+  { value: '21', label: 'days since the first commit' },
+  { value: '595', label: 'commits to main' },
+  { value: '251', label: 'GitHub issues closed' },
+  { value: '677', label: 'end-to-end tests run before every merge' },
 ]} />
+
+*Updated October 12, 2026: support email now runs without me at the laptop, mid-sized work moved to the stronger model, and there's a new plan for testing the things automated tests can't reach. See sections 2, 4, and "What broke along the way."*
 
 <Callout title="This is an experiment, and I picked a safe place to run it.">RepBunny keeps every workout on the phone it was logged on. There are no user accounts, no shared database, and no servers of mine holding anyone's data. So when I let AI agents merge code with no human code review, the worst a bad change can do is break the app on a phone, and a person still tests every release on a real phone before it goes public. It can't leak anyone's information, because I never have it. I wouldn't run this setup on an app that held other people's data.</Callout>
 
@@ -39,7 +41,7 @@ None of that is one giant prompt. It's about ten small skills, a dozen GitHub Ac
     { who: 'ai', title: 'Refine', text: 'An agent checks it against the code and rewrites it as a spec with effort and value scores.' },
     { who: 'auto', title: 'Dispatch', text: "A plain script sees work in a lane and starts that lane's agent." },
     { who: 'ai', title: 'Build', text: 'The agent claims the top issue by ROI and writes the change.' },
-    { who: 'auto', title: 'Gate', text: 'Full build plus 635 end-to-end tests. Red means fix or stop.' },
+    { who: 'auto', title: 'Gate', text: 'Full build plus 677 end-to-end tests. Red means fix or stop.' },
     { who: 'ai', title: 'Merge', text: 'Green means the agent merges its own PR and closes the issue.' },
     { who: 'auto', title: 'Tell me', text: 'A "shipped" email lands with what changed and how it was tested.' },
     { who: 'me', title: 'Release', text: 'I cut a release candidate and smoke test it on a real phone before it goes public.' },
@@ -50,7 +52,7 @@ None of that is one giant prompt. It's about ten small skills, a dozen GitHub Ac
 
 Most of my ideas show up at the gym or in a meeting, so I file them from the GitHub app as one-liners. "Rest timer should buzz on the watch." That's not something an agent can build reliably.
 
-A `refine-backlog` skill fixes that. It finds issues that haven't been scored yet, reads the code they'd touch, checks for duplicates, and rewrites each one with a clear problem, acceptance criteria, and the files involved. Then it labels it with an effort score and a value score from 1 to 10. Value divided by effort is the ROI, and ROI decides what gets built next. If it hits a question only I can answer, it asks me (more on how in section 5) instead of guessing.
+A `refine-backlog` skill fixes that. It finds issues that haven't been scored yet, reads the code they'd touch, checks for duplicates, and rewrites each one with a clear problem, acceptance criteria, and the files involved. Then it labels it with an effort score and a value score, each on a Fibonacci scale (1, 2, 3, 5, 8, 13). Value divided by effort is the ROI, and ROI decides what gets built next. If it hits a question only I can answer, it asks me (more on how in section 5) instead of guessing.
 
 Not everything waits for me to think of it. Four review agents run once a month, each playing a different role:
 
@@ -80,9 +82,9 @@ Early on I ran one agent in a loop on my laptop. It worked, but it meant the lap
   caption="Seven routines in four lanes. A label like <code>model:opus</code> overrides the default when I know a small issue is tricky."
   lanes={[
     { name: 'UX', text: 'Anything labeled UX-heavy. Taste matters here.', models: [{ model: 'Opus', when: 'always' }] },
-    { name: 'Features', text: 'New behavior users will see.', models: [{ model: 'Sonnet', when: 'effort ≤ 5' }, { model: 'Opus', when: 'effort > 5' }] },
-    { name: 'Bugs', text: 'Something is wrong and someone noticed.', models: [{ model: 'Sonnet', when: 'effort ≤ 5' }, { model: 'Opus', when: 'effort > 5' }] },
-    { name: 'Tech', text: 'Tooling, tests, docs, and everything else.', models: [{ model: 'Sonnet', when: 'effort ≤ 5' }, { model: 'Opus', when: 'effort > 5' }] },
+    { name: 'Features', text: 'New behavior users will see.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
+    { name: 'Bugs', text: 'Something is wrong and someone noticed.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
+    { name: 'Tech', text: 'Tooling, tests, docs, and everything else.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
   ]}
 >
   <b>Dispatcher:</b> a GitHub Actions workflow with no AI in it. When an issue opens or closes, it checks each of the 7 lane and model pairs. Work waiting and nobody busy? It fires that pair's routine. Otherwise it does nothing.
@@ -91,6 +93,8 @@ Early on I ran one agent in a loop on my laptop. It worked, but it meant the lap
 The dispatcher is the part I'm proudest of, mostly because it's boring. It's a short Node script. It costs about one free Actions minute per run and zero AI usage. An empty backlog costs nothing, and a lane starts its next issue as soon as the last one ships.
 
 Lanes run in parallel, so two agents can be running the test suite at the same moment. Each lane gets its own isolated test data, so they don't trip over each other.
+
+The cutoff between models moved once already. Effort 5 used to go to Sonnet. Then I started asking every build run to also decide whether its change needs a manual check on a real phone (section 4), and a mid-sized change plus that judgment call felt like too much for the cheaper model. Effort 5 and up now goes to Opus. It was a one-line change in the picker script.
 
 ## 3. The gate is the code review
 
@@ -101,7 +105,7 @@ Here's the decision that surprises people: there's no human code review. An agen
   steps={[
     { title: 'Claim', text: 'Label the issue <code>in-progress</code> so no other lane takes it.' },
     { title: 'Build', text: 'Write the change, plus tests for it.' },
-    { title: 'Gate', text: '<code>npm run build</code> and all 635 end-to-end tests.' },
+    { title: 'Gate', text: '<code>npm run build</code> and all 677 end-to-end tests.' },
     { title: 'Catch up', text: 'If main moved, merge it in and run the whole gate again.' },
     { title: 'Merge', text: 'Self-merge the PR, close the issue, post a summary.' },
   ]}
@@ -109,7 +113,7 @@ Here's the decision that surprises people: there's no human code review. An agen
   <b>If the gate stays red</b> after a few honest fix attempts, the agent stops, labels the issue <code>status:blocked</code>, writes down what it tried, and commits nothing.
 </Steps>
 
-I spent years as an embedded tester, so trusting tests over eyeballs isn't new to me. A reviewer skimming a diff catches some things. A suite of 635 end-to-end tests driving the real app catches the things users would actually hit, and it does it the same way every time. The rule for the agents is that every change ships with tests, and a test that only passes because it was weakened counts as a failure.
+I spent years as an embedded tester, so trusting tests over eyeballs isn't new to me. A reviewer skimming a diff catches some things. A suite of 677 end-to-end tests driving the real app catches the things users would actually hit, and it does it the same way every time. The rule for the agents is that every change ships with tests, and a test that only passes because it was weakened counts as a failure.
 
 <Callout title="This only makes sense because of what's at stake.">Two people use the app right now, and none of their data ever leaves their phones. The project docs say plainly that if that changes, the no-review approach gets revisited first.</Callout>
 
@@ -134,7 +138,19 @@ That second part matters most for an app like this. All of a user's workouts liv
   ]}
 />
 
-Support email goes through a `triage-support` skill. It reads only the support label in Gmail, sorts real bugs from questions, suggests an issue for each bug, and drafts a reply. I approve, edit, or toss each draft. Nothing gets sent or filed without me picking it.
+### Manual testing comes in batches
+
+The weak spot in all this is me. I don't cut phone builds every day, so a lot of shipped work sat untested on a real device for a while. Then one manual pass on an Android build turned up about ten bugs the automated suite couldn't have caught. It runs in a desktop browser, so it never sees things like the keyboard's autocomplete adding a space to a word you typed, or what happens when Android kills the app in the background mid-workout.
+
+So I changed the deal. The end-to-end suite is trusted for app logic, and I don't hand-test that. Manual checks are only for things a real phone has to show: notifications and alarms, home screen widgets, store purchases, keyboard quirks, the app being killed and resumed, and upgrades over an existing install.
+
+When a build run ships one of those, it writes a full test case into the QA procedure and adds a line to one open "Android QA batch" issue. When the batch gets big enough, it asks me once whether it's time to cut a build. I build, work through the batch on the phone, and close it. The next change like that starts a new batch. This part is being built this week, by the same agents it's about.
+
+### Support runs on its own
+
+Support email goes through a `triage-support` skill. It started as something I ran by hand. Now a plain GitHub Actions job checks the support label in Gmail every six hours, read-only, and only starts the agent when something new is waiting. An empty inbox costs nothing.
+
+For each email the agent checks the report against the code, looks for duplicates, and opens a tracking issue with its recommendation and a drafted reply. Then it asks me through the same ask-the-owner loop in section 5: send the reply and file the fix, send the reply only, or park it. My answer starts the agent right away, and it sends exactly the text I approved. Nothing goes to a customer without my pick.
 
 ## 5. When the team needs me
 
@@ -154,7 +170,7 @@ Now they ask on GitHub, in a format I can answer from my phone in ten seconds.
     <li>A workflow posts it as the GitHub bot (GitHub won't notify me about comments made as me, and agents act as me) and labels the issue <span class="tag await">awaiting-dean</span>.</li>
     <li>My phone buzzes. I reply "A" on the issue or straight from the email.</li>
     <li>Another workflow sees the repo owner replied and flips the label to <span class="tag replied">dean-replied</span>.</li>
-    <li>The next agent run picks up the answer and keeps going.</li>
+    <li>The agent that asked picks up the answer and keeps going. For support questions, my reply starts it right away.</li>
   </ol>
 </AskOwner>
 
@@ -168,6 +184,9 @@ This didn't work the first time, and the misses taught me more than the wins.
 - **A run worked the wrong issue.** An early dispatcher marked the issue `in-progress` before starting the agent. But the agent's own picker hides in-progress issues, so it skipped the one it was sent for, built a different one, and left the first claim stranded. The fix was a separate `dispatched` label the picker knows to put first.
 - **Cloud sessions see a smaller GitHub.** The proxy in cloud sessions refuses GraphQL and search, which is what the `gh` CLI uses for a lot of commands. Every skill had to switch to plain REST calls with explicit page numbers.
 - **One big loop cost more than many small ones.** A laptop script that ran the builder over and over burned more tokens than separate short sessions, since context piled up. That's part of why the lanes are one issue per run.
+- **My phone undid my own answer.** I replied "A" on a question, then removed a label on the same issue in the GitHub app. The app saves labels as a full list, and the screen I edited from was loaded before my reply flipped the label. So it put `awaiting-dean` back and took `dean-replied` off, and the agent decided I hadn't answered. Now the helper counts a comment from me after the question as the answer, whatever the labels say.
+- **A builder grabbed a question.** Support tracking issues stayed out of the build lanes only because of one label. I removed it while answering, and twenty minutes later a lane started building the option I was about to turn down. The lanes now skip anything that's a support issue or waiting on me, no matter what other labels it has.
+- **The support agent showed up with nothing.** Its first cloud run reported that the skill didn't exist. I'd created the routine without attaching the repo, so there was no code to read. One setting.
 
 Each of those became an issue, and most were fixed by the agents themselves.
 
@@ -179,6 +198,6 @@ A few things I'd do again on day one:
 2. **Invest in the test suite before the automation.** The gate is what lets you skip code review. Without it, you're just merging faster in the dark. And keep a human between the gate and your users.
 3. **Keep the glue dumb.** The dispatcher, emails, and ask-the-owner flow have no AI in them. They're cheap, predictable, and easy to debug.
 4. **Write the rules down in the repo.** Every decision I make ends up in a docs file the agents read at the start of each run. That's how a choice I made on Tuesday still holds on Friday.
-5. **Plan for yourself as the bottleneck.** The more the agents do, the more your own to-do list becomes the thing everything waits on. Make your part fast and phone-sized.
+5. **Plan for yourself as the bottleneck.** The more the agents do, the more your own to-do list becomes the thing everything waits on. Make your part fast and phone-sized, and batch the parts that can't be.
 
 <p class="end">RepBunny is in a small private pilot and coming to iPhone and Android. You can read about it at <a href="https://repbunny.app">repbunny.app</a>. Questions about any of this? Email me at <a href="mailto:me@deanphillips.dev">me@deanphillips.dev</a>.</p>
