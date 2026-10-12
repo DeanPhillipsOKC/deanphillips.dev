@@ -11,6 +11,11 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
 - Don't apologize for the work, and don't open with nerves. State what happened and let it stand.
 - Every number and claim has to be checked against the RepBunny repo or its GitHub issues. Don't
   write anything you can't point to.
+- **Dean's role is the design, not a bystander's.** Never write "AI built it" or "I'm not writing it
+  myself" as if he just watched. He designed the system that lets AI agents work autonomously
+  without lowering the bar, makes the decisions, and tests everything before it ships, all
+  alongside a full-time job. For non-developers: "I make the decisions, they do the typing, and
+  nothing goes out without my testing it."
 
 ## What RepBunny is, in public
 
