@@ -1,0 +1,76 @@
+---
+title: "My AI agents ask me questions. I answer from my phone."
+tabTitle: Asking From My Phone
+partTitle: Agents that ask me from my phone
+description: How AI agents ask the owner product questions on GitHub, how support email gets triaged without me at a laptop, and what broke along the way.
+dek: Agents hit decisions they shouldn't make alone. Instead of blocking until I'm at a laptop, they ask on GitHub, and I answer in ten seconds from wherever I am.
+date: 2026-10-12
+readMinutes: 5
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 3
+---
+import AskOwner from '../../components/blog/AskOwner.astro';
+import ChatThread from '../../components/blog/ChatThread.astro';
+
+This is part 3 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part covers the one place the agents still need me: decisions.
+
+## The ask-the-owner loop
+
+Agents run into decisions they shouldn't make alone: a product tradeoff, a privacy question, a setting only I can change. The first version of this blocked the run and waited for me to show up at the laptop. That made me the bottleneck.
+
+Now they ask on GitHub, in a format I can answer from my phone in ten seconds.
+
+<AskOwner
+  caption="The ask-the-owner loop. Example question is illustrative."
+  issue="Rest timer vibration"
+  question="Should the rest timer still vibrate when the phone is on silent?"
+  options={["Yes, vibrate unless the user turns it off (recommended)", "No, follow the phone's silent setting"]}
+  reply="A. Most people lift with the phone on silent."
+>
+  <ol>
+    <li>The agent calls a small helper with one question, enough context to decide from a phone, and lettered options with its recommendation first.</li>
+    <li>A workflow posts it as the GitHub bot (GitHub won't notify me about comments made as me, and agents act as me) and labels the issue <span class="tag await">awaiting-dean</span>.</li>
+    <li>My phone buzzes. I reply "A" on the issue or straight from the email.</li>
+    <li>Another workflow sees the repo owner replied and flips the label to <span class="tag replied">dean-replied</span>.</li>
+    <li>The agent that asked picks up the answer and keeps going. For support questions, my reply starts it right away.</li>
+  </ol>
+</AskOwner>
+
+One rule makes this safe: agents never comment on an issue that's waiting on me. They post as my account, so their comment would look like my answer. They can only ask through the bot.
+
+## Support runs on its own
+
+Support email goes through a `triage-support` skill. It started as something I ran by hand. Now a plain GitHub Actions job checks the support label in Gmail every six hours, read-only, and only starts the agent when something new is waiting. An empty inbox costs nothing.
+
+For each email the agent checks the report against the code, looks for duplicates, and opens a tracking issue with its recommendation and a drafted reply. Then it asks me through the same loop: send the reply and file the fix, send the reply only, or park it. My answer starts the agent right away, and it sends exactly the text I approved. Nothing goes to a customer without my pick.
+
+Here's what that looks like from my side. It's based on a real report from the first day this ran, shortened a little.
+
+<ChatThread
+  title="Support: Restore doesn't work on Android"
+  subtitle="GitHub issue, on my phone"
+  caption="Bubbles are GitHub comments. The gray pills are things that happen with no AI involved: a scheduled job, a label flip, the dispatcher."
+  messages={[
+    { from: 'email', name: 'hello@repbunny.app', time: '7:48 PM', text: '"Restore from a backup doesn\'t work. I type RESTORE and the button stays gray. Also, should restore even be allowed while a workout is in progress?"' },
+    { from: 'event', text: 'Scheduled check finds <b>1 new support email</b> and starts the triage agent' },
+    { from: 'bot', time: '8:02 PM', text: 'Found two things. Android\'s autocomplete adds a space after RESTORE, and the confirm needs an exact match, so the button never turns on. Reset and Erase have the same problem. Also, Restore is only blocked while you\'re actively logging. If the app was closed mid-workout, it\'s allowed and quietly deletes that workout.<br><br>Proposed fix: ignore spaces and case on all three confirms, and block Restore until an unfinished workout is finished or discarded. Bug, effort 2, value 3.', options: ['File it as proposed (recommended)', 'Park it for later', 'Don\'t file it'] },
+    { from: 'me', time: '8:13 PM', text: 'Why does it need to be blocked? Doesn\'t restore delete everything anyway, including the workout in progress?' },
+    { from: 'event', text: 'My comment flips <b>awaiting-dean</b> to <b>dean-replied</b> and starts the agent' },
+    { from: 'bot', time: '8:15 PM', text: 'Yes, it deletes all of it. The block is there so nobody loses a workout they forgot was open. If you\'d rather allow it, B keeps the confirm fix and adds a warning that the unfinished workout will be erased too.', options: ['Block Restore during an unfinished workout (recommended)', 'Allow it, with the warning'] },
+    { from: 'me', time: '8:34 PM', text: 'B' },
+    { from: 'bot', time: '8:35 PM', text: 'Filed as a bug: forgiving confirms on Restore, Reset, and Erase, plus the warning instead of a block. Effort 2, value 3.' },
+    { from: 'event', text: 'Dispatcher sees work in the <b>Bugs</b> lane. Effort 2 is under 5, so it starts <b>Bugs (Sonnet)</b>' },
+    { from: 'event', text: 'Build plus the <b>full end-to-end suite</b> pass. The agent merges, closes the issue, and emails me what shipped' },
+  ]}
+/>
+
+## What broke
+
+All three of these happened on the first day the support loop ran on its own.
+
+- **The support agent showed up with nothing.** Its first cloud run reported that the skill didn't exist. I'd created the routine without attaching the repo, so there was no code to read. One setting.
+- **My phone undid my own answer.** I replied "A" on a question, then removed a label on the same issue in the GitHub app. The app saves labels as a full list, and the screen I edited from was loaded before my reply flipped the label. So it put `awaiting-dean` back and took `dean-replied` off, and the agent decided I hadn't answered. Now the helper counts a comment from me after the question as the answer, whatever the labels say.
+- **A builder grabbed a question.** Support tracking issues stayed out of the build lanes only because of one label. I removed it while answering, and twenty minutes later a lane started building the option I was about to turn down. The lanes now skip anything that's a support issue or waiting on me, no matter what other labels it has.
+
+The first was a setting I fixed by hand. The other two became one issue that a lane built, gated, and merged the same day.

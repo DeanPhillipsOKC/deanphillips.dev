@@ -20,6 +20,12 @@ const blog = defineCollection({
     // Art with no text, shown as the post's thumbnail on the Writing page.
     cover: image().optional(),
     draft: z.boolean().default(false),
+    // Posts sharing a `series` id get a part nav. Part 0 is the overview, the only one listed on the
+    // Writing page; the rest show as a list under its card.
+    series: z.string().optional(),
+    part: z.number().int().min(0).optional(),
+    // Short label for the part nav; falls back to tabTitle, then title.
+    partTitle: z.string().optional(),
   }),
 });
 

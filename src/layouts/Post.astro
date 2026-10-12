@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import SeriesNav from '../components/SeriesNav.astro';
 import type { CollectionEntry } from 'astro:content';
 interface Props { post: CollectionEntry<'blog'> }
 const { post } = Astro.props;
@@ -24,9 +25,11 @@ const headline = d.titleAccent ? d.title.replace(d.titleAccent, '').trim() : d.t
       <div><b>Dean Phillips</b><br><time datetime={d.date.toISOString().slice(0, 10)}>{month}</time> &middot; About a {d.readMinutes} minute read</div>
     </div>
   </div>
+  <SeriesNav post={post} position="top" />
   <article class="prose post-body">
     <slot />
   </article>
+  <SeriesNav post={post} position="bottom" />
 </Base>
 
 <style>

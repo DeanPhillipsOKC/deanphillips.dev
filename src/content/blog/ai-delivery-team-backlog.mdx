@@ -1,0 +1,73 @@
+---
+title: "From a one-line idea to the right AI agent"
+tabTitle: Ideas, Reviews, and Lanes
+partTitle: From a one-line idea to the right agent
+description: How rough notes become scored specs, how monthly review agents fill the backlog, and how a dispatcher with no AI in it sends each issue to the cheapest model that can do it.
+dek: Most of my ideas show up as one-liners typed at the gym. Here's how they become specs an agent can build, and how each one ends up with the right model.
+date: 2026-10-12
+readMinutes: 5
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 1
+---
+import ReviewCalendar from '../../components/blog/ReviewCalendar.astro';
+import Lanes from '../../components/blog/Lanes.astro';
+
+This is part 1 of a series about the AI agents that build [RepBunny](/blog/ai-delivery-team/), a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup in a few minutes. This part covers the front of the pipeline: what goes into the backlog, and who works on it.
+
+## Ideas go in rough, specs come out ready
+
+Most of my ideas show up at the gym or in a meeting, so I file them from the GitHub app as one-liners. "Rest timer should buzz on the watch." That's not something an agent can build reliably.
+
+A `refine-backlog` skill fixes that. It finds issues that haven't been scored yet, reads the code they'd touch, checks for duplicates, and rewrites each one with a clear problem, acceptance criteria, and the files involved. Then it labels it with an effort score and a value score, each on a Fibonacci scale (1, 2, 3, 5, 8, 13). Value divided by effort is the ROI, and ROI decides what gets built next. If it hits a question only I can answer, it [asks me from my phone](/blog/ai-delivery-team-asking/) instead of guessing.
+
+## Reviewers fill the backlog too
+
+Not everything waits for me to think of it. Four review agents run once a month, each playing a different role:
+
+<ReviewCalendar
+  caption="Reviews are spread a week apart so the findings don't all land at once. The small dots are the weekly email digest of tasks waiting on me."
+  events={[
+    { day: 1, label: 'Security audit', tone: 'sec' },
+    { day: 8, label: 'UX review', tone: 'ux' },
+    { day: 15, label: 'Product review', tone: 'pm' },
+    { day: 22, label: 'Process review', tone: 'ops' },
+  ]}
+  dots={[5, 12, 19, 26]}
+/>
+
+- **Security audit** looks for secrets in the code and git history, vulnerable dependencies, and loose permissions in the build pipeline. It also checks that no change has started sending workout data off the phone.
+- **UX review** drives the app, takes 80 or so screenshots across the main journeys, and files real usability problems.
+- **Product review** compares what's shipped against the brand guide and roadmap and files missing features.
+- **Process review** acts like a DevOps engineer looking at the delivery system itself. It has [its own post](/blog/ai-delivery-team-process-review/), because it keeps paying for itself.
+
+Everything a reviewer files comes in with a `status:needs-review` label. The builders can't see it until I remove that label. Reviewers are good at spotting problems and only fair at deciding which ones matter, so I keep that call.
+
+## Lanes, so cheap work goes to cheap models
+
+Early on I ran one agent in a loop on my laptop. It worked, but it meant the laptop had to be on, and every task got the most expensive model whether it needed it or not. Now the backlog is split into lanes, and each lane has its own cloud routine.
+
+<Lanes
+  caption="Seven routines in four lanes. A label like <code>model:opus</code> overrides the default when I know a small issue is tricky."
+  lanes={[
+    { name: 'UX', text: 'Anything labeled UX-heavy. Taste matters here.', models: [{ model: 'Opus', when: 'always' }] },
+    { name: 'Features', text: 'New behavior users will see.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
+    { name: 'Bugs', text: 'Something is wrong and someone noticed.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
+    { name: 'Tech', text: 'Tooling, tests, docs, and everything else.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
+  ]}
+>
+  <b>Dispatcher:</b> a GitHub Actions workflow with no AI in it. When an issue opens or closes, it checks each of the 7 lane and model pairs. Work waiting and nobody busy? It fires that pair's routine. Otherwise it does nothing.
+</Lanes>
+
+The dispatcher is the part I'm proudest of, mostly because it's boring. It's a short Node script. It costs about one free Actions minute per run and zero AI usage. An empty backlog costs nothing, and a lane starts its next issue as soon as the last one ships.
+
+Lanes run in parallel, so two agents can be running the test suite at the same moment. Each lane gets its own isolated test data, so they don't trip over each other.
+
+The cutoff between models moved once already. Effort 5 used to go to Sonnet. Then I started asking every build run to also decide whether its change needs a [manual check on a real phone](/blog/ai-delivery-team-gate/), and a mid-sized change plus that judgment call felt like too much for the cheaper model. Effort 5 and up now goes to Opus. It was a one-line change in the picker script.
+
+## What broke
+
+- **The schedule never fired.** I first ran the dispatcher hourly on a cron. In its first five hours GitHub never ran it once, because scheduled workflows get delayed or skipped when GitHub is busy. Now it reacts to issue events, and the schedule is only a backup every six hours.
+- **A run worked the wrong issue.** An early dispatcher marked the issue `in-progress` before starting the agent. But the agent's own picker hides in-progress issues, so it skipped the one it was sent for, built a different one, and left the first claim stranded. The fix was a separate `dispatched` label the picker knows to put first.
+- **Cloud sessions see a smaller GitHub.** The proxy in cloud sessions refuses GraphQL and search, which is what the `gh` CLI uses for a lot of commands. Every skill had to switch to plain REST calls with explicit page numbers.
+- **One big loop cost more than many small ones.** A laptop script that ran the builder over and over burned more tokens than separate short sessions, since context piled up. That's part of why the lanes are one issue per run.

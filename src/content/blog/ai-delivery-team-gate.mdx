@@ -1,0 +1,66 @@
+---
+title: "No human code review: why I trust tests instead"
+tabTitle: Tests Instead of Code Review
+partTitle: Tests instead of code review
+description: Why AI agents merge their own changes after a full end-to-end gate, why a person still tests every release on a real phone, and how manual Android checks get batched instead of piling up.
+dek: My AI agents merge their own pull requests. Nobody reads the diff. Here's why that's a deliberate choice, and where a person still stands between the code and the people using it.
+date: 2026-10-12
+readMinutes: 4
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 2
+---
+import Steps from '../../components/blog/Steps.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is part 2 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part covers what happens after an agent writes a change: how it gets checked, merged, and finally released.
+
+## The gate is the code review
+
+Here's the decision that surprises people: there's no human code review. An agent that gets a green gate merges its own pull request. That's merging to main, though, not shipping to the public. Releases still go through a person (more on that below).
+
+<Steps
+  caption="What every build run does, in order."
+  steps={[
+    { title: 'Claim', text: 'Label the issue <code>in-progress</code> so no other lane takes it.' },
+    { title: 'Build', text: 'Write the change, plus tests for it.' },
+    { title: 'Gate', text: '<code>npm run build</code> and the full end-to-end suite.' },
+    { title: 'Catch up', text: 'If main moved, merge it in and run the whole gate again.' },
+    { title: 'Merge', text: 'Self-merge the PR, close the issue, post a summary.' },
+  ]}
+>
+  <b>If the gate stays red</b> after a few honest fix attempts, the agent stops, labels the issue <code>status:blocked</code>, writes down what it tried, and commits nothing.
+</Steps>
+
+I spent years as an embedded tester, so trusting tests over eyeballs isn't new to me. A reviewer skimming a diff catches some things. A suite of several hundred end-to-end tests driving the real app catches the things users would actually hit, and it does it the same way every time. The rule for the agents is that every change ships with tests, and a test that only passes because it was weakened counts as a failure.
+
+<Callout title="This only makes sense because of what's at stake.">RepBunny keeps every workout on the phone it was logged on: no accounts, no shared database, no servers holding anyone's data. Two people use it right now. The project docs say plainly that if that changes, the no-review approach gets revisited first.</Callout>
+
+## Nothing reaches the public without a person
+
+When an issue closes, a workflow emails me the agent's close-out note: files touched, what changed, and the test result. That's how I keep up with what my "team" did today, usually from the phone at lunch.
+
+Agents merge to main on their own. They don't release to the public. A *Cut release* workflow in the GitHub app tags a release candidate. iPhone builds are signed and sent to TestFlight from a cloud Mac (there's no Mac in my house), and Android builds go out on their own. My tester Christa gets them without me opening a laptop.
+
+Then a person tests the candidate by hand on a real phone. Every build gets a quick smoke test, and a store release gets the full manual pass. This is the part end-to-end tests can't cover well: how the app feels in your hand, and what happens to people who already have it installed.
+
+That second part matters most for an app like this. All of a user's workouts live in a database on their phone, so every new version has to upgrade that database in place without crashing or losing a single set. So I keep the previous store build around, load it with realistic data, and update it to the candidate to prove the upgrade works. A script generates that test data fresh before each pass, since a lot of it depends on today's date ("this week", "last month").
+
+<Steps
+  caption="What happens between a green merge and a public release."
+  steps={[
+    { title: 'Merge', text: 'An agent merges a change after the full automated gate passes.' },
+    { title: 'Cut', text: 'I tap <em>Cut release</em> in the GitHub app to tag a candidate.' },
+    { title: 'Build', text: 'Cloud builds sign the iPhone and Android apps for testers.' },
+    { title: 'Smoke test', text: 'A person runs it on a real phone, including updating from the last public version.' },
+    { title: 'Release', text: 'Only then does it go to the stores.' },
+  ]}
+/>
+
+## Manual testing comes in batches
+
+The weak spot in all this is me. I don't cut phone builds every day, so a lot of shipped work sat untested on a real device for a while. Then one manual pass on an Android build turned up about ten bugs the automated suite couldn't have caught. It runs in a desktop browser, so it never sees things like the keyboard's autocomplete adding a space to a word you typed, or what happens when Android kills the app in the background mid-workout.
+
+So I changed the deal. The end-to-end suite is trusted for app logic, and I don't hand-test that. Manual checks are only for things a real phone has to show: notifications and alarms, home screen widgets, store purchases, keyboard quirks, the app being killed and resumed, and upgrades over an existing install.
+
+When a build run ships one of those, it writes a full test case into the QA procedure and adds a line to one open "Android QA batch" issue. When the batch gets big enough, it asks me once whether it's time to cut a build. I build, work through the batch on the phone, and close it. The next change like that starts a new batch. This part is being built this week, by the same agents it's about.

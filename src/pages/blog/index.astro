@@ -3,8 +3,14 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 
-const posts = (await getCollection('blog', (p) => !p.data.draft))
+const all = await getCollection('blog', (p) => !p.data.draft);
+// Series parts (part 1+) list under their overview's card instead of as their own cards.
+const posts = all
+  .filter((p) => !p.data.part)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const partsOf = (series?: string) => series
+  ? all.filter((p) => p.data.series === series && p.data.part).sort((a, b) => (a.data.part ?? 0) - (b.data.part ?? 0))
+  : [];
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
 <Base
@@ -18,16 +24,28 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'nu
       <h1>Building with <span class="grad-text">AI</span></h1>
       <p>Notes from shipping real software with AI agents: the workflows, the automation, and what broke along the way. <a href="/rss.xml">RSS feed</a>.</p>
     </div>
-    {posts.map((p) => (
-      <a class:list={['post', p.data.cover && 'has-cover']} href={`/blog/${p.id}/`}>
-        {p.data.cover && <Image class="thumb" src={p.data.cover} alt="" widths={[400, 800]} sizes="(max-width: 640px) calc(100vw - 40px), 260px" />}
-        <div>
-          <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
-          <h2>{p.data.title}</h2>
-          <p>{p.data.description}</p>
+    {posts.map((p) => {
+      const parts = partsOf(p.data.series);
+      return (
+        <div class:list={['entry', parts.length && 'has-parts']}>
+          <a class:list={['post', p.data.cover && 'has-cover']} href={`/blog/${p.id}/`}>
+            {p.data.cover && <Image class="thumb" src={p.data.cover} alt="" widths={[400, 800]} sizes="(max-width: 640px) calc(100vw - 40px), 260px" />}
+            <div>
+              <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}{parts.length > 0 && <> &middot; Overview + {parts.length} parts</>}</time>
+              <h2>{p.data.title}</h2>
+              <p>{p.data.description}</p>
+            </div>
+          </a>
+          {parts.length > 0 && (
+            <ol class="parts">
+              {parts.map((s) => (
+                <li><a href={`/blog/${s.id}/`}><b>Part {s.data.part}</b><span>{s.data.partTitle ?? s.data.tabTitle ?? s.data.title}</span><small>{s.data.readMinutes} min</small></a></li>
+              ))}
+            </ol>
+          )}
         </div>
-      </a>
-    ))}
+      );
+    })}
   </div>
 </Base>
 
@@ -45,6 +63,14 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'nu
   .post time { font-size: 0.85rem; color: var(--muted); }
   .post h2 { font-size: 1.45rem; margin: 6px 0 8px; line-height: 1.2; }
   .post p { color: var(--muted); margin: 0; }
+  .entry { margin-bottom: 16px; position: relative; z-index: 1; }
+  .entry .post { margin-bottom: 0; }
+  .has-parts .post { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .parts { list-style: none; margin: 0; padding: 6px; background: var(--bg-2); border: 1px solid var(--line); border-top: none; border-radius: 0 0 20px 20px; }
+  .parts a { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: baseline; padding: 10px 14px; border-radius: 12px; text-decoration: none; color: var(--text); }
+  .parts a:hover { background: var(--card); }
+  .parts b { font-size: 0.78rem; color: var(--teal); font-weight: 600; white-space: nowrap; }
+  .parts small { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
   @media (max-width: 640px) {
     .post.has-cover { grid-template-columns: 1fr; gap: 16px; }
     .post.has-cover .thumb { order: 0; }

@@ -1,0 +1,71 @@
+---
+// Part navigation for posts that share a `series` id. `top` is a compact "Part 2 of 4" line with
+// the full list folded; the bottom version shows the list plus previous and next links.
+import { getCollection, type CollectionEntry } from 'astro:content';
+interface Props { post: CollectionEntry<'blog'>; position: 'top' | 'bottom' }
+const { post, position } = Astro.props;
+const series = post.data.series;
+const parts = series
+  ? (await getCollection('blog', (p) => !p.data.draft && p.data.series === series))
+      .sort((a, b) => (a.data.part ?? 0) - (b.data.part ?? 0))
+  : [];
+const i = parts.findIndex((p) => p.id === post.id);
+const label = (p: CollectionEntry<'blog'>) => p.data.partTitle ?? p.data.tabTitle ?? p.data.title;
+const num = (p: CollectionEntry<'blog'>) => (p.data.part ? `Part ${p.data.part}` : 'Overview');
+const count = parts.filter((p) => p.data.part).length;
+const prev = parts[i - 1];
+const next = parts[i + 1];
+---
+{parts.length > 1 && (
+  position === 'top' ? (
+    <details class="series top">
+      <summary>
+        <span class="kicker">Series</span>
+        {post.data.part ? `Part ${post.data.part} of ${count}` : `Overview + ${count} parts`}
+        <span class="chev" aria-hidden="true"></span>
+      </summary>
+      <ol>
+        {parts.map((p) => (
+          <li class:list={{ current: p.id === post.id }}>
+            {p.id === post.id
+              ? <span><b>{num(p)}</b> {label(p)}</span>
+              : <a href={`/blog/${p.id}/`}><b>{num(p)}</b> {label(p)}</a>}
+          </li>
+        ))}
+      </ol>
+    </details>
+  ) : (
+    <nav class="series bottom" aria-label="More in this series">
+      <div class="pn">
+        {prev ? <a class="prev" href={`/blog/${prev.id}/`}><small>Previous: {num(prev)}</small>{label(prev)}</a> : <span />}
+        {next && <a class="next" href={`/blog/${next.id}/`}><small>Next: {num(next)}</small>{label(next)}</a>}
+      </div>
+    </nav>
+  )
+)}
+
+<style>
+  .series { max-width: 720px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+  .top { margin-top: 22px; display: block; }
+  .top summary { list-style: none; cursor: pointer; display: flex; width: max-content; max-width: 100%; white-space: nowrap; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 600; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+  .top summary::-webkit-details-marker { display: none; }
+  .kicker { font-size: 0.7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .chev { width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg) translateY(-2px); transition: transform .2s; }
+  .top[open] .chev { transform: rotate(225deg) translateY(-2px); }
+  ol { display: block; width: 100%; box-sizing: border-box; list-style: none; margin: 10px 0 0; padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+  li a, li > span { display: block; padding: 8px 10px; border-radius: 10px; text-decoration: none; color: var(--text); font-size: 0.92rem; }
+  li a:hover { background: var(--bg-2); }
+  li b { color: var(--muted); font-weight: 600; margin-right: 6px; font-size: 0.8rem; }
+  li.current > span { background: color-mix(in srgb, var(--teal) 14%, transparent); }
+  .bottom { margin-bottom: 56px; }
+  .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pn a { display: block; padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); text-decoration: none; color: var(--text); font-weight: 600; line-height: 1.35; transition: border-color .2s; }
+  .pn a:hover { border-color: var(--teal); }
+  .pn small { display: block; font-weight: 500; color: var(--muted); font-size: 0.78rem; margin-bottom: 4px; }
+  .next { text-align: right; grid-column: 2; }
+  @media (max-width: 560px) {
+    .pn { grid-template-columns: 1fr; }
+    .next { grid-column: 1; text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { .chev, .pn a { transition: none; } }
+</style>

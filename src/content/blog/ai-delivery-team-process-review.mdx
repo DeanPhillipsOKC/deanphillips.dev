@@ -1,0 +1,50 @@
+---
+title: "My AI team audits its own process, and keeps it on free plans"
+tabTitle: The Process Review
+partTitle: My AI team audits its own process
+description: A monthly AI review agent that looks at the delivery system itself, finds wasted GitHub Actions minutes and tokens, and keeps the whole setup on free tiers.
+dek: The first version of my agent setup was wasteful in ways I couldn't see. So one of the agents is a DevOps reviewer whose whole job is reading the bill.
+date: 2026-10-12
+readMinutes: 4
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 4
+---
+import StatRow from '../../components/blog/StatRow.astro';
+
+This is part 4 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part is about the agent that reviews all the other agents.
+
+## Why it exists
+
+Everything in this setup runs on free or flat-rate plans. The repo is private, so GitHub Actions gives me 2,000 free minutes a month. The agents run on a Claude subscription, where the cost is my usage limit rather than a bill. Neither one warns you when a workflow is quietly wasteful. You find out when the minutes run out and every lane stops getting work.
+
+So once a month a `process-review` skill acts like a DevOps engineer looking at the delivery system, not the app. It reads the Actions run history, measures how long the gate takes and which tests are flaky, checks how big the files are that every agent reads at the start of a run, and looks for anything blocking the agents that only I can unblock. It files up to five findings, each with evidence, a proposed change, and an estimated payoff. Like every reviewer, it files them with `status:needs-review`, so nothing changes until I've read it.
+
+## What it found
+
+<StatRow stats={[
+  { value: '262', label: 'billed Actions minutes in 52 hours, measured' },
+  { value: '~2,800', label: 'minutes a month at that pace, against 2,000 free' },
+  { value: '43k', label: 'tokens of docs every build run read in full' },
+]} />
+
+**Most of the Actions bill was overhead.** Every issue that opened or closed started two workflows: the dispatcher and an email. GitHub bills every job at least one minute, and most of these ran for 6 to 25 seconds. Fifteen of 51 new issues in the window were born with a label no lane would ever pick, and each still paid for a dispatch run. The fix folded the emails into the dispatcher's job and skipped dispatch for issues no lane can take. The review estimated that saves about 1,000 minutes a month.
+
+**A backup schedule that cost a third of the budget and never ran.** The dispatcher had an hourly cron as a safety net, budgeted at about 720 minutes a month. In its first few hours, GitHub's scheduler didn't fire it once. What it was really covering for was me removing a label to release an issue. The review pointed out that a job skipped by its own condition costs nothing, so the dispatcher could listen for label removals directly. The cron went to every six hours: roughly 600 minutes a month back, and a released issue now starts in under a minute instead of up to an hour.
+
+**Every run read a 173 KB architecture doc.** The project's main doc had grown to 2,055 lines, about 43,000 tokens, and eight skills read all of it at the start of every run. It was also past the file reader's 2,000-line default, so plain reads were silently missing the end of it. It's now a short index plus topic files, and a run reads only the topics its change touches. The review estimated 30,000 to 35,000 tokens saved per build run.
+
+**A 7 KB email template nobody could use.** The build skill carried an HTML email template that only works on my laptop. Cloud runs read it every time and could never send it. It moved to its own file: about 1,800 tokens a run. Small, but free to take.
+
+## It catches stuck work too
+
+Not every finding is about cost.
+
+- **Every lane was idle.** The review noticed that every lane's picker came back empty. Two scored features were waiting behind a "blocked by" link to a task of mine, but the feature's own spec said it didn't need that task yet. Removing one link released ten effort points of work.
+- **Dependency updates were piling up.** Dependabot had opened seven pull requests, and nothing in the setup would ever merge them, because the lanes only work on issues. Now each Dependabot PR becomes an issue, a lane runs the full gate on it, and majors wait for me to read the changelog first.
+
+## Why this works
+
+The agents are good at noticing waste when you hand them the receipts. The review doesn't guess. It pulls run counts and durations from the Actions API, measures file sizes, and counts closed issues, then shows its math. Its payoff numbers are estimates, and it says so in each finding. But a finding that reads "262 minutes in 52 hours, on pace for 2,800" is an easy decision to make from my phone.
+
+It also reviews its own past calls. The hourly backup was my decision two days earlier, made to save minutes. The review came back with something I hadn't known (skipped jobs are free) and said plainly that it was revisiting my decision. That's the behavior I want from a reviewer: new information, not deference.
