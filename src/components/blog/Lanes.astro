@@ -25,7 +25,9 @@ const { lanes, caption } = Astro.props;
 </figure>
 
 <style>
-  .lanes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  /* Two columns at blog width: four don't fit a 720px column once the model chips carry effort
+     ranges. minmax(0, 1fr) keeps long chip text from pushing a column past the panel. */
+  .lanes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .lane { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
   .lane h3 { margin: 0 0 4px; font-size: 1.1rem; }
   .lane p { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); line-height: 1.45; }
@@ -37,7 +39,6 @@ const { lanes, caption } = Astro.props;
   .dispatcher { margin-top: 14px; display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--line); font-size: 0.9rem; color: var(--muted); }
   .dispatcher :global(b) { color: var(--text); }
   .dispatcher svg { flex: none; width: 34px; height: 34px; color: var(--teal); }
-  @media (max-width: 860px) { .lanes { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 560px) {
     .lanes { grid-template-columns: 1fr; gap: 10px; }
     .lane { padding: 14px; }
