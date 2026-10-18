@@ -3,7 +3,7 @@ title: "No human code review: why I trust tests instead"
 tabTitle: Tests Instead of Code Review
 partTitle: Tests instead of code review
 description: Why AI agents merge their own changes after a full end-to-end gate, why a person still tests every release on a real phone, and how manual Android checks get batched instead of piling up.
-dek: My AI agents merge their own pull requests. Nobody reads the diff. Here's why that's a deliberate choice, and where a person still stands between the code and the people using it.
+dek: My AI agents merge their own pull requests. No person reads the diff. Here's why that's a deliberate choice, and where a person still stands between the code and the people using it.
 date: 2026-10-12
 readMinutes: 4
 image: /img/og/ai-delivery-team.jpg
@@ -26,7 +26,7 @@ Here's the decision that surprises people: there's no human code review. An agen
     { title: 'Build', text: 'Write the change, plus tests for it.' },
     { title: 'Gate', text: '<code>npm run build</code> and the full end-to-end suite.' },
     { title: 'Catch up', text: 'If main moved, merge it in and run the whole gate again.' },
-    { title: 'Merge', text: 'Self-merge the PR, close the issue, post a summary.' },
+    { title: 'Merge', text: 'Self-merge the PR (risky changes get an AI review first), close the issue, post a summary.' },
   ]}
 >
   <b>If the gate stays red</b> after a few honest fix attempts, the agent stops, labels the issue <code>status:blocked</code>, writes down what it tried, and commits nothing.
@@ -38,7 +38,7 @@ I spent years as an embedded tester, so trusting tests over eyeballs isn't new t
 
 ## Nothing reaches the public without a person
 
-When an issue closes, a workflow emails me the agent's close-out note: files touched, what changed, and the test result. That's how I keep up with what my "team" did today, usually from the phone at lunch.
+Every two hours, a workflow emails me one digest of the issues that closed, each with the agent's close-out note: files touched, what changed, and the test result. That's how I keep up with what my "team" did today, usually from the phone at lunch.
 
 Agents merge to main on their own. They don't release to the public. A *Cut release* workflow in the GitHub app tags a release candidate. iPhone builds are signed and sent to TestFlight from a cloud Mac (there's no Mac in my house), and Android builds go out on their own. My tester Christa gets them without me opening a laptop.
 

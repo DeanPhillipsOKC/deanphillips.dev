@@ -23,15 +23,18 @@ A `refine-backlog` skill fixes that. It finds issues that haven't been scored ye
 
 ## Reviewers fill the backlog too
 
-Not everything waits for me to think of it. Four review agents run once a month, each playing a different role:
+Not everything waits for me to think of it. Six review agents run once a month, each playing a different role, plus a seventh routine that watches for anything about to expire:
 
 <ReviewCalendar
-  caption="Reviews are spread a week apart so the findings don't all land at once. The small dots are the weekly email digest of tasks waiting on me."
+  caption="Reviews are spread through the month so the findings don't all land at once. The small dots are the weekly email digest of tasks waiting on me."
   events={[
     { day: 1, label: 'Security audit', tone: 'sec' },
     { day: 8, label: 'UX review', tone: 'ux' },
+    { day: 12, label: 'Accessibility', tone: 'ux' },
     { day: 15, label: 'Product review', tone: 'pm' },
+    { day: 18, label: 'Expiry radar', tone: 'sec' },
     { day: 22, label: 'Process review', tone: 'ops' },
+    { day: 28, label: 'Help guides', tone: 'pm' },
   ]}
   dots={[5, 12, 19, 26]}
 />
@@ -39,7 +42,10 @@ Not everything waits for me to think of it. Four review agents run once a month,
 - **Security audit** looks for secrets in the code and git history, vulnerable dependencies, and loose permissions in the build pipeline. It also checks that no change has started sending workout data off the phone.
 - **UX review** drives the app, takes 80 or so screenshots across the main journeys, and files real usability problems.
 - **Product review** compares what's shipped against the brand guide and roadmap and files missing features.
+- **Accessibility review** checks every theme for contrast and tap targets, and runs the app with large text on a small phone to find anything that overlaps or gets cut off.
+- **Help review** compares every feature in the app against the how-to guides on repbunny.app and files the gaps.
 - **Process review** acts like a DevOps engineer looking at the delivery system itself. It has [its own post](/blog/ai-delivery-team-process-review/), because it keeps paying for itself.
+- **Expiry radar** isn't a reviewer. It watches certificates, the domain, and app store deadlines, and opens a checklist for me when one gets close.
 
 Everything a reviewer files comes in with a `status:needs-review` label. The builders can't see it until I remove that label. Reviewers are good at spotting problems and only fair at deciding which ones matter, so I keep that call.
 
@@ -56,10 +62,10 @@ Early on I ran one agent in a loop on my laptop. It worked, but it meant the lap
     { name: 'Tech', text: 'Tooling, tests, docs, and everything else.', models: [{ model: 'Sonnet', when: 'effort 1 to 3' }, { model: 'Opus', when: 'effort 5+' }] },
   ]}
 >
-  <b>Dispatcher:</b> a GitHub Actions workflow with no AI in it. When an issue opens or closes, it checks each of the 7 lane and model pairs. Work waiting and nobody busy? It fires that pair's routine. Otherwise it does nothing.
+  <b>Dispatcher:</b> a GitHub Actions workflow with no AI in it. When an issue closes, and every two hours, it checks each of the 7 lane and model pairs. Work waiting and nobody busy? It fires that pair's routine. Otherwise it does nothing.
 </Lanes>
 
-The dispatcher is the part I'm proudest of, mostly because it's boring. It's a short Node script. It costs about one free Actions minute per run and zero AI usage. An empty backlog costs nothing, and a lane starts its next issue as soon as the last one ships.
+The dispatcher is the part I'm proudest of, mostly because it's boring. It's a short Node script. It costs about one free Actions minute per run and zero AI usage. An empty backlog costs no AI usage at all, and a lane starts its next issue as soon as the last one ships.
 
 Lanes run in parallel, so two agents can be running the test suite at the same moment. Each lane gets its own isolated test data, so they don't trip over each other.
 
@@ -67,7 +73,7 @@ The cutoff between models moved once already. Effort 5 used to go to Sonnet. The
 
 ## What broke
 
-- **The schedule never fired.** I first ran the dispatcher hourly on a cron. In its first five hours GitHub never ran it once, because scheduled workflows get delayed or skipped when GitHub is busy. Now it reacts to issue events, and the schedule is only a backup every six hours.
+- **The schedule never fired.** I first ran the dispatcher hourly on a cron. In its first five hours GitHub never ran it once, because scheduled workflows get delayed or skipped when GitHub is busy. Now it runs when an issue closes, plus every two hours to pick up new issues and anything it missed. It used to run when an issue opened too, but at about 31 new issues a day that became the biggest cost in Actions minutes.
 - **A run worked the wrong issue.** An early dispatcher marked the issue `in-progress` before starting the agent. But the agent's own picker hides in-progress issues, so it skipped the one it was sent for, built a different one, and left the first claim stranded. The fix was a separate `dispatched` label the picker knows to put first.
 - **Cloud sessions see a smaller GitHub.** The proxy in cloud sessions refuses GraphQL and search, which is what the `gh` CLI uses for a lot of commands. Every skill had to switch to plain REST calls with explicit page numbers.
 - **One big loop cost more than many small ones.** A laptop script that ran the builder over and over burned more tokens than separate short sessions, since context piled up. That's part of why the lanes are one issue per run.
