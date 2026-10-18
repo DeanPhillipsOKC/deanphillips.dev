@@ -6,13 +6,18 @@ has results).
 
 ## Waiting for material
 
-- **The adversarial review agent** (RepBunny #374). Wait until #374 ships and has reviewed real
-  PRs. Lead with the 2026-10-12 dispatcher outage (commit c2ded50 lowered `issues: write` to
-  `issues: read`, and a green gate shipped it). Check whether replaying that diff produced a
-  blocker, as #374's acceptance requires. Part 2 of the series already teases this post.
-  Status 2026-10-12: #374 shipped in commit 9f7a508, but `fire-review.mjs` exits early until the
-  routine ID and token are set, so it hasn't reviewed a real PR yet. Wait for its first reviews.
+- **Sprint review videos** (RepBunny #605, #606, #607, #663, #664). Each lane records a short
+  narrated clip of every user-facing change it ships. Before a store release, one tap builds a
+  review video and a review issue, the video is emailed so it plays on the phone, and the owner
+  answers in one free-form comment that an agent turns into accepted changes, follow-up issues, or
+  revert issues. Narration uses ElevenLabs, with the owner's own voice for release demos (#648).
+  Status 2026-10-18: the first review (v1.4.0, #662) ran and closed on 2026-10-16 with all 11
+  changes accepted, before the one-comment flow (#664) shipped. Wait for a release reviewed with
+  the one-comment flow, ideally one where a change was sent back, so the post has a real
+  "change" or "pull" to show. Check the "What broke" material too: #668/#669 (closing a ready
+  review re-fired the routine) and #636/#637 (overlapping reply runs).
 
 ## Drafted
 
-(none yet)
+- **The adversarial review agent** (RepBunny #374): `ai-delivery-team-review`, part 5. Drafted
+  2026-10-18, Publish PR #5.
