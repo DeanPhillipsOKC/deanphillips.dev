@@ -1,0 +1,77 @@
+---
+title: "I gave my AI team a reviewer whose only job is to say no"
+tabTitle: The Reviewer
+partTitle: A reviewer whose job is to say no
+description: An adversarial AI review agent that reads only the risky pull requests, what it caught in its first five days, and what broke along the way.
+dek: Tests prove the app still works. They can't see a workflow permission, a weakened test, or a rule in the docs. So risky changes now go past one more agent, and its job is to find a reason not to merge.
+date: 2026-10-18
+readMinutes: 5
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 5
+draft: true
+---
+import Steps from '../../components/blog/Steps.astro';
+import ChatThread from '../../components/blog/ChatThread.astro';
+
+This is part 5 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part is about the one agent that reads code before it merges.
+
+## Why the gate wasn't enough
+
+In [part 2](/blog/ai-delivery-team-gate/) I explained why my agents merge their own pull requests after a green test gate, with no human code review. I also told the story that made me add a second check. On October 12 a change passed the full gate while lowering a workflow's permission on issues from write to read. The dispatcher that starts every agent needs write access, so for about 75 minutes no agent started any work. Nothing in the test suite runs a GitHub workflow, so nothing there could have caught it.
+
+Tests answer "does the app still do what it should?" They can't see a different kind of mistake: a permission change, a test that got weaker, a new network call, or a change that breaks a rule written in the project docs. A person reading the diff catches those. I didn't want to be that person for every change, so I designed a reviewer that does the reading, and only where it matters.
+
+## Only the risky changes
+
+Reviewing everything would spend a lot of AI usage on button colors. So after the gate passes, a plain script with no AI in it checks the diff against a short list. Does it touch a GitHub workflow, an agent skill, or a script the automation runs? Does it add a network call or a link to an outside site? Change the database on the phone? Delete a test or remove assertions? Is the issue scored effort 5 or higher? Any yes, and the pull request waits for review. Everything else merges as before.
+
+<Steps
+  caption="What happens to a risky change after the gate is green."
+  steps={[
+    { title: 'Flag', text: 'The risk script records why the change is risky, and the agent hands it off instead of merging.' },
+    { title: 'Review', text: 'An Opus agent reads the diff, the issue, and the docs it touches, looking for reasons not to merge.' },
+    { title: 'Verify', text: 'Every finding has to quote the line it is about. No quote, no finding.' },
+    { title: 'Decide', text: 'No blockers: it merges. Blockers: back to the building agent once, then to me.' },
+  ]}
+/>
+
+The reviewer runs on Opus, the more expensive model, because its whole job is judgment. It sorts what it finds into three levels. A blocker has to be fixed before merge. A should-fix gets fixed now if it's cheap, or becomes a follow-up issue. A nit never blocks anything. The reviewer never pushes code. If a second review still finds a blocker, it stops and asks me on my phone, through the same [ask-the-owner loop](/blog/ai-delivery-team-asking/) as everything else.
+
+One item on its list matters more for RepBunny than the rest: does this change send anything off the phone? The app keeps every workout on the phone it was logged on, with no accounts and no servers holding anyone's data. That's what makes the experiment safe, so it has to stay true.
+
+The acceptance test was the October 12 outage. Run against that diff, the risk script flagged it, and the reviewer's checklist (applied by hand, since the reviewer didn't exist yet) gave a blocker on the lowered permission.
+
+## The first five days
+
+From October 12 to 16, the agents merged 129 pull requests. The risk check sent 44 of them through the reviewer, plus one that never merged. Most came back clean, sometimes with a should-fix that turned into a follow-up issue and shipped the same day. Five went back to the building agent with a blocker, and one came to me.
+
+My favorite is a near-repeat of the outage. A change batched my issue emails into one digest every two hours, to save GitHub Actions minutes. The new step asked GitHub for the workflow's earlier runs, but the workflow's permissions didn't include reading them. The agent's dry run used my credentials, which can read anything, so it passed. On the real schedule every run would have failed, and I'd have stopped getting emails at all. Same workflow, same kind of mistake as October 12. This time it never reached main.
+
+<ChatThread
+  title="PR #559: Batch issue emails into a digest"
+  subtitle="GitHub pull request, on my phone"
+  caption="Based on the real pull request, shortened. Times are Central. The gray pills happen with no AI involved."
+  messages={[
+    { from: 'event', text: 'Gate green. The risk script flags <b>dispatch-lanes.yml</b>, so the build agent hands off instead of merging' },
+    { from: 'bot', name: 'Reviewer (Opus)', time: '1:02 PM', text: '<b>Blocker:</b> the digest step lists this workflow\'s earlier runs, but the job\'s permissions don\'t include <code>actions: read</code>. The repo is private, so that call gets a 403, the step stops, and no digest is ever sent. The dry run used a personal token, which is why it passed.' },
+    { from: 'bot', name: 'Build agent', time: '1:03 PM', text: 'Fixed: added <code>actions: read</code>. A failed lookup now falls back to a time window instead of stopping the step.' },
+    { from: 'bot', name: 'Reviewer (Opus)', time: '1:05 PM', text: 'Blocker fixed, and the follow-ups too. Merge.' },
+    { from: 'event', text: 'Merged at <b>1:06 PM</b>, five minutes after the pull request opened' },
+  ]}
+/>
+
+A few other catches from the same five days:
+
+- **Rewards from imported history.** A change meant to give no rewards for milestones crossed in imported workout history still unlocked those milestones' rewards for Premium users on the theme screen, because that screen counted milestones a different way.
+- **A shortcut that could lose a note.** A change let a pull request skip its second review when the only merge conflict was in the release notes. The reviewer built two throwaway repos to reproduce a case where resolving that conflict silently drops another change's note. The check would have called it clean.
+- **Guides that could break the build.** The new in-app guide search made the app's build read the how-to guides on the website. The rules still said a guide edit skips the build. One malformed guide would have broken every app deploy until someone noticed.
+
+All of them were found by reading the diff, not by running it.
+
+## What broke
+
+- **The reviewer couldn't merge.** After passing one change, its own session blocked its merge call with a safety check against merging without review. The change sat green for about eleven hours until it was merged the next morning.
+- **Two agents built the same issue.** While that change waited, another run finished a second version of the same issue. The reviewer flagged it as a blocker only I could decide: same issue, same new files, a different design, and the first one had already passed. The duplicate was closed.
+- **Two reviews at once.** Two review runs overlapped on the digest change and posted the same blocker 15 seconds apart. They agreed, so no harm done, but one pull request shouldn't get two reviewers.
+- **It reviews more than I planned.** I aimed for about 1 in 5 pull requests. It's closer to 1 in 3. Most of the flagged changes (28 of 45) touched the agents' own skills, workflows, or scripts, and the list always flags those. The monthly [process review](/blog/ai-delivery-team-process-review/) now audits the reviewer too: what it finds, what it misses, and whether the risk list needs tuning.
