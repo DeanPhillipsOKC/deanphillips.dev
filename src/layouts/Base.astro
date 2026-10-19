@@ -10,7 +10,7 @@ interface Props {
   // Path under public/ for the link preview; a 1200x630 image gets the large card.
   ogImage?: string;
   // Which nav link to mark as the current page.
-  current?: 'writing';
+  current?: 'writing' | 'resume';
   // Unlisted draft previews: keep them out of search engines.
   noindex?: boolean;
 }
@@ -53,6 +53,7 @@ const ogImage = new URL(ogImagePath ?? '/img/dean-640.webp', Astro.site);
   <nav>
     <a class="wide" href="/#how">How I build</a>
     <a href="/blog/" aria-current={current === 'writing' ? 'page' : undefined}>Writing</a>
+    <a href="/resume/" aria-current={current === 'resume' ? 'page' : undefined}>Resume</a>
     <a class="roomy" href="/#repbunny">RepBunny</a>
     <a href="/#contact">Contact</a>
   </nav>
