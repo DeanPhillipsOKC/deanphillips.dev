@@ -21,7 +21,6 @@ const pdf = '/dean-phillips-resume.pdf';
       </div>
       <ul class="contact">
         <li>Oklahoma City, OK</li>
-        <li data-phone hidden></li>
         <li><a href="mailto:me@deanphillips.dev">me@deanphillips.dev</a></li>
         <li><a href="https://deanphillips.dev/resume/">deanphillips.dev/resume</a></li>
         <li><a href="https://github.com/DeanPhillipsOKC">github.com/DeanPhillipsOKC</a></li>
@@ -58,11 +57,12 @@ const pdf = '/dean-phillips-resume.pdf';
           <p class="when">2026 - Present</p>
         </div>
         <ul>
-          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) that keeps every user's data on their phone. It went from first commit to TestFlight in under three weeks, alongside a full-time job.</li>
+          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) that keeps all data on the phone. First commit to TestFlight took under three weeks, alongside a full-time job.</li>
           <li><b>Designed a multi-agent delivery pipeline on Claude Code:</b> an hourly GitHub Actions dispatcher starts cloud agent lanes that each take the highest-value issue from a scored backlog, build it, and open a pull request. An adversarial review agent merges it, sends it back, or asks me. Nothing merges without a full build and more than 600 end-to-end Playwright tests passing.</li>
           <li><b>Extended agents past the code:</b> monthly product, UX, accessibility, and security reviews that file scored issues; support email triage with replies I approve; App Store screenshots; and narrated sprint review videos.</li>
           <li><b>Automated releases:</b> signed iPhone builds go to TestFlight from the cloud with no Mac involved, and Android builds ship nightly. Its reusable Claude Code plugins are public on my GitHub.</li>
         </ul>
+        <p class="writeup">How it's built, in a blog series: <a href="https://deanphillips.dev/blog/ai-delivery-team/">deanphillips.dev/blog/ai-delivery-team</a></p>
       </div>
     </section>
 
@@ -102,7 +102,7 @@ const pdf = '/dean-phillips-resume.pdf';
           <li><b>Moved from DevOps to DevSecOps:</b> added SonarQube, OWASP Dependency-Check, and Trivy to CI/CD pipelines. As security champion, helped teams fix what those tools found.</li>
           <li><b>Automated a multi-week manual process:</b> tax and compensation updates now run from Docker images hosted in Azure, which cut errors and kept updates on time.</li>
           <li><b>Stabilized the payroll system:</b> created and ran a technical backlog that raised Net Promoter Score by 31 points and cut major incidents from double digits to zero.</li>
-          <li><b>Improved performance and integrations:</b> made an employee self-service app's pages up to 90% faster by moving its data access from WCF services to a Backend-for-Frontend with Dapper queries, and directed the FedEx integration's move from SOAP to REST.</li>
+          <li><b>Improved performance and integrations:</b> made an employee self-service app up to 90% faster by moving its data access from WCF to a Backend-for-Frontend with Dapper, and led the FedEx integration's move from SOAP to REST.</li>
           <li><b>Protected sensitive data:</b> oversaw a key rotation policy and the re-encryption of large volumes of sensitive data with custom-built tools to stay compliant with industry standards.</li>
         </ul>
       </div>
@@ -156,10 +156,6 @@ const pdf = '/dean-phillips-resume.pdf';
           <blockquote>As a leader, I found Dean to be honest and straightforward; giving clear direction and expectations. [...] He was able to resolve problems, give realistic estimations of time and scope. Many project leads within BAE sought him out to be part of their team.</blockquote>
           <figcaption><b>J Blake</b>, Principal Software Engineer, BAE Systems. Dean's lead at Ensco, later on Dean's team, 2011.</figcaption>
         </figure>
-        <figure>
-          <blockquote>Dean is a solid software developer who learns quickly [...] enjoying researching complicated issues within spaghetti code. Once the cause of those issues are resolved, he tends to write permanent fixes for them.</blockquote>
-          <figcaption><b>Kristin Ferrier</b>, Founder, Ferrier Solutions. Senior colleague at CSI, Tinker AFB, 2013.</figcaption>
-        </figure>
       </div>
       <p class="recs-note">From my LinkedIn recommendations.</p>
     </section>
@@ -205,6 +201,7 @@ const pdf = '/dean-phillips-resume.pdf';
   .job li { margin-bottom: 6px; }
   .job li b { font-weight: 600; }
   .earlier { margin: 0; padding-left: 20px; }
+  .writeup { margin: 8px 0 0; color: var(--muted); }
   .recs { display: grid; gap: 14px; }
   .recs figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--teal); border-radius: 14px; padding: 18px 20px; }
   .recs blockquote { margin: 0 0 10px; }
@@ -232,7 +229,7 @@ const pdf = '/dean-phillips-resume.pdf';
     :global(.glow), :global(header.top), :global(footer.site), .screen-only { display: none !important; }
     .resume { max-width: none; padding: 0; }
     .head h1 { font-size: 22pt; margin-bottom: 2px; }
-    .tag { font-size: 10.5pt; max-width: none; }
+    .tag { font-size: 10pt; max-width: none; }
     .contact { font-size: 9pt; line-height: 1.4; }
     .contact a { color: var(--text); }
     section { margin-top: 12pt; }
@@ -242,6 +239,7 @@ const pdf = '/dean-phillips-resume.pdf';
     .job-head { break-after: avoid-page; }
     .job li, .earlier li { break-inside: avoid-page; }
     .earlier li { margin-bottom: 3pt; }
+    .writeup { margin-top: 3pt; }
     .job-head h3 { font-size: 10.5pt; margin-bottom: 3pt; }
     .job-head h3 span { display: inline; font-size: 10pt; margin: 0 0 0 6pt; }
     .when { font-size: 9pt; }

@@ -71,11 +71,13 @@ code { font: 0.86em "JetBrains Mono", ui-monospace, Consolas, monospace; backgro
 
 footer.site { color: var(--muted); font-size: 0.9rem; padding: 32px 20px 48px; text-align: center; }
 
-@media (max-width: 560px) {
-  .top nav { gap: 14px; }
+/* Phones: the menu gets its own row under the name so it never runs off the screen. */
+@media (max-width: 640px) {
+  .top { flex-wrap: wrap; row-gap: 10px; }
+  .top nav { width: 100%; justify-content: space-between; gap: 12px; }
   .top nav a.wide { display: none; }
 }
-@media (max-width: 420px) {
+@media (max-width: 330px) {
   .top nav a.roomy { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

@@ -35,9 +35,9 @@ try {
   await page.evaluate(() => document.fonts.ready);
   if (phone) {
     await page.evaluate((p) => {
-      const li = document.querySelector('[data-phone]');
-      li.textContent = p;
-      li.hidden = false;
+      // Same line as the city, so the header stays four lines tall.
+      const city = document.querySelector('.contact li');
+      city.textContent = `${city.textContent} · ${p}`;
     }, phone);
   }
   await page.pdf({ path: out, format: 'Letter', printBackground: true, preferCSSPageSize: true });
