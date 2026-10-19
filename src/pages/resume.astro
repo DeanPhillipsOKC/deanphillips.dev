@@ -12,9 +12,12 @@ const pdf = '/dean-phillips-resume.pdf';
 >
   <article class="wrap resume">
     <header class="head">
-      <div>
-        <h1>Dean E. Phillips</h1>
-        <p class="tag">Full-stack development lead bringing agentic AI into how teams ship software</p>
+      <div class="who">
+        <img class="photo screen-only" src="/img/dean-256.webp" alt="Dean Phillips" width="96" height="96">
+        <div>
+          <h1>Dean E. Phillips</h1>
+          <p class="tag">Full-stack development lead bringing agentic AI into how teams ship software</p>
+        </div>
       </div>
       <ul class="contact">
         <li>Oklahoma City, OK</li>
@@ -154,7 +157,7 @@ const pdf = '/dean-phillips-resume.pdf';
           <figcaption><b>J Blake</b>, Principal Software Engineer, BAE Systems. Dean's lead at Ensco, later on Dean's team, 2011.</figcaption>
         </figure>
         <figure>
-          <blockquote>If you provide him a recommendation on a way to improve his code, he is open to considering that recommendation and sometimes comes up with an even better idea.</blockquote>
+          <blockquote>Dean is a solid software developer who learns quickly [...] enjoying researching complicated issues within spaghetti code. Once the cause of those issues are resolved, he tends to write permanent fixes for them.</blockquote>
           <figcaption><b>Kristin Ferrier</b>, Founder, Ferrier Solutions. Senior colleague at CSI, Tinker AFB, 2013.</figcaption>
         </figure>
       </div>
@@ -175,6 +178,8 @@ const pdf = '/dean-phillips-resume.pdf';
   .resume { position: relative; z-index: 1; max-width: 860px; padding-top: 48px; padding-bottom: 32px; }
   .head { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: start; margin-bottom: 8px; }
   .head h1 { font-size: clamp(2.2rem, 6vw, 3.2rem); margin: 0 0 6px; }
+  .who { display: flex; gap: 22px; align-items: center; }
+  .photo { width: 96px; height: 96px; flex: none; border-radius: 50%; object-fit: cover; border: 3px solid var(--teal); }
   .tag { color: var(--muted); font-size: 1.08rem; margin: 0; max-width: 520px; }
   .contact { list-style: none; margin: 0; padding: 0; text-align: right; font-size: 0.95rem; color: var(--muted); }
   .contact a { text-decoration: none; }
@@ -210,6 +215,8 @@ const pdf = '/dean-phillips-resume.pdf';
 
   @media (max-width: 640px) {
     .head { grid-template-columns: 1fr; }
+    .who { gap: 16px; }
+    .photo { width: 72px; height: 72px; }
     .contact { text-align: left; margin-top: 10px; }
     .skills { grid-template-columns: 1fr; gap: 2px; }
     .skills dd { margin-bottom: 10px; }
