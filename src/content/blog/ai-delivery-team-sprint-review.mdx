@@ -1,0 +1,77 @@
+---
+title: "My AI agents demo their work before every release"
+tabTitle: The Sprint Review
+partTitle: My AI agents demo their work
+description: Each AI agent records a narrated clip of the change it shipped, a workflow stitches them into a sprint review video before every store release, and one comment from me on my phone accepts the release or turns what I dislike into backlog work.
+dek: Green tests tell me a change works. They don't show me what it looks like. So the agents now record a short demo of everything they ship, and I watch the whole release before it goes out.
+date: 2026-10-19
+readMinutes: 4
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 6
+draft: true
+---
+import PhoneVideo from '../../components/blog/PhoneVideo.astro';
+import Steps from '../../components/blog/Steps.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is part 6 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part is about how I see what the agents built before anyone else does.
+
+## The gap
+
+[Part 2](/blog/ai-delivery-team-gate/) explains why I trust a full end-to-end test suite instead of reading every pull request. That still holds. But a passing test only says the button works. It doesn't say whether the button is in a sensible place, or whether the feature is what I actually meant when I typed a one-line idea at the gym.
+
+On a normal team, that's what a sprint review is for. The people who built something show it working, and the person who asked for it says "yes", "change this", or "not yet". I wanted that, without spending my evenings recording my own screen.
+
+## What it looks like
+
+<PhoneVideo
+  src="/video/sprint-review-sample.mp4"
+  poster="/video/sprint-review-sample.jpg"
+  label="Sample sprint review video: three RepBunny changes, each with a title card and a narrated demo, then a list of the other changes in the release."
+  caption="A sample cut: three real changes from this week. Sprint reviews are now narrated in a clone of my own voice. This one uses Jessica, the voice of the app's how-to guides."
+/>
+
+## How a clip gets made
+
+When an agent ships a change that people will see, it also writes a short clip spec: a title, the release note it already wrote, and three to five short lines like "Tap the Account button." Each line is paired with the tap it describes. A script then drives the app at phone size with made-up test data. A pink ripple shows each tap just before it lands, and the voice says each line as the tap happens. The finished clip gets attached to the issue.
+
+The first clip was written by a Sonnet agent working only from a README, and it recorded on the first try for about 56,000 tokens. That's what convinced me this could be part of every run instead of a special project.
+
+Not everything gets a clip, and the agents decide which ones skip it. Anything only a real phone can show, like the lock screen or a notification, is listed as "not shown" with its release note, so nothing is hidden. Trivial changes, like a space before a unit, aren't mentioned in the video at all. And a clip never blocks shipping. Two failed tries and the agent writes "No clip" with the reason and moves on. That has a cost: in the first review, only 2 of 11 changes had a clip, so I read the rest instead of watching them.
+
+## The voice
+
+The narration is ElevenLabs' `eleven_v4` model. I picked it after a listening test where an agent rendered the same four lines on three models in two voices. What sold me was audio tags: short directions in square brackets, like `[warm, friendly]` or `[playful]`, that the voice acts out instead of reading. The agents use one or two per clip, on the opening line and the payoff, and leave the plain steps alone so it doesn't overact.
+
+The biggest lesson was about punctuation. Text that reads fine on screen made the voice stall. Colons, dashes, and parentheses all caused odd pauses. So there's now a written rule for anything spoken: short plain sentences, and spell things out ("one rep max", "10 to 20 sets").
+
+Only our own script text goes to the voice service. The demos run on made-up test data, and RepBunny keeps every real workout on the phone it was logged on, so there's no user data anywhere near this pipeline.
+
+## One tap, one comment
+
+Before a store release, I start a workflow from the GitHub app on my phone. There's no AI in it. It gathers every change since the last release, stitches the clips into one video with a title card before each and a summary card at the end, opens a review issue, and emails me the video.
+
+Then I leave one comment on the issue, the way I'd talk in a review meeting. "Looks good" accepts everything. Or I say what I don't like, and anything I don't mention counts as good. An agent reads the comment and matches each complaint to a change by its title, release note, and clip:
+
+<Steps steps={[
+  { title: '"Looks good"', text: 'Every change is accepted, and the review closes itself as ready to release.' },
+  { title: '"The PDF toggle is hard to find"', text: 'A scored follow-up issue, quoting me, that the lanes pick up like any other work.' },
+  { title: '"Pull the calendar guide"', text: 'A top-priority revert issue. The agent never reverts code or releases anything itself.' },
+]} />
+
+If it can't match a complaint to one change with confidence, it asks on the issue and accepts nothing else from that comment until I answer. A misread shouldn't be able to wave a change through.
+
+The pipeline went from my idea to its first real review in under a day. That review was on October 16, for version 1.4.0, and it's where most of the lessons below came from.
+
+<Callout title="The tests are for the agents. The demo is for me.">A minute of video is the fastest way I've found to catch "it works, but it's not what I meant." No test suite catches that kind of bug.</Callout>
+
+## What broke
+
+**The video link opened as text.** The first review email linked to the video on GitHub. On my phone, tapping it opened the GitHub app, which showed the MP4 as a page of raw bytes. The email now attaches the video, so it plays right there.
+
+**The checkboxes did nothing.** The first review asked for one reply per change, and it showed a checklist that looked like input but wasn't. I ticked all 11 boxes, and the status still said 2 accepted and 9 not settled, because only a comment starts the agent. So I asked whether I could just comment once that everything looks good, or say what I don't like. That's the one-comment flow above, and it shipped the same afternoon.
+
+**Closing a review woke the agent up again.** Once everything was settled, the agent posted "Ready to release" and closed the issue. But the agent posts as me, and the issue was still open when that comment landed, so it looked like a new reply and started another run. It now closes the issue before it comments.
+
+<p class="end">RepBunny is in a small private pilot and coming to iPhone and Android. You can read about it at <a href="https://repbunny.app">repbunny.app</a>. Questions about any of this? Email me at <a href="mailto:me@deanphillips.dev">me@deanphillips.dev</a>.</p>
