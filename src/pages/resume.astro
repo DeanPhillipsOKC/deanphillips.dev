@@ -16,7 +16,7 @@ const pdf = '/dean-phillips-resume.pdf';
         <img class="photo screen-only" src="/img/dean-256.webp" alt="Dean Phillips" width="96" height="96">
         <div>
           <h1>Dean E. Phillips</h1>
-          <p class="tag">Full-stack development lead bringing agentic AI into how teams ship software</p>
+          <p class="tag">Full-stack development lead bringing agentic AI to how teams ship</p>
         </div>
       </div>
       <ul class="contact">
@@ -57,11 +57,12 @@ const pdf = '/dean-phillips-resume.pdf';
           <p class="when">2026 - Present</p>
         </div>
         <ul>
-          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) that keeps all data on the phone. First commit to TestFlight took under three weeks, alongside a full-time job.</li>
+          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) with all data kept on the phone. Built alongside a full-time job: first commit to TestFlight in under three weeks.</li>
           <li><b>Designed a multi-agent delivery pipeline on Claude Code:</b> an hourly GitHub Actions dispatcher starts cloud agent lanes that each take the highest-value issue from a scored backlog, build it, and open a pull request. An adversarial review agent merges it, sends it back, or asks me. Nothing merges without a full build and more than 600 end-to-end Playwright tests passing.</li>
           <li><b>Extended agents past the code:</b> monthly product, UX, accessibility, and security reviews that file scored issues; support email triage with replies I approve; App Store screenshots; and narrated sprint review videos.</li>
           <li><b>Automated releases:</b> signed iPhone builds go to TestFlight from the cloud with no Mac involved, and Android builds ship nightly. Its reusable Claude Code plugins are public on my GitHub.</li>
         </ul>
+        <p class="writeup"><b>AI side projects since 2024:</b> multi-agent writing pipelines (crewAI, then Claude and OpenAI structured outputs), document summarization with embeddings and FAISS, a ReAct agent experiment, and a text-to-video pipeline (Claude, Gemini, Veo, ElevenLabs, Whisper).</p>
         <p class="writeup">How it's built, in a blog series: <a href="https://deanphillips.dev/blog/ai-delivery-team/">deanphillips.dev/blog/ai-delivery-team</a></p>
       </div>
     </section>
@@ -85,10 +86,10 @@ const pdf = '/dean-phillips-resume.pdf';
           <p class="when">2025 - 2026</p>
         </div>
         <ul>
-          <li><b>Pioneered agentic development at the company:</b> first lead to adopt agentic coding, building Claude Code and Codex skills and commands that captured the company's standards and ran automatically on related tasks. Put newly purchased licenses to work before the company had a plan for them, then packaged the customizations and demoed them so the other two development teams could adopt them. This sped up delivery and was a major reason the on-the-job training initiative shipped on time.</li>
+          <li><b>Pioneered agentic development at the company:</b> first lead to adopt agentic coding, building Claude Code and Codex skills and commands that captured the company's standards and ran automatically on related tasks. Put newly purchased licenses to work before the company had a plan for them, then packaged the customizations and demoed them so the other two development teams could adopt them. It was a major reason the on-the-job training initiative shipped on time.</li>
           <li><b>Opened a new revenue opportunity with on-the-job training:</b> led development of an on-the-job training (OJT) module for the operator qualification platform that lets mentors review and sign off on OJT activities completed by their assigned mentees. Built at the request of larger clients, it opened a new revenue opportunity for the product.</li>
           <li><b>Led the team through BMAD adoption and expanded AI beyond engineering:</b> mentored the team on BMAD once the company standardized on it, helped extend AI-assisted workflows to the product and QA teams, and wrote BMAD architecture documents on the architect's behalf.</li>
-          <li><b>Trusted with local architecture decisions:</b> led a team of three (two of them senior developers) and made architecture decisions within the team's scope, taking proposals that touched shared components or global APIs to the lead architect.</li>
+          <li><b>Trusted with local architecture decisions:</b> led a team of three (two of them senior developers) and owned architecture decisions within the team's scope.</li>
         </ul>
       </div>
 
@@ -98,11 +99,12 @@ const pdf = '/dean-phillips-resume.pdf';
           <p class="when">2022 - 2025</p>
         </div>
         <ul>
+          <li><b>Demoed an AI payroll assistant at a company AI conference:</b> built a chat interface that used MCP to call the payroll application's API. A user could say "update my withholdings to married" and it would make the change, or ask for missing details first. Support staff could query payroll data and ask to see it as a chart.</li>
           <li><b>Modernized front-end architecture:</b> led the conversion of a monolithic Angular UI into microfrontends aligned with team journeys, so teams depended on each other less and could deploy faster on their own.</li>
           <li><b>Moved from DevOps to DevSecOps:</b> added SonarQube, OWASP Dependency-Check, and Trivy to CI/CD pipelines. As security champion, helped teams fix what those tools found.</li>
           <li><b>Automated a multi-week manual process:</b> tax and compensation updates now run from Docker images hosted in Azure, which cut errors and kept updates on time.</li>
           <li><b>Stabilized the payroll system:</b> created and ran a technical backlog that raised Net Promoter Score by 31 points and cut major incidents from double digits to zero.</li>
-          <li><b>Improved performance and integrations:</b> made an employee self-service app up to 90% faster by moving its data access from WCF to a Backend-for-Frontend with Dapper, and led the FedEx integration's move from SOAP to REST.</li>
+          <li><b>Improved performance and integrations:</b> made an employee self-service app up to 90% faster by moving its data access from WCF to a Backend-for-Frontend with Dapper, and moved the FedEx integration from SOAP to REST.</li>
           <li><b>Protected sensitive data:</b> oversaw a key rotation policy and the re-encryption of large volumes of sensitive data with custom-built tools to stay compliant with industry standards.</li>
         </ul>
       </div>
@@ -115,8 +117,7 @@ const pdf = '/dean-phillips-resume.pdf';
         <ul>
           <li><b>Worked across a large payroll codebase:</b> over a million lines in more than 100 repositories covering payroll, gross-to-net, tax, and compliance, keeping practices consistent across about a dozen Scrum teams.</li>
           <li><b>Shipped payroll features:</b> implemented the COVID CARES Act provisions, added multi-factor authentication with Azure AD B2C, and unified multiple user logins into a single email-based login.</li>
-          <li><b>Improved architecture:</b> served on an architecture committee for a fragile, hard-to-change system, and introduced microservices for shipping and billing using Clean Architecture, CQRS, and Domain-Driven Design.</li>
-          <li><b>Automated delivery and testing:</b> set up many YAML CI/CD pipelines in Azure DevOps, and worked with the tax and compliance team on BDD tests in Gherkin.</li>
+          <li><b>Improved architecture:</b> served on an architecture committee for a fragile system, and introduced microservices for shipping and billing using Clean Architecture, CQRS, and DDD. Set up many Azure DevOps pipelines.</li>
         </ul>
       </div>
 
@@ -139,9 +140,9 @@ const pdf = '/dean-phillips-resume.pdf';
     <section>
       <h2>Earlier experience</h2>
       <ul class="earlier">
-        <li><b>Delaware Nation Industries, Tinker AFB, Senior Java Developer and Scrum Master (2016 - 2018).</b> Led the rewrite of 72 ABW SC's applications from Struts 1 to Spring Security, Spring Data JPA, Hibernate, and AngularJS, with two-factor authentication. Built an IDE-agnostic dev environment that cut onboarding time, and set up unit and integration testing.</li>
-        <li><b>Sumaria Systems, then CSI (now Delaware Nation Industries), Tinker AFB (2012 - 2015).</b> .NET Developer, promoted to Senior .NET Developer and Scrum Master. Moved Classic ASP applications to ASP.NET and jQuery, automated inventory reporting for logistics specialists, and kept production healthy with Foglight.</li>
-        <li><b>Ensco Inc. (BAE Systems), Software Engineer (2005 - 2011).</b> Led test automation teams of up to 25 engineers across multiple sites for life-critical avionics software, and built their testing tools in C, Assembly, Ada, and JOVIAL under RTCA DO-178B.</li>
+        <li><b>Delaware Nation Industries, Tinker AFB, Senior Java Developer and Scrum Master (2016 - 2018).</b> Led the rewrite of 72 ABW SC's applications from Struts 1 to Spring Security, Spring Data JPA, Hibernate, and AngularJS, with two-factor authentication, plus unit and integration testing.</li>
+        <li><b>Sumaria Systems, then CSI (now Delaware Nation Industries), Tinker AFB (2012 - 2015).</b> .NET Developer, promoted to Senior and Scrum Master. Moved Classic ASP apps to ASP.NET and automated inventory reporting.</li>
+        <li><b>Ensco Inc. (BAE Systems), Software Engineer (2005 - 2011).</b> Led test automation teams of up to 25 engineers across sites for life-critical avionics software, with tools in C, Assembly, Ada, and JOVIAL (DO-178B).</li>
       </ul>
     </section>
 
