@@ -1,0 +1,16 @@
+---
+// A phone-sized screen recording (portrait, about 480x1040), with an optional caption.
+interface Props { src: string; poster?: string; caption?: string; label: string }
+const { src, poster, caption, label } = Astro.props;
+---
+<figure class="phone-video">
+  <video controls playsinline preload="metadata" poster={poster} aria-label={label}>
+    <source src={src} type="video/mp4" />
+  </video>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .phone-video { display: flex; flex-direction: column; align-items: center; }
+  video { width: min(300px, 100%); aspect-ratio: 480 / 1040; border-radius: 28px; border: 1px solid var(--line); background: var(--bg-2); }
+</style>
