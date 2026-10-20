@@ -2,18 +2,27 @@
 //
 //   node scripts/resume-pdf.mjs                       -> public/dean-phillips-resume.pdf (the public copy)
 //   node scripts/resume-pdf.mjs --phone "(405) ..." --out C:/somewhere/resume.pdf
+//   node scripts/resume-pdf.mjs --private             -> phone from RESUME_PHONE in .env.local, written to the OS temp dir
 //
 // The phone number only goes into PDFs written outside the repo, so it never lands on the site.
 import { spawn } from 'node:child_process';
-import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
 const arg = (name) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > -1 ? process.argv[i + 1] : undefined;
 };
-const phone = arg('phone');
-const out = resolve(arg('out') ?? 'public/dean-phillips-resume.pdf');
+const isPrivate = process.argv.includes('--private');
+if (isPrivate && existsSync('.env.local')) process.loadEnvFile('.env.local');
+const phone = arg('phone') ?? (isPrivate ? process.env.RESUME_PHONE : undefined);
+if (isPrivate && !phone) {
+  console.error('--private needs RESUME_PHONE in .env.local (or pass --phone).');
+  process.exit(1);
+}
+const out = resolve(arg('out') ?? (isPrivate ? join(tmpdir(), 'dean-phillips-resume.pdf') : 'public/dean-phillips-resume.pdf'));
 if (phone && out.startsWith(resolve('.'))) {
   console.error('A PDF with a phone number has to be written outside the repo (use --out).');
   process.exit(1);
