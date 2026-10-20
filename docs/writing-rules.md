@@ -34,6 +34,10 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
 - The delivery-team series is `series: ai-delivery-team`. The overview is `part: 0`, and new parts
   take the next number. Exact stats (days, commits, issues, tests) live **only** on the overview.
   Parts say "the full end-to-end suite", not a count.
+- The Gesso series (picture to painting lesson) is `series: gesso`, overview `gesso` as `part: 0`,
+  with eyebrow "Experiment". It leads with pictures and the interactive Flipbook, CompareSlider, and
+  Gallery components, and keeps the reading light. **No costs or prices anywhere in it** (owner's
+  call). Its images come from the Gesso repo's lesson runs (a private repo; don't link it).
 - Each part opens with one sentence linking the overview, and ends with a "What broke" section
   when there's a real failure to tell.
 - Reuse the components in `src/components/blog/` (StatRow, Flow, Steps, Lanes, Callout,

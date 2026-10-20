@@ -1,0 +1,25 @@
+---
+// A grid of captioned pictures (two across, one on phones). Good for side-by-sides and bloopers.
+interface Props { items: { src: string; caption: string; alt?: string }[]; caption?: string; cols?: number }
+const { items, caption, cols = 2 } = Astro.props;
+---
+<figure class="gallery bleed" style={`--cols: ${cols}`}>
+  <div class="grid">
+    {items.map((it) => (
+      <div class="item">
+        <img src={it.src} alt={it.alt ?? it.caption} loading="lazy" decoding="async" />
+        <p set:html={it.caption} />
+      </div>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 14px; }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+  .item img { display: block; width: 100%; height: auto; border-radius: 10px; }
+  .item p { margin: 10px 4px 4px; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+  .item p :global(b) { color: var(--text); }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+</style>

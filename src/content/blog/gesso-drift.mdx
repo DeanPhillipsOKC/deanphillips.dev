@@ -1,0 +1,73 @@
+---
+title: "Keeping every step the same painting"
+titleAccent: "the same painting"
+tabTitle: Keeping the Steps Consistent
+partTitle: Keeping every step the same painting
+description: "An AI image model repaints the whole picture every time you ask, so Gesso's lesson steps drifted: roads changed shape and the aurora vanished. Three ways of making the steps, and the AI teacher that checks them."
+dek: Here's a problem I didn't see coming. Every time you ask an AI image model for a picture, it paints the whole thing again from scratch. So step 4 of a lesson isn't step 3 plus a little more paint. It's a brand-new painting that's supposed to look like step 3 plus a little more paint.
+eyebrow: Experiment
+date: 2026-10-19
+readMinutes: 4
+image: /img/og/gesso-drift.jpg
+series: gesso
+part: 3
+draft: true
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import Gallery from '../../components/blog/Gallery.astro';
+import Callout from '../../components/blog/Callout.astro';
+import lessons from '../../data/gesso/lessons.json';
+import story from '../../data/gesso/story.json';
+
+export const [w, h] = story['drift-anchored']._size;
+export const keys = ['01_sky', '02_distance', '03_ground', '04_subject', '05_texture', '06_shadows', '07_highlights'];
+export const names = ['Paint the sky', 'Paint the far shapes', 'Paint the ground', 'Paint the main shapes', 'Add texture', 'Shadows and depth', 'Highlights'];
+export const seq = (key, label) => ({ label, width: w, height: h, frames: keys.map((k, i) => ({ src: story[key][k], label: names[i] })) });
+export const cat = lessons.find((l) => l.key === 'cat');
+
+This is part 3 of a series about Gesso, an experiment that turns any picture into a paint-along lesson. The [overview](/blog/gesso/) has the finished lessons to flip through.
+
+## Same painting, three ways
+
+Picture asking a painter to repaint your painting from memory at every stage, and to make each copy look a little less finished than the last. The clouds would move. The road would bend somewhere new. That's what an image model does, so I tried three ways of keeping it honest.
+
+- **Backward:** paint the finished picture first, then make each earlier step by taking paint off the step after it.
+- **Forward:** start with a blank canvas and add paint each step, aiming at the finished picture.
+- **Backward, checking the finish:** like backward, but every step also gets the finished painting to copy shapes from.
+
+Pick a step, then switch tabs. The aurora road is a good test because the road has a very specific shape.
+
+<Flipbook
+  sequences={[seq('drift-forward', 'Forward'), seq('drift-backward', 'Backward'), seq('drift-anchored', 'Backward, checking the finish')]}
+  start={3}
+  caption="One picture, three methods, same seven steps. Watch the road and the trees beside it."
+/>
+
+Forward drifted the most. Rows of trees appeared and disappeared, the road changed shape, and the last step looked nothing like the one before it. Backward was better, but the road was a simple striped shape for two steps and then suddenly became the real road. Checking the finish kept everything lined up from start to finish.
+
+Then I tried one more: make every step straight from the finished painting, all at the same time. It came out just as consistent, and since nothing waits on anything else, all the steps get painted together in about 30 seconds instead of about two minutes. That's what Gesso uses now.
+
+## An AI teacher that checks the work
+
+Better methods still let mistakes through, so now there's a second pair of eyes. When all the steps are done, Claude looks at the whole lesson in order, like a teacher grading homework, and flags anything a beginner following along would notice:
+
+- something showing up before the step that paints it
+- something from an earlier step that's missing or moved
+- a step that doesn't match its own instructions
+
+Each flagged step gets painted again with a note saying what to fix. It caught real problems right away. In one aurora lesson, the green aurora and the moon disappeared from four middle steps and then came back for the finish. In a trees lesson, the trunks were in different places than in the finished painting.
+
+<Callout title="Fixing the cause, not just the symptom.">The disappearing aurora happened every time, so I changed the instructions each step gets. Now every step lists everything that's already been painted and everything that hasn't. The next run needed one fix instead of four (the moon had lost its starburst), and the trees needed none.</Callout>
+
+## What broke
+
+The checker compares each step against the finished painting. Nothing compares the finished painting against your picture. So when the cat came out wrong, every step agreed with it perfectly:
+
+<Gallery items={[
+  { src: cat.steps[0].image, caption: '<b>The picture:</b> a cat asleep on mint-green cream.' },
+  { src: cat.steps.at(-1).image, caption: '<b>The finished painting:</b> the cream is blue and white, in every step.' },
+]} />
+
+That's next on the list: one more check, picture against painting, before any steps get made.
+
+Next: [How good do the pictures need to be?](/blog/gesso-quality/)

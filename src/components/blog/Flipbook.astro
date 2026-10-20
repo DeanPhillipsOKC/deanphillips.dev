@@ -1,0 +1,163 @@
+---
+// Step through a painting one image at a time: drag the slider, tap the arrows, or press Play.
+// With several sequences, tabs switch between them and keep the current step, so the same
+// component compares versions (three methods, four quality levels) at the same point in the lesson.
+// Frames can carry color swatches and a one-line tip.
+interface Frame {
+  src: string;
+  label: string;
+  colors?: { name: string; hex: string; recipe: string }[];
+  tip?: string;
+}
+// lead: how many opening frames come before step 1 (the photo, the blank canvas); they aren't counted.
+interface Sequence { label: string; width: number; height: number; frames: Frame[]; lead?: number }
+interface Props {
+  sequences: Sequence[];
+  caption?: string;
+  // Which frame to show first; defaults to the first.
+  start?: number;
+  // Word used in the counter, e.g. "Step 3 of 9".
+  unit?: string;
+}
+const { sequences, caption, start = 0, unit = 'Step' } = Astro.props;
+const first = sequences[0];
+const f0 = first.frames[Math.min(start, first.frames.length - 1)];
+---
+<figure class="flipbook panel bleed" data-seqs={JSON.stringify(sequences)} data-start={start} data-unit={unit}>
+  {sequences.length > 1 && (
+    <div class="tabs" role="group" aria-label="Choose a version">
+      {sequences.map((s, i) => <button type="button" class="tab" aria-pressed={i === 0 ? 'true' : 'false'} data-i={i}>{s.label}</button>)}
+    </div>
+  )}
+  <div class="stage" style={`aspect-ratio: ${first.width} / ${first.height}`}>
+    <img src={f0.src} alt={f0.label} width={first.width} height={first.height} decoding="async" />
+  </div>
+  <div class="controls">
+    <button type="button" class="nav prev" aria-label="Previous step">&#8249;</button>
+    <input type="range" min="0" max={first.frames.length - 1} value={start} step="1" aria-label="Step" />
+    <button type="button" class="nav next" aria-label="Next step">&#8250;</button>
+    <button type="button" class="play" aria-pressed="false">Play</button>
+  </div>
+  <p class="where" aria-live="polite"><b class="count"></b> <span class="name">{f0.label}</span></p>
+  <ul class="swatches"></ul>
+  <p class="tip"></p>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type Frame = { src: string; label: string; colors?: { name: string; hex: string; recipe: string }[]; tip?: string };
+  type Seq = { label: string; width: number; height: number; frames: Frame[]; lead?: number };
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const root of document.querySelectorAll<HTMLElement>('.flipbook')) {
+    const seqs: Seq[] = JSON.parse(root.dataset.seqs!);
+    const unit = root.dataset.unit!;
+    const stage = root.querySelector<HTMLElement>('.stage')!;
+    const img = stage.querySelector('img')!;
+    const range = root.querySelector<HTMLInputElement>('input[type=range]')!;
+    const count = root.querySelector('.count')!;
+    const name = root.querySelector('.name')!;
+    const swatches = root.querySelector('.swatches')!;
+    const tip = root.querySelector<HTMLElement>('.tip')!;
+    const play = root.querySelector<HTMLButtonElement>('.play')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.tab')];
+    let s = 0;
+    let i = Number(root.dataset.start) || 0;
+    let timer: number | undefined;
+    const warmed = new Set<string>();
+
+    const warm = (seq: Seq) => seq.frames.forEach((f) => {
+      if (!warmed.has(f.src)) { warmed.add(f.src); const p = new Image(); p.src = f.src; }
+    });
+
+    function show() {
+      const seq = seqs[s];
+      i = Math.max(0, Math.min(i, seq.frames.length - 1));
+      const f = seq.frames[i];
+      stage.style.aspectRatio = `${seq.width} / ${seq.height}`;
+      stage.style.setProperty("--maxw", `calc(70vh * ${seq.width / seq.height})`);
+      img.src = f.src;
+      img.alt = f.label;
+      range.max = String(seq.frames.length - 1);
+      range.value = String(i);
+      const lead = seq.lead ?? 0;
+      count.textContent = i < lead ? 'Before you start:' : `${unit} ${i - lead + 1} of ${seq.frames.length - lead}:`;
+      name.textContent = f.label;
+      swatches.innerHTML = '';
+      for (const c of f.colors ?? []) {
+        const li = document.createElement('li');
+        const chip = document.createElement('i');
+        chip.style.background = c.hex;
+        const text = document.createElement('div');
+        const b = document.createElement('b');
+        b.textContent = c.name;
+        const r = document.createElement('span');
+        r.textContent = c.recipe;
+        text.append(b, r);
+        li.append(chip, text);
+        swatches.append(li);
+      }
+      tip.textContent = f.tip ?? '';
+      tip.hidden = !f.tip;
+      tabs.forEach((t, k) => t.setAttribute('aria-pressed', String(k === s)));
+    }
+
+    function stop() {
+      window.clearInterval(timer);
+      timer = undefined;
+      play.textContent = 'Play';
+      play.setAttribute('aria-pressed', 'false');
+    }
+
+    range.addEventListener('input', () => { stop(); i = Number(range.value); show(); });
+    root.querySelector('.prev')!.addEventListener('click', () => { stop(); i -= 1; show(); });
+    root.querySelector('.next')!.addEventListener('click', () => { stop(); i += 1; show(); });
+    tabs.forEach((t, k) => t.addEventListener('click', () => { s = k; warm(seqs[s]); show(); }));
+    play.addEventListener('click', () => {
+      if (timer) return stop();
+      if (i >= seqs[s].frames.length - 1) i = 0;
+      show();
+      play.textContent = 'Pause';
+      play.setAttribute('aria-pressed', 'true');
+      timer = window.setInterval(() => {
+        if (i >= seqs[s].frames.length - 1) return stop();
+        i += 1;
+        show();
+      }, reduce ? 2200 : 1300);
+    });
+
+    // Load the frames once the player is close to the screen, so scrubbing is instant.
+    new IntersectionObserver((entries, obs) => {
+      if (entries.some((e) => e.isIntersecting)) { warm(seqs[s]); obs.disconnect(); }
+    }, { rootMargin: '400px' }).observe(root);
+    show();
+  }
+</script>
+
+<style>
+  .flipbook { padding: 16px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .tab { font: 600 0.88rem/1 Inter, sans-serif; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+  .tab[aria-pressed='true'] { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
+  .stage { width: 100%; max-width: var(--maxw, 100%); max-height: 70vh; margin: 0 auto; border-radius: 14px; overflow: hidden; background: var(--bg-2); }
+  .stage img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .controls { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; margin-top: 14px; }
+  .controls input { width: 100%; accent-color: var(--teal); min-height: 32px; }
+  .nav, .play { font: 600 0.9rem/1 Inter, sans-serif; min-width: 44px; min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+  .nav { font-size: 1.5rem; }
+  .play { padding: 0 16px; border-color: var(--teal); }
+  .tab:focus-visible, .nav:focus-visible, .play:focus-visible, .controls input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .where { margin: 12px 0 0; font-size: 1rem; }
+  .where b { font-family: 'Space Grotesk', sans-serif; color: var(--teal); }
+  .swatches { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .swatches :global(li) { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-size: 0.88rem; line-height: 1.35; }
+  .swatches :global(i) { flex: none; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); }
+  .swatches :global(b) { display: block; color: var(--text); }
+  .swatches :global(span) { color: var(--muted); }
+  .tip { margin: 12px 0 0; font-size: 0.92rem; color: var(--muted); }
+  @media (max-width: 560px) {
+    .flipbook { padding: 12px; }
+    .controls { grid-template-columns: auto 1fr auto; }
+    .play { grid-column: 1 / -1; }
+  }
+</style>

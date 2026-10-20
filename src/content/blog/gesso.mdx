@@ -1,0 +1,73 @@
+---
+title: "I built a thing that turns any picture into a paint-along lesson"
+titleAccent: "a paint-along lesson"
+tabTitle: Gesso, the Painting Lesson Experiment
+partTitle: Any picture, as a paint-along lesson
+description: Gesso turns a picture into a step-by-step acrylic lesson, the kind you'd follow on YouTube. The overview of a series about building it, with the lessons to flip through and everything that went wrong.
+dek: My partner and I are beginner painters, and we learn from YouTube tutorials. The catch is that someone has to have made a tutorial for the picture you want. So I spent a day building something that makes one for any picture.
+eyebrow: Experiment
+date: 2026-10-19
+readMinutes: 4
+image: /img/og/gesso.jpg
+cover: ../../assets/blog/gesso.png
+series: gesso
+part: 0
+draft: true
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import Steps from '../../components/blog/Steps.astro';
+import Gallery from '../../components/blog/Gallery.astro';
+import Callout from '../../components/blog/Callout.astro';
+import lessons from '../../data/gesso/lessons.json';
+import story from '../../data/gesso/story.json';
+
+export const seqs = lessons.map((l) => ({
+  label: l.label,
+  width: l.width,
+  height: l.height,
+  lead: 2,
+  frames: l.steps.map((s) => ({ src: s.image, label: s.name, colors: s.colors, tip: s.tip })),
+}));
+
+Here's the whole idea in one box. Pick a picture, then press Play, or drag the slider, and watch it get painted one step at a time, starting from a blank canvas. Each step comes with the paints to mix for it.
+
+<Flipbook sequences={seqs} caption="Four lessons Gesso made. Every step is a picture of the canvas after that step, with the colors you mix for it." />
+
+No person painted any of these steps. Every painting is AI-generated, and every lesson was planned, painted, checked, and written by AI models following rules I set up. It took one day, from an empty folder at 2:21 in the afternoon to these four lessons that evening. Along the way it made 30 lessons, and a lot of the early ones were wrong in ways that are fun to look at.
+
+## How it works
+
+The trick is that Gesso paints the lesson **backward**. It's like a cooking show pulling the finished cake out of the oven before anyone cracks an egg. Once you know exactly what the finished painting looks like, you can work out what the canvas looked like halfway, and at the start.
+
+<Steps
+  caption="One picture in, one lesson out. Claude does the thinking and an image model does the painting."
+  steps={[
+    { title: 'Simplify', text: 'Turn the picture into something a beginner can paint: fewer shapes, colors you can mix.' },
+    { title: 'Paint the finish', text: 'An image model paints the finished painting first.' },
+    { title: 'Plan', text: 'Claude looks at it and breaks it into parts, back to front: sky, clouds, trees, details.' },
+    { title: 'Paint the steps', text: 'The image model paints the canvas as it looks after each part.' },
+    { title: 'Check and write', text: 'Claude reviews the steps like a teacher, sends back mistakes, and writes the instructions.' },
+  ]}
+/>
+
+That's the version that works. Getting there took a lot of experiments, and most of the fun is in the ones that went wrong.
+
+## The blooper reel
+
+<Gallery items={[
+  { src: story['sideways']['06_details'], caption: '<b>The sideways forest.</b> The photo was taken with the phone held upright, but the program read it lying down, so the first lesson painted trees growing sideways.' },
+  { src: story['holes']['03_background'], caption: '<b>Holes in the sky.</b> Told to paint the background first, it carefully painted around every single branch, leaving tree-shaped holes.' },
+  { src: story['drift-forward']['04_subject'], caption: '<b>The road that kept moving.</b> In one method, every step redrew the scene from memory. Rows of trees showed up, then left.' },
+  { src: lessons[3].steps.at(-1).image, caption: '<b>The cream that changed flavors.</b> In the original picture, the cat sleeps on mint-green cream. The finished painting came out blue and white.' },
+]} />
+
+## The series
+
+Each part is one thing I learned, with the pictures to prove it:
+
+1. [Paint the sky first](/blog/gesso-sky-first/): the first lessons painted the trees before the sky. One question from me fixed it.
+2. [Steps that fit the picture](/blog/gesso-planned-steps/): why a fixed list of steps made boring lessons, and what happened when Claude planned the steps for each picture instead.
+3. [Keeping every step the same painting](/blog/gesso-drift/): an image model repaints the whole picture every time, so things wander. How to keep a lesson from drifting.
+4. [How good do the pictures need to be?](/blog/gesso-quality/): the same lesson at four quality settings, side by side.
+
+<Callout title="Who did what.">I set the goal, picked the painting style, wrote the rules the AI follows, and made every call about what was right and wrong. Claude (an AI model) planned the lessons and wrote the code with me, and an image model painted every picture. The next test is the real one: my partner and I following one of these with actual brushes.</Callout>
