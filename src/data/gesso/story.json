@@ -1,0 +1,167 @@
+{
+ "sideways": {
+  "00_reference": "/img/gesso/story/sideways/00_reference.webp",
+  "01_tone": "/img/gesso/story/sideways/01_tone.webp",
+  "02_sketch": "/img/gesso/story/sideways/02_sketch.webp",
+  "03_darks": "/img/gesso/story/sideways/03_darks.webp",
+  "04_block-in": "/img/gesso/story/sideways/04_block-in.webp",
+  "06_details": "/img/gesso/story/sideways/06_details.webp",
+  "_size": [
+   900,
+   600
+  ]
+ },
+ "darks-first": {
+  "01_tone": "/img/gesso/story/darks-first/01_tone.webp",
+  "02_sketch": "/img/gesso/story/darks-first/02_sketch.webp",
+  "03_darks": "/img/gesso/story/darks-first/03_darks.webp",
+  "04_block-in": "/img/gesso/story/darks-first/04_block-in.webp",
+  "05_build-up": "/img/gesso/story/darks-first/05_build-up.webp",
+  "06_details": "/img/gesso/story/darks-first/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "cat-v1": {
+  "01_tone": "/img/gesso/story/cat-v1/01_tone.webp",
+  "02_sketch": "/img/gesso/story/cat-v1/02_sketch.webp",
+  "03_darks": "/img/gesso/story/cat-v1/03_darks.webp",
+  "04_block-in": "/img/gesso/story/cat-v1/04_block-in.webp",
+  "06_details": "/img/gesso/story/cat-v1/06_details.webp",
+  "_size": [
+   900,
+   600
+  ]
+ },
+ "holes": {
+  "01_tone": "/img/gesso/story/holes/01_tone.webp",
+  "02_sketch": "/img/gesso/story/holes/02_sketch.webp",
+  "03_background": "/img/gesso/story/holes/03_background.webp",
+  "04_block-in": "/img/gesso/story/holes/04_block-in.webp",
+  "06_details": "/img/gesso/story/holes/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "sky-first": {
+  "01_tone": "/img/gesso/story/sky-first/01_tone.webp",
+  "02_sketch": "/img/gesso/story/sky-first/02_sketch.webp",
+  "03_background": "/img/gesso/story/sky-first/03_background.webp",
+  "04_block-in": "/img/gesso/story/sky-first/04_block-in.webp",
+  "05_build-up": "/img/gesso/story/sky-first/05_build-up.webp",
+  "06_details": "/img/gesso/story/sky-first/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "fixed-trees": {
+  "01_sky": "/img/gesso/story/fixed-trees/01_sky.webp",
+  "02_distance": "/img/gesso/story/fixed-trees/02_distance.webp",
+  "03_ground": "/img/gesso/story/fixed-trees/03_ground.webp",
+  "04_subject": "/img/gesso/story/fixed-trees/04_subject.webp",
+  "05_texture": "/img/gesso/story/fixed-trees/05_texture.webp",
+  "06_shadows": "/img/gesso/story/fixed-trees/06_shadows.webp",
+  "07_highlights": "/img/gesso/story/fixed-trees/07_highlights.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "fixed-aurora": {
+  "01_sky": "/img/gesso/story/fixed-aurora/01_sky.webp",
+  "02_distance": "/img/gesso/story/fixed-aurora/02_distance.webp",
+  "03_ground": "/img/gesso/story/fixed-aurora/03_ground.webp",
+  "04_subject": "/img/gesso/story/fixed-aurora/04_subject.webp",
+  "05_texture": "/img/gesso/story/fixed-aurora/05_texture.webp",
+  "06_shadows": "/img/gesso/story/fixed-aurora/06_shadows.webp",
+  "07_highlights": "/img/gesso/story/fixed-aurora/07_highlights.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "drift-backward": {
+  "01_sky": "/img/gesso/story/drift-backward/01_sky.webp",
+  "02_distance": "/img/gesso/story/drift-backward/02_distance.webp",
+  "03_ground": "/img/gesso/story/drift-backward/03_ground.webp",
+  "04_subject": "/img/gesso/story/drift-backward/04_subject.webp",
+  "05_texture": "/img/gesso/story/drift-backward/05_texture.webp",
+  "06_shadows": "/img/gesso/story/drift-backward/06_shadows.webp",
+  "07_highlights": "/img/gesso/story/drift-backward/07_highlights.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "drift-anchored": {
+  "01_sky": "/img/gesso/story/drift-anchored/01_sky.webp",
+  "02_distance": "/img/gesso/story/drift-anchored/02_distance.webp",
+  "03_ground": "/img/gesso/story/drift-anchored/03_ground.webp",
+  "04_subject": "/img/gesso/story/drift-anchored/04_subject.webp",
+  "05_texture": "/img/gesso/story/drift-anchored/05_texture.webp",
+  "06_shadows": "/img/gesso/story/drift-anchored/06_shadows.webp",
+  "07_highlights": "/img/gesso/story/drift-anchored/07_highlights.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "drift-forward": {
+  "01_sky": "/img/gesso/story/drift-forward/01_sky.webp",
+  "02_distance": "/img/gesso/story/drift-forward/02_distance.webp",
+  "03_ground": "/img/gesso/story/drift-forward/03_ground.webp",
+  "04_subject": "/img/gesso/story/drift-forward/04_subject.webp",
+  "05_texture": "/img/gesso/story/drift-forward/05_texture.webp",
+  "06_shadows": "/img/gesso/story/drift-forward/06_shadows.webp",
+  "07_highlights": "/img/gesso/story/drift-forward/07_highlights.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "q-low": {
+  "03_background": "/img/gesso/story/q-low/03_background.webp",
+  "04_block-in": "/img/gesso/story/q-low/04_block-in.webp",
+  "06_details": "/img/gesso/story/q-low/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "q-medium": {
+  "03_background": "/img/gesso/story/q-medium/03_background.webp",
+  "04_block-in": "/img/gesso/story/q-medium/04_block-in.webp",
+  "06_details": "/img/gesso/story/q-medium/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "q-high": {
+  "03_background": "/img/gesso/story/q-high/03_background.webp",
+  "04_block-in": "/img/gesso/story/q-high/04_block-in.webp",
+  "06_details": "/img/gesso/story/q-high/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "q-max": {
+  "03_background": "/img/gesso/story/q-max/03_background.webp",
+  "04_block-in": "/img/gesso/story/q-max/04_block-in.webp",
+  "06_details": "/img/gesso/story/q-max/06_details.webp",
+  "_size": [
+   600,
+   900
+  ]
+ },
+ "photos": {
+  "couple": "/img/gesso/story/photos/couple.webp",
+  "trees": "/img/gesso/story/photos/trees.webp",
+  "aurora": "/img/gesso/story/photos/aurora.webp",
+  "cat": "/img/gesso/story/photos/cat.webp"
+ }
+}

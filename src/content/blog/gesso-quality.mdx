@@ -1,0 +1,61 @@
+---
+title: "How good do the pictures need to be?"
+titleAccent: "need to be?"
+tabTitle: Picture Quality
+partTitle: How good do the pictures need to be?
+description: The same Gesso lesson at four image quality settings, side by side. The best setting took four times as long, and the differences were smaller than you'd think.
+dek: AI image models have a quality dial. Turn it up and you get richer paint and finer branches, and you wait a lot longer. I made the same lesson at four settings to see where the dial should sit.
+eyebrow: Experiment
+date: 2026-10-19
+readMinutes: 3
+image: /img/og/gesso-quality.jpg
+series: gesso
+part: 4
+draft: true
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import story from '../../data/gesso/story.json';
+
+export const [w, h] = story['q-low']._size;
+export const keys = ['06_details', '04_block-in', '03_background'];
+export const names = ['The finished painting', 'Trees painted over the sky', 'The sky, before the trees'];
+export const seq = (key, label) => ({ label, width: w, height: h, frames: keys.map((k, i) => ({ src: story[key][k], label: names[i] })) });
+
+This is part 4 of a series about Gesso, an experiment that turns any picture into a paint-along lesson. The [overview](/blog/gesso/) has the finished lessons to flip through.
+
+## Four settings, one lesson
+
+I made the backlit trees lesson four times, once at each quality setting, and timed each one from start to finish.
+
+<StatRow stats={[
+  { value: '2.4 min', label: 'low' },
+  { value: '2.9 min', label: 'medium' },
+  { value: '4.3 min', label: 'high' },
+  { value: '9.8 min', label: 'max' },
+]} />
+
+Now compare them. Switch tabs to change the setting. The slider moves through the lesson, finished painting first.
+
+<Flipbook
+  sequences={[seq('q-low', 'Low'), seq('q-medium', 'Medium'), seq('q-high', 'High'), seq('q-max', 'Max')]}
+  unit="Picture"
+  caption="Same photo, same lesson, four quality settings. Each was a separate run."
+/>
+
+## What I saw
+
+- **Max** has the richest paint texture and the finest branches. It also took four times as long as low.
+- **High** is nearly as good, except its sky came out in blue stripes.
+- **Medium** is clean and consistent, and barely slower than low.
+- **Low** is softer and drops some of the thinnest twigs, but it's easy to follow.
+
+The surprise was high's stripy sky. That isn't the setting's fault. Each tab is a separate run, and two runs at the *same* setting differ about as much as these four do. The dial matters less than luck.
+
+## Where the dial ended up
+
+What I care about while experimenting is whether a lesson follows directions: right order, nothing missing, every step the same painting. All four settings did that equally well. So I run experiments at **low**, and I only turn it up if a run stops following directions.
+
+There's one exception. Since the [drift fixes](/blog/gesso-drift/), every step copies the finished painting. A better finished painting makes every step better. So the finished painting gets made at **high**, and the steps stay at low.
+
+That's the series so far. Gesso is still an experiment, and the next test is the one that counts: a beginner, a brush, and one of these lessons. Back to the [overview](/blog/gesso/).

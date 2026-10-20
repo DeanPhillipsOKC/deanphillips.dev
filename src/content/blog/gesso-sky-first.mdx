@@ -1,0 +1,71 @@
+---
+title: "Paint the sky first: the question that fixed my AI's painting lessons"
+titleAccent: "the question that fixed my AI's painting lessons"
+tabTitle: Paint the Sky First
+partTitle: Paint the sky first
+description: The first Gesso lessons painted the trees, then squeezed the sky in around every branch. One beginner's question fixed it, and a few bloopers showed how literally an AI follows directions.
+dek: The first lessons looked great at the end and made no sense along the way. The trees went on first, then the sky got painted around every branch. I'm a beginner, and even I could tell that was backward.
+eyebrow: Experiment
+date: 2026-10-19
+readMinutes: 4
+image: /img/og/gesso-sky-first.jpg
+series: gesso
+part: 1
+draft: true
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import CompareSlider from '../../components/blog/CompareSlider.astro';
+import Gallery from '../../components/blog/Gallery.astro';
+import story from '../../data/gesso/story.json';
+
+export const [w, h] = story['darks-first']._size;
+export const v1 = ['01_tone', '02_sketch', '03_darks', '04_block-in', '05_build-up', '06_details'];
+export const v2 = ['01_tone', '02_sketch', '03_background', '04_block-in', '05_build-up', '06_details'];
+export const names1 = ['Tone the canvas orange', 'Sketch the big shapes', 'Paint the darks: the trees', 'Fill in the sky around them', 'Build up the layers', 'Details and highlights'];
+export const names2 = ['Tone the canvas orange', 'Sketch the big shapes', 'Paint the whole sky', 'Paint the trees on top', 'Build up the layers', 'Details and highlights'];
+
+This is part 1 of a series about Gesso, an experiment that turns any picture into a paint-along lesson. The [overview](/blog/gesso/) has the finished lessons to flip through.
+
+## Version one: darks first
+
+My first try copied the method painting classes teach: tone the canvas with a thin orange wash, sketch the shapes, paint the darkest areas, then fill in everything else and add detail. Flip through it, then switch to the other tab.
+
+<Flipbook
+  sequences={[
+    { label: 'Version 1: darks first', width: w, height: h, frames: v1.map((k, i) => ({ src: story['darks-first'][k], label: names1[i] })) },
+    { label: 'Version 2: sky first', width: w, height: h, frames: v2.map((k, i) => ({ src: story['sky-first'][k], label: names2[i] })) },
+  ]}
+  start={2}
+  caption="The same photo, two orders. Switching tabs keeps you on the same step."
+/>
+
+Step 3 of version one is where it goes wrong. The trees are done and the sky doesn't exist yet. To finish the painting, you'd have to fill in the sky around hundreds of branches with a tiny brush. Every tutorial I've followed does it the other way around.
+
+So I asked: wouldn't it make more sense to do the sky and then the trees?
+
+It would. Acrylic dries fast and covers well, so you paint what's farthest away first and put each closer thing on top. The sky goes on in big, easy strokes, right across where the trees will be. Then the trunks go over it. If a branch comes out wobbly, it doesn't matter, because there's sky underneath.
+
+<CompareSlider
+  width={w}
+  height={h}
+  before={{ src: story['darks-first']['03_darks'], label: 'Trees first' }}
+  after={{ src: story['sky-first']['03_background'], label: 'Sky first' }}
+  caption="Step 3, both ways. Drag the handle."
+/>
+
+That became the first rule Gesso follows for every lesson: **paint back to front.**
+
+## What broke on the way
+
+Getting the computer to actually do that took a few tries. An AI follows directions very literally, and these are the times it followed mine a little too well.
+
+<Gallery items={[
+  { src: story['sideways']['06_details'], caption: '<b>The sideways forest.</b> Phones save a note in each photo saying which way is up. The program ignored it, so the trees came out lying on their side. One line of code fixed it.' },
+  { src: story['holes']['03_background'], caption: '<b>Holes in the sky.</b> I said "paint the background first." It did, and it carefully left a hole for every trunk and branch. The rule now says to paint straight through where thin things will go.' },
+  { src: story['cat-v1']['02_sketch'], caption: '<b>The canvas that changed color.</b> Step 1 toned the canvas orange. In step 2 it was suddenly green. Each picture was made separately, so nothing told step 2 what step 1 looked like.' },
+  { src: story['cat-v1']['01_tone'], caption: 'Step 1 of that same cat lesson, for comparison. The fix was to make the toned canvas first and hand it to every later step.' },
+]} />
+
+The pattern in all of these is the same. The image model never sees the lesson. It sees one request at a time, so anything I don't spell out, it makes up fresh. Most of the later work, which the rest of this series covers, is about spelling things out: what's already on the canvas, what isn't there yet, and what has to stay exactly where it is.
+
+Next: [Steps that fit the picture](/blog/gesso-planned-steps/), where I threw out the painting-class method altogether.

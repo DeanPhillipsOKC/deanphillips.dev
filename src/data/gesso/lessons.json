@@ -1,0 +1,739 @@
+[
+ {
+  "key": "couple",
+  "label": "The flying couple",
+  "width": 900,
+  "height": 600,
+  "steps": [
+   {
+    "name": "Your picture",
+    "image": "/img/gesso/couple/00-photo.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "A blank canvas",
+    "image": "/img/gesso/couple/00-canvas.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "Warm sky base",
+    "image": "/img/gesso/couple/01-sky-base.webp",
+    "colors": [
+     {
+      "name": "Sunset Coral",
+      "hex": "#f35756",
+      "recipe": "3 cadmium red + 2 titanium white + a touch of cadmium yellow"
+     },
+     {
+      "name": "Flame Orange",
+      "hex": "#f79825",
+      "recipe": "2 cadmium yellow + 1 cadmium red"
+     },
+     {
+      "name": "Sun Yellow",
+      "hex": "#fac03e",
+      "recipe": "3 cadmium yellow + 1 titanium white"
+     }
+    ],
+    "tip": "Cover the top part of the canvas, down to just past halfway, with Sunset Coral. Use long side-to-side strokes that curve a little, and paint straight through where the figures will go. Let the bottom edge be loose and wavy."
+   },
+   {
+    "name": "Blue swirls and yellow centers",
+    "image": "/img/gesso/couple/02-sky-swirls.webp",
+    "colors": [
+     {
+      "name": "Deep Swirl Blue",
+      "hex": "#3958b3",
+      "recipe": "3 ultramarine blue + 1 titanium white"
+     },
+     {
+      "name": "Sun Yellow",
+      "hex": "#fac03e",
+      "recipe": "3 cadmium yellow + 1 titanium white"
+     },
+     {
+      "name": "Flame Orange",
+      "hex": "#f79825",
+      "recipe": "2 cadmium yellow + 1 cadmium red"
+     }
+    ],
+    "tip": "Let the sky dry a little. Then paint a big Deep Swirl Blue spiral that starts at the upper left, curls across the top, and wraps around the yellow hook at the upper center."
+   },
+   {
+    "name": "Setting sun and blue mountains",
+    "image": "/img/gesso/couple/03-sun-mountains.webp",
+    "colors": [
+     {
+      "name": "Pale Sun",
+      "hex": "#fae08e",
+      "recipe": "4 titanium white + 1 cadmium yellow"
+     },
+     {
+      "name": "Deep Swirl Blue",
+      "hex": "#3958b3",
+      "recipe": "3 ultramarine blue + 1 titanium white"
+     },
+     {
+      "name": "Flame Orange",
+      "hex": "#f79825",
+      "recipe": "2 cadmium yellow + 1 cadmium red"
+     }
+    ],
+    "tip": "With the round brush, dab a half circle of Pale Sun about two-thirds of the way across, low in the orange glow."
+   },
+   {
+    "name": "Green fields and hill",
+    "image": "/img/gesso/couple/04-fields.webp",
+    "colors": [
+     {
+      "name": "Meadow Green",
+      "hex": "#969229",
+      "recipe": "2 cadmium yellow + 1 ultramarine blue + 1 titanium white"
+     },
+     {
+      "name": "Shadow Green",
+      "hex": "#38532e",
+      "recipe": "2 ultramarine blue + 2 cadmium yellow + 1 burnt sienna"
+     },
+     {
+      "name": "Lime Light",
+      "hex": "#bda832",
+      "recipe": "3 cadmium yellow + 1 meadow green + 1 titanium white"
+     }
+    ],
+    "tip": "Fill all the white canvas below the mountains with Meadow Green. Use strokes that follow the rolling curves, rising toward the lower left to make the big hill."
+   },
+   {
+    "name": "River and village houses",
+    "image": "/img/gesso/couple/05-river-village.webp",
+    "colors": [
+     {
+      "name": "River Blue",
+      "hex": "#51b1de",
+      "recipe": "2 titanium white + 1 ultramarine blue"
+     },
+     {
+      "name": "Pale Sun",
+      "hex": "#fae08e",
+      "recipe": "4 titanium white + 1 cadmium yellow"
+     },
+     {
+      "name": "Cream White",
+      "hex": "#f4deb7",
+      "recipe": "5 titanium white + a touch of cadmium yellow + a touch of burnt sienna"
+     },
+     {
+      "name": "Roof Red",
+      "hex": "#eb531c",
+      "recipe": "2 cadmium red + 1 cadmium yellow"
+     },
+     {
+      "name": "Shadow Green",
+      "hex": "#38532e",
+      "recipe": "2 ultramarine blue + 2 cadmium yellow + 1 burnt sienna"
+     }
+    ],
+    "tip": "Paint the river in River Blue. Start thin just right of center under the mountains, then curve it in an S down to the bottom right corner, getting wider as it comes closer."
+   },
+   {
+    "name": "Cypress trees and villagers",
+    "image": "/img/gesso/couple/06-trees-villagers.webp",
+    "colors": [
+     {
+      "name": "Shadow Green",
+      "hex": "#38532e",
+      "recipe": "2 ultramarine blue + 2 cadmium yellow + 1 burnt sienna"
+     },
+     {
+      "name": "Meadow Green",
+      "hex": "#969229",
+      "recipe": "2 cadmium yellow + 1 ultramarine blue + 1 titanium white"
+     },
+     {
+      "name": "Heart Red",
+      "hex": "#c82521",
+      "recipe": "3 cadmium red + 1 burnt sienna"
+     },
+     {
+      "name": "River Blue",
+      "hex": "#51b1de",
+      "recipe": "2 titanium white + 1 ultramarine blue"
+     },
+     {
+      "name": "Deep Swirl Blue",
+      "hex": "#3958b3",
+      "recipe": "3 ultramarine blue + 1 titanium white"
+     },
+     {
+      "name": "Skin Brown",
+      "hex": "#b7682b",
+      "recipe": "2 burnt sienna + 1 cadmium yellow + 1 titanium white"
+     },
+     {
+      "name": "Dark Earth",
+      "hex": "#3d2619",
+      "recipe": "2 burnt sienna + 1 ultramarine blue"
+     }
+    ],
+    "tip": "Tap about ten tall, pointed cypress trees in Shadow Green with the brush corner. Put them between the houses, beside the river and on the right bank, with the nearer ones taller."
+   },
+   {
+    "name": "The boy on the hill",
+    "image": "/img/gesso/couple/07-boy.webp",
+    "colors": [
+     {
+      "name": "Cream White",
+      "hex": "#f4deb7",
+      "recipe": "5 titanium white + a touch of cadmium yellow + a touch of burnt sienna"
+     },
+     {
+      "name": "Sun Yellow",
+      "hex": "#fac03e",
+      "recipe": "3 cadmium yellow + 1 titanium white"
+     },
+     {
+      "name": "Dark Earth",
+      "hex": "#3d2619",
+      "recipe": "2 burnt sienna + 1 ultramarine blue"
+     },
+     {
+      "name": "Skin Brown",
+      "hex": "#b7682b",
+      "recipe": "2 burnt sienna + 1 cadmium yellow + 1 titanium white"
+     },
+     {
+      "name": "Shadow Green",
+      "hex": "#38532e",
+      "recipe": "2 ultramarine blue + 2 cadmium yellow + 1 burnt sienna"
+     }
+    ],
+    "tip": "On the lower left hill, block in the boy's T-shirt with Cream White using short strokes. He is seen from behind."
+   },
+   {
+    "name": "The flying girl",
+    "image": "/img/gesso/couple/08-girl.webp",
+    "colors": [
+     {
+      "name": "River Blue",
+      "hex": "#51b1de",
+      "recipe": "2 titanium white + 1 ultramarine blue"
+     },
+     {
+      "name": "Cream White",
+      "hex": "#f4deb7",
+      "recipe": "5 titanium white + a touch of cadmium yellow + a touch of burnt sienna"
+     },
+     {
+      "name": "Flame Orange",
+      "hex": "#f79825",
+      "recipe": "2 cadmium yellow + 1 cadmium red"
+     },
+     {
+      "name": "Skin Brown",
+      "hex": "#b7682b",
+      "recipe": "2 burnt sienna + 1 cadmium yellow + 1 titanium white"
+     },
+     {
+      "name": "Dark Earth",
+      "hex": "#3d2619",
+      "recipe": "2 burnt sienna + 1 ultramarine blue"
+     }
+    ],
+    "tip": "In the upper right sky, paint the girl's dress in three bands with short strokes: River Blue on the left, Cream White in the middle, Flame Orange on the right. Let the skirt flare out to the left."
+   },
+   {
+    "name": "Heart string, texture and highlights",
+    "image": "/img/gesso/couple/09-hearts-details.webp",
+    "colors": [
+     {
+      "name": "Heart Red",
+      "hex": "#c82521",
+      "recipe": "3 cadmium red + 1 burnt sienna"
+     },
+     {
+      "name": "Dark Earth",
+      "hex": "#3d2619",
+      "recipe": "2 burnt sienna + 1 ultramarine blue"
+     },
+     {
+      "name": "Lime Light",
+      "hex": "#bda832",
+      "recipe": "3 cadmium yellow + 1 meadow green + 1 titanium white"
+     },
+     {
+      "name": "Shadow Green",
+      "hex": "#38532e",
+      "recipe": "2 ultramarine blue + 2 cadmium yellow + 1 burnt sienna"
+     },
+     {
+      "name": "Pale Sun",
+      "hex": "#fae08e",
+      "recipe": "4 titanium white + 1 cadmium yellow"
+     },
+     {
+      "name": "Flame Orange",
+      "hex": "#f79825",
+      "recipe": "2 cadmium yellow + 1 cadmium red"
+     }
+    ],
+    "tip": "Load the liner brush with watery Heart Red. Pull one wavy line from the boy's raised hand up to the girl's left hand."
+   }
+  ]
+ },
+ {
+  "key": "trees",
+  "label": "Backlit trees",
+  "width": 600,
+  "height": 900,
+  "steps": [
+   {
+    "name": "Your picture",
+    "image": "/img/gesso/trees/00-photo.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "A blank canvas",
+    "image": "/img/gesso/trees/00-canvas.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "Sunset sky gradient",
+    "image": "/img/gesso/trees/01-sky-gradient.webp",
+    "colors": [
+     {
+      "name": "Golden Glow",
+      "hex": "#fcc756",
+      "recipe": "3 parts Cadmium yellow medium + 2 parts Titanium white"
+     },
+     {
+      "name": "Sunset Orange",
+      "hex": "#f69b3a",
+      "recipe": "3 parts Cadmium yellow medium + 1 part Cadmium red medium + 1 part Titanium white"
+     },
+     {
+      "name": "Dusk Lavender",
+      "hex": "#907a8e",
+      "recipe": "4 parts Titanium white + 2 parts Ultramarine blue + 1 part Cadmium red medium"
+     }
+    ],
+    "tip": "With a large flat brush, fill the upper center (where the sun will go, about 40% across and 30% down) with Golden Glow using X strokes."
+   },
+   {
+    "name": "Cloud streaks",
+    "image": "/img/gesso/trees/02-clouds.webp",
+    "colors": [
+     {
+      "name": "Ember Red",
+      "hex": "#df6539",
+      "recipe": "2 parts Cadmium red medium + 1 part Cadmium yellow medium + 1 part Titanium white"
+     },
+     {
+      "name": "Sunset Orange",
+      "hex": "#f69b3a",
+      "recipe": "3 parts Cadmium yellow medium + 1 part Cadmium red medium + 1 part Titanium white"
+     },
+     {
+      "name": "Dusk Lavender",
+      "hex": "#907a8e",
+      "recipe": "4 parts Titanium white + 2 parts Ultramarine blue + 1 part Cadmium red medium"
+     },
+     {
+      "name": "Twilight Blue",
+      "hex": "#606591",
+      "recipe": "2 parts Ultramarine blue + 1 part Titanium white + a touch of Cadmium red medium"
+     }
+    ],
+    "tip": "With a medium flat brush, lay Ember Red cloud streaks across the upper half in short horizontal strokes, with a strong band in the top left and more around the upper right."
+   },
+   {
+    "name": "Sun and glow",
+    "image": "/img/gesso/trees/03-sun-glow.webp",
+    "colors": [
+     {
+      "name": "Sun White",
+      "hex": "#fcf0c8",
+      "recipe": "6 parts Titanium white + 1 part Cadmium yellow medium"
+     },
+     {
+      "name": "Golden Glow",
+      "hex": "#fcc756",
+      "recipe": "3 parts Cadmium yellow medium + 2 parts Titanium white"
+     }
+    ],
+    "tip": "With a medium round brush, paint a round Sun White disc in the golden area, about 40% across and 30% down, using circular strokes."
+   },
+   {
+    "name": "Big trunks",
+    "image": "/img/gesso/trees/04-trunks.webp",
+    "colors": [
+     {
+      "name": "Silhouette Brown",
+      "hex": "#382825",
+      "recipe": "2 parts Burnt sienna + 1 part Ultramarine blue"
+     }
+    ],
+    "tip": "With a medium flat brush, pull five trunks up from the bottom edge to the top: far left, a wide one left of the sun (about 30% across), a leaning one right of the sun that splits upward into a Y, a slender one at about 80% across, and a thick one along the right edge."
+   },
+   {
+    "name": "Main branches",
+    "image": "/img/gesso/trees/05-branches.webp",
+    "colors": [
+     {
+      "name": "Silhouette Brown",
+      "hex": "#382825",
+      "recipe": "2 parts Burnt sienna + 1 part Ultramarine blue"
+     }
+    ],
+    "tip": "With a small round brush, pull a big branch from the center trunk sweeping up to the right toward the top, pressing at the trunk then lifting."
+   },
+   {
+    "name": "Bark texture and shadows",
+    "image": "/img/gesso/trees/06-bark-shadow.webp",
+    "colors": [
+     {
+      "name": "Night Bark",
+      "hex": "#22212E",
+      "recipe": "1 part Burnt sienna + 2 parts Ultramarine blue"
+     }
+    ],
+    "tip": "With an old stiff brush, dry brush Night Bark in light vertical strokes down the trunks and thick branches for bark texture."
+   },
+   {
+    "name": "Rim light and final highlights",
+    "image": "/img/gesso/trees/07-highlights.webp",
+    "colors": [
+     {
+      "name": "Warm Rim",
+      "hex": "#8d4d26",
+      "recipe": "2 parts Burnt sienna + 1 part Cadmium red medium + 1 part Cadmium yellow medium"
+     },
+     {
+      "name": "Sun White",
+      "hex": "#fcf0c8",
+      "recipe": "6 parts Titanium white + 1 part Cadmium yellow medium"
+     },
+     {
+      "name": "Golden Glow",
+      "hex": "#fcc756",
+      "recipe": "3 parts Cadmium yellow medium + 2 parts Titanium white"
+     }
+    ],
+    "tip": "Dry brush Warm Rim along the trunk edges facing the sun, mostly the right edge of the wide center-left trunk and the left edge of the leaning trunk."
+   }
+  ]
+ },
+ {
+  "key": "aurora",
+  "label": "Aurora road",
+  "width": 600,
+  "height": 900,
+  "steps": [
+   {
+    "name": "Your picture",
+    "image": "/img/gesso/aurora/00-photo.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "A blank canvas",
+    "image": "/img/gesso/aurora/00-canvas.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "Night sky with aurora",
+    "image": "/img/gesso/aurora/01-night-sky.webp",
+    "colors": [
+     {
+      "name": "Midnight Blue",
+      "hex": "#153f88",
+      "recipe": "3 parts ultramarine blue, 1 part titanium white, a touch of burnt sienna"
+     },
+     {
+      "name": "Aurora Green",
+      "hex": "#45be9f",
+      "recipe": "2 parts cadmium yellow, 1 part ultramarine blue, 2 parts titanium white"
+     }
+    ],
+    "tip": "With the large flat brush, cover the top third of the canvas with Midnight Blue using long side-to-side strokes. Go a little below where the mountain peaks will sit."
+   },
+   {
+    "name": "Moon glow and starburst",
+    "image": "/img/gesso/aurora/02-moon.webp",
+    "colors": [
+     {
+      "name": "Moon Glow",
+      "hex": "#f5ecd1",
+      "recipe": "4 parts titanium white, a touch of cadmium yellow"
+     },
+     {
+      "name": "Aurora Green",
+      "hex": "#45be9f",
+      "recipe": "2 parts cadmium yellow, 1 part ultramarine blue, 2 parts titanium white"
+     }
+    ],
+    "tip": "Let the sky dry. Then dry brush a soft halo of Moon Glow on the aurora, just left of center in the upper sky."
+   },
+   {
+    "name": "Snowy mountains",
+    "image": "/img/gesso/aurora/03-mountains.webp",
+    "colors": [
+     {
+      "name": "Snow Blue",
+      "hex": "#c9d4e5",
+      "recipe": "5 parts titanium white, 1 part ultramarine blue"
+     },
+     {
+      "name": "Shadow Navy",
+      "hex": "#153670",
+      "recipe": "2 parts ultramarine blue, 1 part burnt sienna, 1 part titanium white"
+     },
+     {
+      "name": "Midnight Blue",
+      "hex": "#153f88",
+      "recipe": "3 parts ultramarine blue, 1 part titanium white, a touch of burnt sienna"
+     }
+    ],
+    "tip": "Sketch a jagged peak line across the canvas just below the moon. Put tall peaks at the left and right and a deep V-dip in the center, under the aurora."
+   },
+   {
+    "name": "Dark pine tree line",
+    "image": "/img/gesso/aurora/04-tree-line.webp",
+    "colors": [
+     {
+      "name": "Shadow Navy",
+      "hex": "#153670",
+      "recipe": "2 parts ultramarine blue, 1 part burnt sienna, 1 part titanium white"
+     },
+     {
+      "name": "Midnight Blue",
+      "hex": "#153f88",
+      "recipe": "3 parts ultramarine blue, 1 part titanium white, a touch of burnt sienna"
+     }
+    ],
+    "tip": "With the stiff brush, tap a dark band of Shadow Navy across the base of the mountains."
+   },
+   {
+    "name": "Snowy fields and road base",
+    "image": "/img/gesso/aurora/05-fields-road.webp",
+    "colors": [
+     {
+      "name": "Snow Blue",
+      "hex": "#c9d4e5",
+      "recipe": "5 parts titanium white, 1 part ultramarine blue"
+     },
+     {
+      "name": "Pure White",
+      "hex": "#ffffff",
+      "recipe": "Titanium white straight from the tube"
+     }
+    ],
+    "tip": "Mark a vanishing point at the center of the tree line. Draw the two road edges spreading out from it to the bottom corners."
+   },
+   {
+    "name": "Tire tracks",
+    "image": "/img/gesso/aurora/06-tracks.webp",
+    "colors": [
+     {
+      "name": "Track Slate",
+      "hex": "#57698e",
+      "recipe": "2 parts ultramarine blue, 1 part burnt sienna, 3 parts titanium white"
+     },
+     {
+      "name": "Shadow Navy",
+      "hex": "#153670",
+      "recipe": "2 parts ultramarine blue, 1 part burnt sienna, 1 part titanium white"
+     }
+    ],
+    "tip": "With the medium flat brush, paint two wide dark Track Slate lanes and a broken center strip. Make them wide at the bottom and narrow to a thin line at the vanishing point."
+   },
+   {
+    "name": "Shrubs and bare trees",
+    "image": "/img/gesso/aurora/07-shrubs-trees.webp",
+    "colors": [
+     {
+      "name": "Twig Brown",
+      "hex": "#3c3541",
+      "recipe": "2 parts burnt sienna, 1 part ultramarine blue, a touch of cadmium red"
+     },
+     {
+      "name": "Shadow Navy",
+      "hex": "#153670",
+      "recipe": "2 parts ultramarine blue, 1 part burnt sienna, 1 part titanium white"
+     }
+    ],
+    "tip": "With the stiff brush, tap low rounded Twig Brown shrub clumps along both sides of the road, just below the tree line. Add a few more scattered in the fields."
+   },
+   {
+    "name": "Final highlights",
+    "image": "/img/gesso/aurora/08-highlights.webp",
+    "colors": [
+     {
+      "name": "Pure White",
+      "hex": "#ffffff",
+      "recipe": "Titanium white straight from the tube"
+     },
+     {
+      "name": "Moon Glow",
+      "hex": "#f5ecd1",
+      "recipe": "4 parts titanium white, a touch of cadmium yellow"
+     }
+    ],
+    "tip": "Dry brush Pure White along the lit edges of the peaks and the snowbanks beside the road."
+   }
+  ]
+ },
+ {
+  "key": "cat",
+  "label": "Sleeping cat",
+  "width": 900,
+  "height": 600,
+  "steps": [
+   {
+    "name": "Your picture",
+    "image": "/img/gesso/cat/00-photo.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "A blank canvas",
+    "image": "/img/gesso/cat/00-canvas.webp",
+    "colors": [],
+    "tip": ""
+   },
+   {
+    "name": "Green background",
+    "image": "/img/gesso/cat/01-background.webp",
+    "colors": [
+     {
+      "name": "Grass Green",
+      "hex": "#81a324",
+      "recipe": "3 parts cadmium yellow, 1 part ultramarine blue, a touch of white"
+     },
+     {
+      "name": "Deep Grass",
+      "hex": "#5b7425",
+      "recipe": "2 parts cadmium yellow, 1 part ultramarine blue, a touch of burnt sienna"
+     },
+     {
+      "name": "Sunny Lime",
+      "hex": "#a5ba27",
+      "recipe": "3 parts cadmium yellow, 1 part grass green, 1 part white"
+     }
+    ],
+    "tip": "Cover the whole canvas with Grass Green using a large flat brush and short criss-cross X strokes, painting straight through the middle where the cream and marshmallows will go."
+   },
+   {
+    "name": "Cream swirl shape",
+    "image": "/img/gesso/cat/02-cream-base.webp",
+    "colors": [
+     {
+      "name": "Sky Swirl",
+      "hex": "#a2cde4",
+      "recipe": "4 parts white, 1 part ultramarine blue"
+     }
+    ],
+    "tip": "With a medium flat brush and Sky Swirl, outline a big mound in the center: a pointed tip near the top middle, widening into bumpy rounded lobes on both sides and along the bottom."
+   },
+   {
+    "name": "Cream swirl stripes",
+    "image": "/img/gesso/cat/03-cream-stripes.webp",
+    "colors": [
+     {
+      "name": "Cream Blue",
+      "hex": "#276fb3",
+      "recipe": "2 parts ultramarine blue, 1 part white"
+     },
+     {
+      "name": "Frosting White",
+      "hex": "#dbe8e8",
+      "recipe": "White with a tiny touch of ultramarine blue"
+     },
+     {
+      "name": "Sky Swirl",
+      "hex": "#a2cde4",
+      "recipe": "4 parts white, 1 part ultramarine blue"
+     }
+    ],
+    "tip": "Paint curved Cream Blue bands that spiral from the top tip down and around the mound, curling in toward a center point just right of the middle."
+   },
+   {
+    "name": "Marshmallows and shadows",
+    "image": "/img/gesso/cat/04-marshmallows.webp",
+    "colors": [
+     {
+      "name": "Marshmallow Cream",
+      "hex": "#f5ecc5",
+      "recipe": "5 parts white, 1 small part cadmium yellow"
+     },
+     {
+      "name": "Marshmallow Shade",
+      "hex": "#e4c97b",
+      "recipe": "3 parts marshmallow cream, 1 small part cadmium yellow, a touch of burnt sienna"
+     },
+     {
+      "name": "Deep Grass",
+      "hex": "#5b7425",
+      "recipe": "2 parts cadmium yellow, 1 part ultramarine blue, a touch of burnt sienna"
+     }
+    ],
+    "tip": "Mark eleven marshmallow spots in an arc around the swirl: five on the left, two above the top left, and four on the right."
+   },
+   {
+    "name": "Cat body",
+    "image": "/img/gesso/cat/05-cat-body.webp",
+    "colors": [
+     {
+      "name": "Kitty Coral",
+      "hex": "#ed7257",
+      "recipe": "2 parts cadmium red, 1 part white, a touch of cadmium yellow"
+     }
+    ],
+    "tip": "With a medium round brush and Kitty Coral, paint a big rounded body shape across the middle of the swirl, its back curving to the right."
+   },
+   {
+    "name": "Cat shading and fur",
+    "image": "/img/gesso/cat/06-cat-shading.webp",
+    "colors": [
+     {
+      "name": "Kitty Shadow",
+      "hex": "#b54731",
+      "recipe": "2 parts cadmium red, 1 part burnt sienna"
+     },
+     {
+      "name": "Kitty Coral",
+      "hex": "#ed7257",
+      "recipe": "2 parts cadmium red, 1 part white, a touch of cadmium yellow"
+     }
+    ],
+    "tip": "With a small round brush, pull Kitty Shadow along the bottom of the body, under the head and along the underside of the tail."
+   },
+   {
+    "name": "Face and highlights",
+    "image": "/img/gesso/cat/07-final-details.webp",
+    "colors": [
+     {
+      "name": "Kitty Glow",
+      "hex": "#f79a80",
+      "recipe": "2 parts kitty coral, 1 part white"
+     },
+     {
+      "name": "Kitty Shadow",
+      "hex": "#b54731",
+      "recipe": "2 parts cadmium red, 1 part burnt sienna"
+     },
+     {
+      "name": "Frosting White",
+      "hex": "#dbe8e8",
+      "recipe": "White with a tiny touch of ultramarine blue"
+     }
+    ],
+    "tip": "Dry brush Kitty Glow highlights on top of the head, the ears' outer edges, the back and the top of the tail."
+   }
+  ]
+ }
+]

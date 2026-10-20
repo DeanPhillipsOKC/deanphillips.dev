@@ -1,0 +1,69 @@
+---
+title: "Steps that fit the picture: letting AI plan the painting lesson"
+titleAccent: "letting AI plan the painting lesson"
+tabTitle: Steps That Fit the Picture
+partTitle: Steps that fit the picture
+description: A fixed seven-step recipe gave Gesso lessons with empty steps, like painting the ground in a picture that has none. Letting Claude plan the steps for each picture fixed it, and added a paint list with real swatches.
+dek: YouTube painting tutorials don't tone the canvas or sketch first. They start with the sky and go. So I switched Gesso to that style, with a fixed list of seven steps. Then the trees lesson spent three steps painting the same picture.
+eyebrow: Experiment
+date: 2026-10-19
+readMinutes: 4
+image: /img/og/gesso-planned-steps.jpg
+series: gesso
+part: 2
+draft: true
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import Callout from '../../components/blog/Callout.astro';
+import lessons from '../../data/gesso/lessons.json';
+import story from '../../data/gesso/story.json';
+
+export const [w, h] = story['fixed-trees']._size;
+export const fixedKeys = ['01_sky', '02_distance', '03_ground', '04_subject', '05_texture', '06_shadows', '07_highlights'];
+export const fixedNames = ['Paint the sky', 'Paint the far shapes', 'Paint the ground', 'Paint the main shapes', 'Add leaves and texture', 'Shadows and depth', 'Highlights and final details'];
+export const trees = lessons.find((l) => l.key === 'trees');
+export const planned = trees.steps.slice(2).map((s) => ({ src: s.image, label: s.name, colors: s.colors, tip: s.tip }));
+
+This is part 2 of a series about Gesso, an experiment that turns any picture into a paint-along lesson. The [overview](/blog/gesso/) has the finished lessons to flip through.
+
+## The painting-class steps had to go
+
+After [part 1](/blog/gesso-sky-first/), the lessons went in the right order, but they still followed a painting class: tone the canvas, sketch, block in shapes, build up. I don't do any of that when I follow a tutorial. Neither do the tutorials. They hand you a white canvas and say "load up your big brush, we're starting with the sky."
+
+So I added a second style, **paint-along**, written the way those videos go: sky, far-away shapes, ground, the main subject, texture, shadows, highlights. Seven steps, same order for every picture.
+
+It worked well on the aurora picture, which has all seven of those things. Then it got to the trees.
+
+<Flipbook
+  sequences={[
+    { label: 'Same 7 steps for every picture', width: w, height: h, frames: fixedKeys.map((k, i) => ({ src: story['fixed-trees'][k], label: fixedNames[i] })) },
+    { label: 'Steps planned for this picture', width: trees.width, height: trees.height, frames: planned },
+  ]}
+  start={2}
+  caption="Same photo. Step 3 of the fixed recipe is 'paint the ground,' and this picture doesn't have any."
+/>
+
+This picture has no ground, so the "paint the ground" step repainted the sky with new clouds. These trees have no leaves, so "add leaves and texture," "shadows," and "highlights" came out as three nearly identical pictures. A beginner following along would wonder what they were supposed to be doing.
+
+## Letting Claude plan the steps
+
+The fix was to stop deciding the steps ahead of time. Now Claude looks at the finished painting, lists its parts from back to front (sunset sky, clouds, the sun's glow, trunks, branches), and makes a step for each part or small group. The trees got seven steps, and every one of them adds something you can see. The aurora got eight. The flying couple got nine, including one step for each of the two people.
+
+I didn't hand over the whole lesson, though. The painting style still sets the rules, and Claude plans inside them:
+
+- Paint back to front, and paint background straight through where thin things like branches will go.
+- One part per step. No empty steps, and no step for something the picture doesn't have.
+- Big shapes before small ones. Texture and highlights only where the picture has them.
+- Every color is a mix of the same five tubes of paint, with a name you can remember.
+
+That last rule turned into my favorite part. Flip back to the second tab above: each step lists its paints with a swatch and a recipe, like "Sunset Orange: 3 parts yellow, 1 part red, 1 part white." When a paint comes back in a later step, it has the same name, so you know to use what's still on your palette.
+
+## What broke
+
+The swatches. Claude is good at naming a color and writing a recipe for it, but it was guessing the swatch color from memory. So I had it point to a spot in the painting where each paint shows up, and the program read the real color from that spot.
+
+<Callout title="It pointed at the wrong spots.">"Golden Glow," the warm yellow around the sun, came out dark brown, because the spot it picked was on a tree trunk. "Aurora Green" came out plain blue sky.</Callout>
+
+The version that stuck uses both. It starts from Claude's color, looks near the spot for the closest color actually in the painting, and moves the swatch only a little. Two different paints are never allowed to end up as the same swatch.
+
+Next: [Keeping every step the same painting](/blog/gesso-drift/), about the trickiest problem in the whole project.

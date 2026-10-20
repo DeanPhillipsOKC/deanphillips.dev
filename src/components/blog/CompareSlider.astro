@@ -1,0 +1,40 @@
+---
+// Two versions of the same picture stacked; drag the divider to reveal one over the other.
+// The range input covers the whole picture, so it works by drag, tap, or arrow keys.
+interface Img { src: string; label: string }
+interface Props { before: Img; after: Img; width: number; height: number; caption?: string }
+const { before, after, width, height, caption } = Astro.props;
+---
+<figure class="compare panel bleed">
+  <div class="frame" style={`aspect-ratio: ${width} / ${height}; max-width: calc(70vh * ${width / height}); --at: 50%`}>
+    <img src={before.src} alt={before.label} width={width} height={height} loading="lazy" decoding="async" />
+    <img class="after-img" src={after.src} alt={after.label} width={width} height={height} loading="lazy" decoding="async" />
+    <span class="line" aria-hidden="true"><span class="knob">&#8249;&#8250;</span></span>
+    <span class="chip left">{before.label}</span>
+    <span class="chip right">{after.label}</span>
+    <input type="range" min="0" max="100" value="50" aria-label={`Slide between ${before.label} and ${after.label}`} />
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const frame of document.querySelectorAll<HTMLElement>('.compare .frame')) {
+    const range = frame.querySelector<HTMLInputElement>('input')!;
+    range.addEventListener('input', () => frame.style.setProperty('--at', `${range.value}%`));
+  }
+</script>
+
+<style>
+  .compare { padding: 16px; }
+  .frame { position: relative; width: 100%; max-height: 70vh; margin: 0 auto; border-radius: 14px; overflow: hidden; background: var(--bg-2); touch-action: pan-y; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .frame .after-img { clip-path: inset(0 0 0 var(--at)); }
+  .line { position: absolute; top: 0; bottom: 0; left: var(--at); width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 6px rgb(0 0 0 / 0.5); pointer-events: none; }
+  .knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #121722; display: grid; place-items: center; font-weight: 700; letter-spacing: 2px; font-size: 1.1rem; box-shadow: 0 2px 8px rgb(0 0 0 / 0.4); }
+  .chip { position: absolute; top: 10px; padding: 4px 10px; border-radius: 999px; background: rgb(0 0 0 / 0.6); color: #fff; font-size: 0.78rem; font-weight: 600; pointer-events: none; }
+  .left { left: 10px; }
+  .right { right: 10px; }
+  .frame input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+  .frame:has(input:focus-visible) { outline: 2px solid var(--teal); outline-offset: 2px; }
+  @media (max-width: 560px) { .compare { padding: 12px; } }
+</style>
