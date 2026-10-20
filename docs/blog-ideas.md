@@ -6,7 +6,9 @@ has results).
 
 ## Waiting for material
 
-(none right now)
+- **From self-merged to governed, with a threat model** (RepBunny #689, tracking #688): likely
+  new `ai-delivery-team` parts. Waits on RepBunny #681, #683, and #684. Drafted with the owner;
+  the issue has the shape and the rules for publishing a threat model safely.
 
 ## Drafted
 
