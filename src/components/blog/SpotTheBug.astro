@@ -1,0 +1,66 @@
+---
+// A short code puzzle: tap the line you think is the bug, then see the answer and the fix.
+// Without JavaScript the bug line is marked and the explanation shows.
+interface Line { code: string; bug?: boolean }
+interface Props { lines: Line[]; prompt: string; explain: string; fix?: string; caption?: string }
+const { lines, prompt, explain, fix, caption } = Astro.props;
+---
+<figure class="spot panel bleed">
+  <p class="prompt">{prompt}</p>
+  <ol class="code">
+    {lines.map((l, i) => <li data-bug={l.bug ? 'true' : undefined}><button type="button" disabled aria-label={`Line ${i + 1}: ${l.code.trim() || 'blank'}`}><code>{l.code || ' '}</code></button></li>)}
+  </ol>
+  <p class="hint" aria-live="polite"></p>
+  <div class="answer">
+    <p>{explain}</p>
+    {fix && <pre><code>{fix}</code></pre>}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.spot')) {
+    root.classList.add('js');
+    const hint = root.querySelector('.hint')!;
+    const items = [...root.querySelectorAll<HTMLElement>('.code li')];
+    let tries = 0;
+    for (const li of items) {
+      const b = li.querySelector('button')!;
+      if (!li.querySelector('code')!.textContent!.trim()) continue;
+      b.disabled = false;
+      b.addEventListener('click', () => {
+        tries += 1;
+        if (li.dataset.bug) {
+          root.classList.add('solved');
+          hint.textContent = tries === 1 ? 'First try. Nice.' : `Got it in ${tries}.`;
+          items.forEach((x) => (x.querySelector('button')!.disabled = true));
+        } else {
+          li.classList.add('miss');
+          hint.textContent = tries < 2 ? 'That line is fine. Look at what happens when something goes wrong.' : 'Hint: what does this step do with an error it doesn\'t expect?';
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .spot { padding: 18px; }
+  .prompt { margin: 0 0 12px; font-weight: 600; }
+  .spot .code { list-style: none; margin: 0; padding: 10px 0; border-radius: 12px; background: var(--card); border: 1px solid var(--line); counter-reset: ln; overflow-x: auto; }
+  .code li { margin: 0; counter-increment: ln; }
+  .code button { display: flex; width: 100%; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: 3px 14px 3px 10px; color: var(--text); font: inherit; cursor: default; min-height: 30px; align-items: center; }
+  .code button::before { content: counter(ln); width: 2ch; margin-right: 14px; color: var(--muted); font: 0.8rem/1 ui-monospace, monospace; text-align: right; flex: none; }
+  .code code { font: 0.86rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: none; border: 0; padding: 0; }
+  .js .code button:not(:disabled) { cursor: pointer; }
+  .js .code button:not(:disabled):hover { background: color-mix(in srgb, var(--teal) 10%, transparent); }
+  .code button:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+  .code li.miss button { opacity: .5; }
+  .spot:not(.js) li[data-bug] button, .spot.solved li[data-bug] button { border-left-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .hint { margin: 10px 0 0; min-height: 1.4em; color: var(--teal); font-size: 0.9rem; }
+  .answer { margin-top: 8px; font-size: 0.95rem; line-height: 1.5; }
+  .answer p { margin: 0 0 10px; }
+  .answer pre { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--card); border: 1px solid color-mix(in srgb, var(--ok) 50%, var(--line)); overflow-x: auto; }
+  .answer pre code { display: block; font: 0.86rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; background: none; border: 0; padding: 0; }
+  .js:not(.solved) .answer { display: none; }
+</style>

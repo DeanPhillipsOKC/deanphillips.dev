@@ -1,0 +1,109 @@
+---
+// "Try to sneak this past the pipeline": pick an attack email, press Send, and watch each stage
+// let it through or stop it. Without JavaScript every attack and its full path show, stacked.
+type Verdict = 'pass' | 'stop' | 'leak' | 'wait';
+interface Step { stage: string; verdict: Verdict; text: string }
+interface Attack { label: string; email: string; steps: Step[]; outcome: string }
+interface Props { attacks: Attack[]; caption?: string }
+const { attacks, caption } = Astro.props;
+const VERDICT: Record<Verdict, string> = { pass: 'Passes', stop: 'Stopped', leak: 'Got through', wait: 'Waits for me' };
+---
+<figure class="sneak panel bleed">
+  <div class="tabs" role="group" aria-label="Pick an email to send" hidden>
+    {attacks.map((a, i) => <button type="button" class="tab" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>{a.label}</button>)}
+  </div>
+  {attacks.map((a, i) => (
+    <section class="attack" data-i={i}>
+      <p class="label">{a.label}</p>
+      <blockquote class="email"><span class="from">From: someone@example.com</span>{a.email}</blockquote>
+      <button type="button" class="send" hidden>Send it</button>
+      <ol class="path" aria-live="polite">
+        {a.steps.map((s) => (
+          <li class={s.verdict}>
+            <span class="stage">{s.stage}</span>
+            <em>{VERDICT[s.verdict]}</em>
+            <span class="text">{s.text}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="outcome">{a.outcome}</p>
+    </section>
+  ))}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  for (const root of document.querySelectorAll<HTMLElement>('.sneak')) {
+    root.classList.add('js');
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.tab')];
+    const attacks = [...root.querySelectorAll<HTMLElement>('.attack')];
+    let timer: number | undefined;
+    root.querySelector<HTMLElement>('.tabs')!.hidden = false;
+
+    const reset = (a: HTMLElement) => {
+      a.querySelectorAll('.path li').forEach((li) => li.classList.remove('shown'));
+      a.classList.remove('done');
+      a.querySelector<HTMLButtonElement>('.send')!.disabled = false;
+    };
+    const pick = (k: number) => {
+      window.clearInterval(timer);
+      tabs.forEach((t, j) => t.setAttribute('aria-pressed', String(j === k)));
+      attacks.forEach((a, j) => { a.hidden = j !== k; reset(a); });
+    };
+    for (const a of attacks) {
+      const send = a.querySelector<HTMLButtonElement>('.send')!;
+      const steps = [...a.querySelectorAll<HTMLElement>('.path li')];
+      send.hidden = false;
+      send.addEventListener('click', () => {
+        reset(a);
+        send.disabled = true;
+        let n = 0;
+        const next = () => {
+          steps[n].classList.add('shown');
+          n += 1;
+          if (n >= steps.length) { window.clearInterval(timer); a.classList.add('done'); send.disabled = false; send.textContent = 'Send it again'; }
+        };
+        if (reduce) { while (n < steps.length) next(); return; }
+        next();
+        timer = window.setInterval(next, 900);
+      });
+    }
+    tabs.forEach((t, k) => t.addEventListener('click', () => pick(k)));
+    pick(0);
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .sneak { padding: 18px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .tab { font: 600 0.85rem/1.2 Inter, sans-serif; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; min-height: 40px; cursor: pointer; text-align: left; }
+  .tab[aria-pressed="true"] { color: var(--text); border-color: var(--pink); background: color-mix(in srgb, var(--pink) 14%, var(--bg)); }
+  .tab:focus-visible, .send:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .attack + .attack { margin-top: 28px; }
+  .js .attack + .attack { margin-top: 0; }
+  .js .label { display: none; }
+  .label { margin: 0 0 8px; font: 600 1rem/1.3 "Space Grotesk", sans-serif; }
+  .email { margin: 0 0 12px; padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px dashed var(--line); font-size: 0.95rem; line-height: 1.5; }
+  .email .from { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+  .send { font: 700 0.9rem/1 Inter, sans-serif; color: var(--bg); background: var(--grad); border: 0; border-radius: 999px; padding: 12px 18px; min-height: 44px; cursor: pointer; margin-bottom: 14px; }
+  .send:disabled { opacity: .6; cursor: default; }
+  .sneak .path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .path li { margin: 0; padding: 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; gap: 6px; }
+  .path li.pass { --c: var(--muted); }
+  .path li.stop { --c: var(--ok); }
+  .path li.leak { --c: var(--warn); }
+  .path li.wait { --c: var(--pink); }
+  .stage { font: 600 0.95rem/1.2 "Space Grotesk", sans-serif; }
+  .path em { align-self: flex-start; font: 600 0.66rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); }
+  .path .text { font-size: 0.84rem; line-height: 1.45; color: var(--muted); }
+  .path li.stop, .path li.leak, .path li.wait { border-color: color-mix(in srgb, var(--c) 70%, var(--line)); background: color-mix(in srgb, var(--c) 10%, var(--bg-2)); }
+  .js .path li:not(.shown) em, .js .path li:not(.shown) .text { visibility: hidden; }
+  .js .path li:not(.shown) { opacity: .45; }
+  .outcome { margin: 14px 0 0; font-weight: 600; }
+  .js .attack:not(.done) .outcome { visibility: hidden; }
+  @media (prefers-reduced-motion: no-preference) { .path li { transition: opacity .3s, border-color .3s, background .3s; } }
+  @media (max-width: 760px) { .sneak .path { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 420px) { .sneak .path { grid-template-columns: 1fr; } }
+</style>
