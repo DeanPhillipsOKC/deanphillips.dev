@@ -2,8 +2,8 @@
 title: "From trust to enforcement: governing an AI delivery pipeline"
 tabTitle: Trust to Enforcement
 partTitle: From trust to enforcement
-description: How an AI delivery pipeline built for a low-risk app moved from trusting its agents to rules GitHub enforces, with independent CI, separate bot identities, evidence for every control, and two trade-offs written down.
-dek: My AI agents were built to merge their own changes, a deliberate call for an app that keeps all its data on the phone. Then I held the pipeline to the standard a sensitive-data app would need. Here's what that took, in two days.
+description: An experiment in whether AI agents can carry SDLC best practices, even for a low-risk app. How the pipeline moved from trusting its agents to rules GitHub enforces, with independent CI, separate bot identities, evidence for every control, and two trade-offs written down.
+dek: My AI pipeline tests whether SDLC best practices still have to be followed by hand. Its agents started out merging their own changes. Then I held them to the standard a sensitive-data app would need. Here's what that took, in two days.
 date: 2026-10-21
 readMinutes: 5
 image: /img/og/ai-governance.jpg
@@ -18,15 +18,17 @@ import TrustSwitch from '../../components/blog/TrustSwitch.astro';
 
 On October 21 I turned off my own safety hook and pushed a commit straight to main. GitHub refused it: "Changes must be made through a pull request."
 
-It was the first time GitHub had ever told me no on my own repo, and I was delighted. Two days earlier, every rule in my AI delivery pipeline was something the agents were asked to follow. Now GitHub was enforcing them, on me included.
+I've worked in plenty of repos where pushing to main was off the table. This was the first time RepBunny's repo said it to me, and I was delighted. Two days earlier, every rule in my AI delivery pipeline was something the agents were asked to follow. Now GitHub was enforcing them, on me included.
 
 This is the first of three posts on how that happened: the controls, the [threat model](/blog/ai-governance-threat-model/) behind them, and [the hole in them](/blog/ai-governance-hole/) the pipeline found the afternoon they went live. The pipeline builds RepBunny, a strength training app I work on around a full-time job, and the [AI delivery team series](/blog/ai-delivery-team/) covers how it works day to day.
 
 ## Where it started
 
-RepBunny keeps every workout on the phone it was logged on. No accounts, no servers holding anyone's data. So I made a deliberate call: agents [merge their own pull requests](/blog/ai-delivery-team-gate/) once a full end-to-end test gate passes, a [review agent](/blog/ai-delivery-team-review/) reads the risky ones, and a person stands between main and every store release. A bad merge could break the app, but it couldn't reach anyone's data, and it couldn't reach the store without me.
+The whole pipeline is an experiment that challenges one assumption: that SDLC best practices (reviews, protected branches, independent checks, an audit trail) have to be followed by hand. They belong on every application, even one with almost no data risk. The usual reason small projects skip them is the manual effort, and I wanted to see whether AI agents could carry that effort instead.
 
-That was the right bar for this app. On October 20 I asked whether it would pass for an app that did handle sensitive data. I went through it the way an outside auditor would, and found five places where it relied on trust instead of enforcement. Flip the switch to see where each one ended up.
+RepBunny is a good test because the stakes are low. It keeps every workout on the phone it was logged on, with no accounts and no servers holding anyone's data. So the first version leaned on trust: agents [merged their own pull requests](/blog/ai-delivery-team-gate/) once a full end-to-end test gate passed, a [review agent](/blog/ai-delivery-team-review/) read the risky ones, and I stood between main and every store release. A bad merge could break the app, but it couldn't reach anyone's data, and it couldn't reach the store without me.
+
+On October 20 I took the next step and asked whether the pipeline would hold up for an app that did handle sensitive data. I went through it the way an outside auditor would, and found five places where it relied on trust instead of enforcement. Flip the switch to see where each one ended up.
 
 <TrustSwitch
   beforeLabel="October 19"
@@ -87,9 +89,9 @@ The last piece was a ruleset on main: pull request required, one approval, code 
 
 ## Two trade-offs, written down
 
-Two controls aren't as strong as they could be. Both are deliberate, sized to an app that holds no one's data on a server, and each has a written trigger for when that changes.
+Two controls aren't as strong as they could be yet. Both are written down as accepted risks, with what still holds and a trigger to revisit.
 
-**End-to-end tests run independently only at release time.** Running the full suite on every pull request would take about 8,000 to 10,000 CI minutes a month, far past what Pro includes, so it would need a dedicated runner. For this app, that cost isn't proportionate to the risk. Agents still run the suite before merging, and a clean independent run gates every store release. A bug an agent misses can sit on main until release, but it can't reach anyone's phone.
+**End-to-end tests run independently only at release time.** Running the full suite on every pull request would take about 8,000 to 10,000 CI minutes a month, far past what Pro includes, so it would need a dedicated runner that the app doesn't earn enough to pay for yet. Agents still run the suite before merging, and a clean independent run gates every store release. A bug an agent misses can sit on main until release, but it can't reach anyone's phone.
 
 **The review agent runs where the agents it reviews run.** It works in the same kind of cloud session as the build agents. Fully separating them means running the review inside GitHub Actions on a pay-per-use API key. Until that's worth paying for, the changes that matter, tier 3, wait for my approval.
 
