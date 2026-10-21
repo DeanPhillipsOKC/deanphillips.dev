@@ -1,0 +1,74 @@
+---
+title: "The day my new rules went live, my AI reviewer found a hole in them"
+tabTitle: The Hole in the Rules
+partTitle: Finding a hole in its own rules
+description: The same afternoon GitHub started enforcing my pipeline's new rules, the pipeline caught a gap in them, fixed it, and the review agent found a flaw in the fix too.
+dek: I turned on branch rules that make my approval the only way a risky change can merge. Within hours, a routine pull request showed me a way around them. Here's how it was found, and why the fix needed fixing.
+date: 2026-10-21
+readMinutes: 4
+image: /img/og/ai-governance.jpg
+series: ai-governance
+part: 2
+draft: true
+---
+import ChatThread from '../../components/blog/ChatThread.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is the last of three posts on governing an AI delivery pipeline. [The first](/blog/ai-governance/) covers the rules GitHub now enforces, and [the second](/blog/ai-governance-threat-model/) the threat model behind them. This one is about what happened the afternoon they went live.
+
+## How a risky change merges now
+
+For the riskiest changes (anything touching the agents' own rules, the data on the phone, or permissions), the flow ends with me. The review agent reads the change and, if it finds no blockers, turns on GitHub's auto-merge, pinned to the exact commit it reviewed. Then it asks me. I tap Approve in the GitHub app on my phone, and the change merges itself.
+
+The pin is the whole promise. When I approve, I'm approving something the reviewer already read.
+
+## The first catch: a merge that would never happen
+
+The pull request that added these rules went through review first, like any other. The review agent sent it back with one blocker.
+
+<ChatThread
+  title="The ruleset pull request, round 1"
+  subtitle="GitHub pull request, on my phone"
+  caption="Shortened from the real review."
+  messages={[
+    { from: 'bot', name: 'Reviewer', text: '<b>Blocker:</b> if turning on auto-merge fails, nobody is told. The review bot doesn\'t have the permission auto-merge needs, and the repo has auto-merge switched off until the rules are applied. The owner approves, nothing merges, and no run ever starts to notice.' },
+    { from: 'bot', name: 'Build agent', text: 'Fixed: the step that turns on auto-merge now uses the builder bot, which has the permission. The script waits until GitHub shows auto-merge as on, and if it never does, the owner is asked to merge by hand instead.' },
+    { from: 'bot', name: 'Reviewer', text: 'Fixed. Owner decides.' },
+  ]}
+/>
+
+That would have been a quiet failure. Every risky change would sit approved and unmerged, and I'd have assumed the agents were slow.
+
+## The second catch: a commit nobody reviewed
+
+The rules went live, and the first risky change merged itself on my approval, as designed. Then the agents opened the next one: the governance page that lists every control and its evidence. The review passed with two wording nits. A build agent fixed them and pushed one more commit.
+
+Auto-merge stayed on.
+
+That's not what I expected. GitHub's auto-merge lets you name the commit you expect, and it refuses if the pull request has moved on. But GitHub checks that only once, when auto-merge is turned on. A push afterward doesn't switch it off. So if I'd approved, the new commit would have merged, and the reviewer had never read it.
+
+Here it was a two-line wording fix, and I'd have been approving what was on my screen anyway. But the promise was that I only ever approve reviewed code, and a push after review broke it without any warning.
+
+<Callout title="The pattern:">
+a check that runs once, when something is switched on, isn't the same as a check that holds. If the thing it guards can change afterward, something has to watch for the change.
+</Callout>
+
+## The fix, and the flaw in the fix
+
+The fix was a small workflow: whenever someone pushes to a pull request that has auto-merge on, turn auto-merge off, remove the "waiting on the owner" label, and say the change needs a new review. My approval gets dismissed on a new push anyway. That was already one of the rules.
+
+That workflow went through review too, and the reviewer found a problem in it.
+
+> **should-fix:** a failed disable is reported as success. Any error turning auto-merge off is swallowed, then the step still comments "auto-merge is off" and goes green, so the unreviewed commit can still ride the old auto-merge in with nobody told.
+
+I'd written the step to shrug off an error, because auto-merge might already be off. But a real failure (a permission change, a GitHub outage) would have looked exactly like success. Now the step tolerates an error only when auto-merge was already off. Otherwise it fails loudly.
+
+Both pull requests merged that evening, each on my approval.
+
+## What I took from it
+
+- **Review the controls, not just the code.** All three problems were in the governance work itself: a merge that would never fire, a check that only ran once, and an error treated as success. None of them would have shown up in a test of the app.
+- **The reviewer isn't only for agents' code.** All three catches were in pull requests I drove from a session on my laptop. The rules apply to me too, and that's where they paid off.
+- **Write down what you find, even the embarrassing part.** The gap is now a row on the governance page with the workflow that closes it, so the monthly process review checks it's still there.
+
+Two days earlier, the pipeline's safety rested on agents following rules. Now GitHub enforces those rules, and the review agent found a hole in them the same day they went live.
