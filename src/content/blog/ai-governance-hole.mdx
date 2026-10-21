@@ -7,14 +7,14 @@ dek: I turned on branch rules that make my approval the only way a risky change 
 date: 2026-10-21
 readMinutes: 4
 image: /img/og/ai-delivery-team.jpg
-series: ai-delivery-team
-part: 9
+series: ai-governance
+part: 2
 draft: true
 ---
 import ChatThread from '../../components/blog/ChatThread.astro';
 import Callout from '../../components/blog/Callout.astro';
 
-This is part 9 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. [Part 7](/blog/ai-delivery-team-governed/) covers the rules GitHub now enforces. This part is about what happened the afternoon they went live.
+This is the last of three posts on governing an AI delivery pipeline. [The first](/blog/ai-governance/) covers the rules GitHub now enforces, and [the second](/blog/ai-governance-threat-model/) the threat model behind them. This one is about what happened the afternoon they went live.
 
 ## How a risky change merges now
 
@@ -71,4 +71,4 @@ Both pull requests merged that evening, each on my approval.
 - **The reviewer isn't only for agents' code.** All three catches were in pull requests I drove from a session on my laptop. The rules apply to me too, and that's where they paid off.
 - **Write down what you find, even the embarrassing part.** The gap is now a row on the governance page with the workflow that closes it, so the monthly process review checks it's still there.
 
-That wraps up the governance part of the series. Two days earlier the pipeline merged on its own word. Now GitHub enforces the rules, and the reviewer found a hole in them the same day they went live.
+Two days earlier, the pipeline's safety rested on agents following rules. Now GitHub enforces those rules, and the review agent found a hole in them the same day they went live.
