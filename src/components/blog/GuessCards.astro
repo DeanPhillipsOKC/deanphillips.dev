@@ -1,0 +1,76 @@
+---
+// A quick quiz: each card asks the reader to pick one of two answers, then reveals the right one
+// and why. Without JavaScript the answers sit in <details> the reader can open.
+interface Card { prompt: string; answer: string; why: string }
+interface Props { cards: Card[]; options: [string, string]; title?: string; caption?: string }
+const { cards, options, title, caption } = Astro.props;
+---
+<figure class="guess panel bleed">
+  {title && <p class="title">{title} <span class="tally" aria-live="polite"></span></p>}
+  <ol class="cards">
+    {cards.map((c) => (
+      <li data-answer={c.answer}>
+        <p class="prompt">{c.prompt}</p>
+        <div class="picks" hidden>
+          {options.map((o) => <button type="button" data-pick={o}>{o}</button>)}
+        </div>
+        <details>
+          <summary>Show the answer</summary>
+          <p class="reveal"><b>{c.answer}.</b> {c.why}</p>
+        </details>
+      </li>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.guess')) {
+    const cards = [...root.querySelectorAll<HTMLElement>('.cards li')];
+    const tally = root.querySelector('.tally');
+    let right = 0;
+    let done = 0;
+    for (const card of cards) {
+      const picks = card.querySelector<HTMLElement>('.picks')!;
+      const details = card.querySelector('details')!;
+      picks.hidden = false;
+      details.querySelector('summary')!.hidden = true;
+      for (const b of picks.querySelectorAll<HTMLButtonElement>('button')) {
+        b.addEventListener('click', () => {
+          const ok = b.dataset.pick === card.dataset.answer;
+          card.dataset.result = ok ? 'right' : 'wrong';
+          b.classList.add('chosen');
+          picks.querySelectorAll('button').forEach((x) => (x.disabled = true));
+          details.open = true;
+          if (ok) right += 1;
+          done += 1;
+          if (tally) tally.textContent = `${right} of ${done} right`;
+        });
+      }
+    }
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .guess { padding: 18px; }
+  .title { margin: 0 0 14px; font: 600 1.05rem/1.3 "Space Grotesk", sans-serif; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+  .tally { font: 600 0.85rem/1.3 Inter, sans-serif; color: var(--teal); }
+  .guess .cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cards li { margin: 0; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 2px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+  .cards li[data-result="right"] { border-color: var(--ok); }
+  .cards li[data-result="wrong"] { border-color: var(--warn); }
+  .prompt { margin: 0; font-size: 0.95rem; line-height: 1.45; }
+  .picks { display: flex; gap: 8px; flex-wrap: wrap; }
+  .picks button { font: 600 0.85rem/1 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; min-height: 40px; cursor: pointer; }
+  .picks button:hover:not(:disabled) { border-color: var(--teal); }
+  .picks button:disabled { cursor: default; opacity: .55; }
+  .picks button.chosen { opacity: 1; border-color: currentColor; }
+  .picks button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  details summary { cursor: pointer; color: var(--teal); font-size: 0.88rem; }
+  .reveal { margin: 0; font-size: 0.88rem; line-height: 1.45; color: var(--muted); }
+  .reveal b { color: var(--text); }
+  li[data-result="right"] .reveal b::before { content: "Right: "; color: var(--ok); }
+  li[data-result="wrong"] .reveal b::before { content: "Not quite: "; color: var(--warn); }
+  @media (max-width: 640px) { .guess .cards { grid-template-columns: 1fr; } }
+</style>

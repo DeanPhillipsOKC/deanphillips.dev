@@ -1,0 +1,61 @@
+---
+// Rows that flip between a "before" and an "after" state with one switch, so readers can watch a
+// whole list change at once. Without JavaScript both states show, stacked.
+interface Row { label: string; before: string; after: string }
+interface Props { rows: Row[]; beforeLabel: string; afterLabel: string; beforeTag?: string; afterTag?: string; scoreLabel?: string; caption?: string }
+const { rows, beforeLabel, afterLabel, beforeTag = 'Trust', afterTag = 'Enforced', scoreLabel = 'enforced by GitHub', caption } = Astro.props;
+---
+<figure class="trust panel bleed">
+  <div class="switch" role="group" aria-label="Show the pipeline as it was or as it is">
+    <button type="button" data-to="before" aria-pressed="true">{beforeLabel}</button>
+    <button type="button" data-to="after" aria-pressed="false">{afterLabel}</button>
+  </div>
+  <ul class="rows" aria-live="polite">
+    {rows.map((r) => (
+      <li>
+        <b>{r.label}</b>
+        <span class="state before"><em>{beforeTag}</em>{r.before}</span>
+        <span class="state after"><em>{afterTag}</em>{r.after}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="score" aria-hidden="true"><span class="n">0</span> of {rows.length} {scoreLabel}</p>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.trust')) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.switch button')];
+    const n = root.querySelector('.score .n')!;
+    const total = root.querySelectorAll('.rows li').length;
+    const set = (to: string) => {
+      root.dataset.state = to;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.to === to)));
+      n.textContent = to === 'after' ? String(total) : '0';
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => set(b.dataset.to!)));
+    set('before');
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .trust { padding: 18px; }
+  .switch { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 16px; }
+  .switch button { font: 600 0.88rem/1 Inter, sans-serif; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; min-height: 40px; }
+  .switch button[aria-pressed="true"] { color: var(--bg); background: var(--grad); }
+  .switch button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .trust .rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .rows li { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 6px; }
+  .rows b { font-family: "Space Grotesk", sans-serif; font-size: 1rem; }
+  .state { display: block; font-size: 0.9rem; line-height: 1.45; color: var(--muted); }
+  .state em { font: 600 0.66rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; margin-right: 8px; vertical-align: 1px; }
+  .before em { color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); }
+  .after em { color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); }
+  .trust[data-state="before"] .after, .trust[data-state="after"] .before { display: none; }
+  .trust[data-state="after"] .rows li { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+  .trust:not([data-state]) .switch, .trust:not([data-state]) .score { display: none; }
+  .score { margin: 14px 0 0; font-size: 0.9rem; color: var(--muted); }
+  .score .n { font: 700 1.3rem/1 "Space Grotesk", sans-serif; color: var(--text); }
+  @media (prefers-reduced-motion: no-preference) { .rows li { transition: border-color .3s; } }
+</style>

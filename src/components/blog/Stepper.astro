@@ -1,0 +1,72 @@
+---
+// A story told one moment at a time: Back and Next step through frames, each with a time, a short
+// beat, and status chips that change between frames. Without JavaScript every frame shows.
+type Tone = 'ok' | 'warn' | 'neutral';
+interface Chip { label: string; value: string; tone?: Tone }
+interface Frame { time: string; title: string; text: string; chips: Chip[] }
+interface Props { frames: Frame[]; caption?: string }
+const { frames, caption } = Astro.props;
+---
+<figure class="stepper panel bleed">
+  <ol class="frames" aria-live="polite">
+    {frames.map((f, i) => (
+      <li data-i={i}>
+        <p class="time">{f.time}</p>
+        <p class="title">{f.title}</p>
+        <ul class="chips">
+          {f.chips.map((c) => <li class={c.tone ?? 'neutral'}><span>{c.label}</span><b>{c.value}</b></li>)}
+        </ul>
+        <p class="text">{f.text}</p>
+      </li>
+    ))}
+  </ol>
+  <div class="controls" hidden>
+    <button type="button" class="prev">Back</button>
+    <span class="count"></span>
+    <button type="button" class="next">Next</button>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.stepper')) {
+    const frames = [...root.querySelectorAll<HTMLElement>('.frames > li')];
+    const prev = root.querySelector<HTMLButtonElement>('.prev')!;
+    const next = root.querySelector<HTMLButtonElement>('.next')!;
+    const count = root.querySelector('.count')!;
+    let i = 0;
+    const show = () => {
+      frames.forEach((f, k) => (f.hidden = k !== i));
+      prev.disabled = i === 0;
+      next.disabled = i === frames.length - 1;
+      count.textContent = `${i + 1} of ${frames.length}`;
+    };
+    prev.addEventListener('click', () => { i -= 1; show(); });
+    next.addEventListener('click', () => { i += 1; show(); });
+    root.querySelector<HTMLElement>('.controls')!.hidden = false;
+    show();
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .stepper { padding: 18px; }
+  .stepper .frames { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+  .frames > li { margin: 0; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); min-height: 210px; }
+  .time { margin: 0; font: 600 0.75rem/1 Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .title { margin: 6px 0 12px; font: 600 1.15rem/1.25 "Space Grotesk", sans-serif; }
+  .stepper .chips { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips li { margin: 0; display: inline-flex; gap: 6px; align-items: baseline; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; border: 1px solid var(--line); background: var(--bg); }
+  .chips span { color: var(--muted); }
+  .chips .ok { border-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+  .chips .ok b { color: var(--ok); }
+  .chips .warn { border-color: color-mix(in srgb, var(--warn) 70%, transparent); background: color-mix(in srgb, var(--warn) 12%, var(--bg)); }
+  .chips .warn b { color: var(--warn); }
+  .text { margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--muted); }
+  .controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+  .controls button { font: 600 0.9rem/1 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px; min-height: 44px; cursor: pointer; }
+  .controls .next:not(:disabled) { color: var(--bg); background: var(--grad); border-color: transparent; }
+  .controls button:disabled { opacity: .45; cursor: default; }
+  .controls button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .count { font-size: 0.85rem; color: var(--muted); }
+</style>
