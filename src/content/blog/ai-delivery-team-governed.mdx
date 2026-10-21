@@ -1,0 +1,83 @@
+---
+title: "My AI agents used to merge on their own word. Now GitHub checks."
+tabTitle: Self-Merged to Governed
+partTitle: From self-merged to governed
+description: How the RepBunny delivery pipeline went from AI agents merging their own pull requests to rules GitHub enforces, with separate bot identities, independent CI, and two trade-offs I wrote down instead of hiding.
+dek: In part 2 I said my agents merge their own pull requests and nobody reads the diff. A week later I asked whether that would hold up if the app handled sensitive data. It wouldn't. Here's what changed in two days.
+date: 2026-10-21
+readMinutes: 5
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 7
+draft: true
+---
+import Steps from '../../components/blog/Steps.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is part 7 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part is about turning "the agents follow the rules" into "GitHub enforces the rules, and there's proof."
+
+## The question I asked on October 20
+
+RepBunny keeps every workout on the phone it was logged on. No accounts, no servers holding anyone's data. That's why I could let agents [merge their own pull requests](/blog/ai-delivery-team-gate/) behind a test gate. A bad merge can break the app, but it can't leak anyone's data.
+
+So I asked a harder question: if this pipeline shipped an app that did handle sensitive data, would it pass a review? I went through it like an outside auditor would, and found five gaps.
+
+1. **The gate was self-reported.** The agent that wrote the change ran the tests and then merged its own pull request. Nothing independent checked that claim.
+2. **Nothing enforced the rules.** The repo was private on GitHub's free plan, which doesn't allow branch protection. Every rule was an instruction an agent could ignore.
+3. **Every agent acted as me.** Of 199 pull requests in 30 days, 180 were opened by my account. The rest were Dependabot. The history couldn't tell my work from an agent's.
+4. **Agents could change their own guardrails.** A skill, a workflow, or the risk check could be edited by the same agents they were meant to limit.
+5. **No security scanning, and no written threat model.**
+
+## What I decided
+
+I upgraded to GitHub Pro, which is what makes branch rules possible on a private repo. Every change, mine included, now goes through a pull request. There are no bypass actors, so not even I can push straight to main. For a real emergency there's a written break-glass procedure that leaves a record.
+
+I only want to approve the changes that matter, so I kept the risk tiers from [part 5](/blog/ai-delivery-team-review/). Tier 3 is anything touching the guardrails, the data schema, auth, permissions, native config, or a new network call. Only tier 3 waits for me. Everything else merges on green CI plus the review agent's approval.
+
+## What shipped
+
+<StatRow stats={[
+  { value: '1,275', label: 'commits scanned for leaked secrets. Zero found' },
+  { value: '5', label: 'real workflow problems the new scanner found on day one' },
+  { value: '0', label: 'bypass actors on main, including me' },
+]} />
+
+**Independent CI on every pull request.** Build, docs checks, and a security job run on GitHub's own runners. That's evidence the agent didn't produce. The security job runs a secret scanner, a static analyzer for code and workflows, a dependency audit, and a workflow linter. Each tool is pinned to an exact version and checked against its published checksum.
+
+**The scanner earned its place right away.** Its first real run found four places where a workflow dropped a value straight into a shell script, the classic injection pattern. It also found a release workflow handing every repo secret to a job that needed nine. Plus one outside action that receives my Play Store key was pinned to a tag its owner could move. All of that is fixed now.
+
+**Bots with their own names.** Two GitHub Apps, a Builder and a Reviewer, now open the pull requests and post the reviews. This took a detour. My agents run in cloud sessions, and those sessions reach GitHub through a proxy that swaps any token they send for the session's own. So an app token minted inside a session does nothing. The bot actions run in two small GitHub workflows instead. They hold the app keys, mint a token that lasts an hour, and only run trusted code from main.
+
+**The rules, live.** The last piece was a ruleset on main: pull request required, one approval, code owner review for tier 3 paths, the CI check required, squash merges only, no force pushes. Then I tried a direct push with the local safety hook turned off. GitHub refused it: "Changes must be made through a pull request."
+
+<Steps
+  caption="A tier 3 change now. The approval at the end is mine, in the GitHub app."
+  steps={[
+    { title: 'Build', text: 'An agent writes the change and runs the full test suite.' },
+    { title: 'Open', text: 'The Builder bot opens the pull request.' },
+    { title: 'Check', text: 'CI and the security scan run on GitHub, not in the agent session.' },
+    { title: 'Review', text: 'The Reviewer bot reads the diff. On tier 3 it turns on auto-merge and asks me.' },
+    { title: 'Approve', text: 'I approve on my phone. It merges itself.' },
+  ]}
+/>
+
+## Two trade-offs, written down
+
+Two things aren't as strong as they could be. Both are budget calls, and I'd rather say so than pretend.
+
+**End-to-end tests run independently only at release time.** Running the full suite on every pull request would take about 8,000 to 10,000 CI minutes a month, far past what Pro includes. I tried a free cloud VM to run it, and the sign-up failed on a billing check. A paid runner didn't make sense for an app with no revenue. So agents still run the suite before merging, and a clean independent run gates every store release. A bug an agent misses can sit on main until release, but it can't reach anyone's phone.
+
+**The Reviewer bot's approval is a record, not proof.** Any agent session can start the workflow that posts it, so in theory an agent could approve its own change. The airtight fix is running the review itself inside GitHub Actions, which needs a pay-per-use API key. My approval on tier 3 is the one that's enforced, since no session can give it.
+
+<Callout title="When to revisit:">
+both trade-offs are written up in the threat model, each with what still holds and a trigger to revisit. The main one: when the app makes enough money to pay for them.
+</Callout>
+
+## What broke
+
+- **The cloud proxy.** I planned the bot identities around agents using the app tokens directly. A test showed the proxy accepted a fake token just as happily as a real one, which is how we found it swaps them. That cost a redesign.
+- **A drift check that cried wolf.** The script that confirms the live ruleset matches the file in the repo reported a difference right after I applied it. GitHub returns its own key order and adds defaults the file doesn't set. That fix was the first pull request to go through the new rules.
+- **Stranded labels.** Twice I merged a pull request in the GitHub app instead of answering the agent's question. The merge worked, but the agents never heard about it, and their labels sat there. Tier 3 now merges itself on my approval, and a workflow tells the agents when it lands.
+
+The next part is the threat model behind all this: what an outsider can actually influence, and which defenses GitHub enforces versus which ones the agents are only told to follow.
