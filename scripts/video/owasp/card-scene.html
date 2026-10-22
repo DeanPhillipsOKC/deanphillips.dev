@@ -1,0 +1,303 @@
+<!doctype html>
+<!--
+  A configurable scene for the OWASP card videos (see ../lib.mjs and ./<slug>.mjs). Portrait 9:16,
+  laid out on a 540x960 canvas and rendered at 2x (1080x1920), with the important parts clear of
+  the bottom 160px where phone apps put their own buttons. Everything is drawn from one function,
+  draw(t), so the renderer can step through time exactly. The art is hand-drawn SVG line glyphs.
+  setup(timeline, config) builds the scene; config.layout is "access" (someone asks a model that
+  can reach things) or "loop" (work that feeds itself). The act after the attack, the three fixes
+  and the closing line, is the same for both.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root { --bg: #0e1116; --card: #171d27; --line: #253041; --text: #eef2f7; --muted: #9aa6b6; --teal: #4fd1c5; --violet: #a78bfa; --pink: #f2879c; --ok: #3ddc97; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 540px; height: 960px; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; }
+  .glow { position: absolute; inset: 0; background:
+    radial-gradient(360px 300px at 0% 0%, rgba(79, 209, 197, .22), transparent 70%),
+    radial-gradient(380px 320px at 100% 8%, rgba(167, 139, 250, .22), transparent 70%); }
+  svg { position: absolute; inset: 0; width: 540px; height: 960px; }
+  .tag { position: absolute; left: 28px; top: 40px; display: flex; align-items: center; gap: 10px; font: 700 20px 'Space Grotesk', sans-serif; }
+  .tag b { color: var(--teal); letter-spacing: .12em; font-size: 14px; padding: 5px 10px; border: 1px solid var(--teal); border-radius: 999px; }
+  .site { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font: 500 15px Inter, sans-serif; color: var(--muted); }
+  .cap { position: absolute; left: 0; right: 0; top: 730px; text-align: center; padding: 0 36px; font: 600 29px/1.3 Inter, sans-serif; text-shadow: 0 2px 12px #0e1116, 0 0 3px #0e1116; }
+  .bar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: linear-gradient(100deg, var(--teal), var(--violet)); }
+  text { font-family: Inter, sans-serif; }
+  .h { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="tag"><b id="tagId"></b><span id="tagName"></span></div>
+<div class="site">deanphillips.dev</div>
+<svg id="svg" viewBox="0 0 540 960" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+<div class="cap" id="cap"></div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg'
+  const $ = (id) => document.getElementById(id)
+  const clamp = (x) => Math.max(0, Math.min(1, x))
+  const ease = (x) => 1 - Math.pow(1 - clamp(x), 3)
+  const prog = (t, a, b) => clamp((t - a) / (b - a))
+  const draw1 = (el, p) => { el.setAttribute('stroke-dasharray', '1 1'); el.setAttribute('stroke-dashoffset', String(1 - clamp(p))) }
+  const PINK = '#f2879c', TEAL = '#4fd1c5', VIOLET = '#a78bfa', GREEN = '#3ddc97', MUTED = '#9aa6b6'
+
+  // 64x64 line glyphs
+  const GLYPH = {
+    doc: 'M10 6h30l14 14v38H10z M40 6v14h14 M18 32h28 M18 42h28 M18 52h18',
+    mail: 'M6 12h52v40H6z M6 12l26 24 26-24',
+    web: 'M6 10h52v44H6z M6 22h52 M14 16h.01 M20 16h.01 M26 16h.01 M14 34h36 M14 44h24',
+    user: 'M32 14a9 9 0 1 0 .01 0 M12 56c0-12 9-19 20-19s20 7 20 19',
+    db: 'M12 14c0-5 9-8 20-8s20 3 20 8v36c0 5-9 8-20 8s-20-3-20-8z M12 14c0 5 9 8 20 8s20-3 20-8 M12 32c0 5 9 8 20 8s20-3 20-8',
+    key: 'M20 32a9 9 0 1 0 .01 0 M29 32h29 M47 32v10 M55 32v8',
+    shield: 'M32 6l22 8v16c0 14-9 24-22 28C19 54 10 44 10 30V14z M21 32l8 8 14-16',
+    person: 'M26 18a8 8 0 1 0 .01 0 M8 54c0-11 8-18 18-18s18 7 18 18 M40 38l6 6 12-13',
+    lock: 'M14 28h36v26H14z M22 28V20a10 10 0 0 1 20 0v8 M32 38v8',
+    clock: 'M32 8a24 24 0 1 0 .01 0 M32 18v15l10 6',
+    gauge: 'M8 46a24 24 0 0 1 48 0 M32 46l12-14 M14 46h4 M46 46h4',
+    bell: 'M32 8c-10 0-16 8-16 18v10l-6 8h44l-6-8V26c0-10-6-18-16-18z M26 50a6 6 0 0 0 12 0',
+    eyeoff: 'M6 32c8-14 18-20 26-20s18 6 26 20c-8 14-18 20-26 20S14 46 6 32z M32 24a8 8 0 1 0 .01 0 M10 54L54 10',
+    sliders: 'M10 18h44 M10 32h44 M10 46h44 M22 12v12 M42 26v12 M28 40v12',
+    merge: 'M18 12a5 5 0 1 0 .01 0 M18 52a5 5 0 1 0 .01 0 M18 17v30 M46 26a5 5 0 1 0 .01 0 M46 31c0 10-28 4-28 -8',
+    agent: 'M14 22h36v28H14z M32 22v-8 M32 10a3 3 0 1 0 .01 0 M24 34h.01 M40 34h.01 M24 42h16',
+    review: 'M10 6h30l14 14v38H10z M40 6v14h14 M22 40l8 8 14-16',
+  }
+  const el = (name, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, name)
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+    if (parent) parent.appendChild(e)
+    return e
+  }
+  const text = (parent, x, y, str, o = {}) => {
+    const e = el('text', { x, y, 'text-anchor': o.anchor ?? 'middle', 'font-size': o.size ?? 19, fill: o.fill ?? MUTED, class: o.h === false ? '' : 'h' }, parent)
+    if (o.weight) e.setAttribute('font-weight', o.weight)
+    e.textContent = str
+    return e
+  }
+  const glyph = (parent, name, x, y, scale, color, width = 3) => {
+    const g = el('g', { transform: `translate(${x} ${y}) scale(${scale})`, stroke: color, 'stroke-width': width / scale }, parent)
+    const p = el('path', { d: GLYPH[name], pathLength: 1 }, g)
+    return { g, p }
+  }
+
+  let TL, C, S = {}
+
+  window.setup = (tl, cfg) => {
+    TL = tl; C = cfg
+    $('tagId').textContent = C.tag[0]; $('tagName').textContent = C.tag[1]
+    if (C.capTop) $('cap').style.top = C.capTop + 'px'
+    const svg = $('svg')
+    S.A = el('g', {}, svg)
+    if (C.layout === 'access') buildAccess(S.A); else buildLoop(S.A)
+    buildFixes(svg)
+  }
+
+  // ---------- layout: someone asks a model that can reach things ----------
+  function buildAccess(A) {
+    const top = C.top
+    S.topG = glyph(A, top.glyph, 238, 150, 1, top.color ?? MUTED)
+    S.topLbl = text(A, 270, 240, top.label, { size: 19, fill: top.color ?? MUTED })
+    const w = Math.max(150, top.bubble.length * 10 + 44)
+    S.bubble = el('g', {}, A)
+    el('path', { d: `M${270 - w / 2} 86h${w}a12 12 0 0 1 12 12v22a12 12 0 0 1-12 12H292l-22 14-22-14h-${w / 2 - 22 + 6}a12 12 0 0 1-12-12V98a12 12 0 0 1 12-12z`, fill: '#171d27', stroke: PINK, 'stroke-width': 2.5 }, S.bubble)
+    text(S.bubble, 270, 119, top.bubble, { size: 19, fill: PINK, h: false, weight: 600 })
+    S.req = el('path', { d: 'M270 268 V 360', pathLength: 1, stroke: TEAL, 'stroke-width': 3, opacity: .85 }, A)
+    // the model chip
+    S.mBox = el('rect', { x: 190, y: 360, width: 160, height: 110, rx: 22, pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
+    S.mPins = el('path', { d: 'M190 392h-16 M190 415h-16 M190 438h-16 M350 392h16 M350 415h16 M350 438h16 M225 470v14 M270 470v14 M315 470v14', pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
+    S.mNet = el('path', { d: 'M222 392 L270 415 L318 390 M270 415 L228 440 M270 415 L314 440', pathLength: 1, stroke: VIOLET, 'stroke-width': 3, opacity: .8 }, A)
+    for (const [x, y, r] of [[222, 392, 6], [270, 415, 8], [318, 390, 6], [228, 440, 6], [314, 440, 6]]) el('circle', { cx: x, cy: y, r, fill: '#0e1116', stroke: VIOLET, 'stroke-width': 2.5 }, A)
+    S.mLbl = text(A, 384, 424, C.modelLabel ?? 'The model', { size: 18, fill: VIOLET, anchor: 'start' })
+    S.badge = el('g', {}, A)
+    el('circle', { cx: 0, cy: 0, r: 24, fill: '#171d27', stroke: PINK, 'stroke-width': 3.5 }, S.badge)
+    text(S.badge, 0, 11, '!', { size: 32, fill: PINK })
+    // the things it can reach
+    const xs = C.items.length === 3 ? [90, 270, 450] : [150, 390]
+    S.items = C.items.map((it, i) => {
+      const x = xs[i]
+      const path = el('path', { d: `M270 484 C 270 530, ${x} 510, ${x} 566`, pathLength: 1, stroke: MUTED, 'stroke-width': 3, opacity: .7 }, A)
+      const g = glyph(A, it.glyph, x - 24, 570, 0.75, MUTED)
+      const l1 = text(A, x, 646, it.label[0], { size: 17, fill: MUTED })
+      const l2 = it.label[1] ? text(A, x, 666, it.label[1], { size: 17, fill: MUTED }) : null
+      return { x, path, g, l1, l2 }
+    })
+    if (C.hitNote) S.hitNote = text(A, xs[C.hit[0]], 700, C.hitNote, { size: 17, fill: PINK })
+    S.dots = el('g', {}, A)
+    S.dotList = []
+    const mk = (kind, idx, i) => { const c = el('circle', { r: 6 }, S.dots); S.dotList.push({ c, kind, idx, i }) }
+    for (let i = 0; i < 4; i++) mk('req', 0, i)
+    for (const idx of C.hit) for (let i = 0; i < 4; i++) mk('wrong', idx, i)
+  }
+
+  function drawAccess(t) {
+    const at = (i) => TL.lines[i].s
+    const bubbleAt = at(C.t?.bubble ?? 2), wrongAt = at(C.t?.wrong ?? 3)
+    S.A.setAttribute('opacity', 1 - ease(prog(t, at(4) - 0.1, at(4) + 0.5)))
+    draw1(S.topG.p, prog(t, 0.2, 1.0))
+    S.topLbl.setAttribute('opacity', ease(prog(t, 0.7, 1.2)))
+    draw1(S.req, prog(t, 1.2, 2.0))
+    draw1(S.mBox, prog(t, 1.4, 2.4)); draw1(S.mPins, prog(t, 1.8, 2.6)); draw1(S.mNet, prog(t, 2.1, 2.8))
+    S.mLbl.setAttribute('opacity', ease(prog(t, 2.4, 3.0)))
+    S.items.forEach((it, i) => {
+      draw1(it.g.p, prog(t, 0.5 + i * 0.15, 1.3 + i * 0.15))
+      for (const l of [it.l1, it.l2]) l && l.setAttribute('opacity', ease(prog(t, 0.9 + i * 0.15, 1.4 + i * 0.15)))
+      draw1(it.path, prog(t, 2.0 + i * 0.15, 2.8 + i * 0.15))
+    })
+    const bub = ease(prog(t, bubbleAt, bubbleAt + 0.5))
+    S.bubble.setAttribute('opacity', bub)
+    S.bubble.setAttribute('transform', `translate(0 ${(1 - bub) * 12})`)
+    S.topG.g.setAttribute('stroke', bub > 0.5 ? PINK : (C.top.color ?? MUTED))
+    S.topLbl.setAttribute('fill', bub > 0.5 ? PINK : (C.top.color ?? MUTED))
+    const wrong = ease(prog(t, wrongAt, wrongAt + 0.5))
+    const bad = wrong > 0.5
+    S.mBox.setAttribute('stroke', bad ? PINK : VIOLET); S.mPins.setAttribute('stroke', bad ? PINK : VIOLET)
+    S.badge.setAttribute('opacity', wrong)
+    S.badge.setAttribute('transform', `translate(190 358) scale(${0.4 + 0.6 * wrong})`)
+    S.items.forEach((it, i) => {
+      const hit = C.hit.includes(i) && bad
+      const col = hit ? PINK : MUTED
+      it.g.g.setAttribute('stroke', col); it.path.setAttribute('stroke', col)
+      it.l1.setAttribute('fill', col); it.l2 && it.l2.setAttribute('fill', col)
+    })
+    if (S.hitNote) S.hitNote.setAttribute('opacity', wrong)
+    // dots: the request goes down in teal; the wrong flow is pink, up to the asker or down to the thing it hurts
+    const flow = ease(prog(t, 2.8, 3.4))
+    const up = (C.hitDir ?? 'up') === 'up'
+    for (const d of S.dotList) {
+      const phase = ((t * 0.3) + d.i / 4 + d.idx * 0.13) % 1
+      let pt, vis = flow
+      if (d.kind === 'req') {
+        pt = S.req.getPointAtLength(phase * S.req.getTotalLength())
+        d.c.setAttribute('fill', bub > 0.5 ? PINK : TEAL)
+      } else {
+        const it = S.items[d.idx].path, lp = it.getTotalLength(), lr = S.req.getTotalLength()
+        const dist = phase * (lp + lr)
+        if (up) pt = dist < lp ? it.getPointAtLength(lp - dist) : S.req.getPointAtLength(lr - (dist - lp))
+        else pt = dist < lr ? S.req.getPointAtLength(dist) : it.getPointAtLength(dist - lr)
+        d.c.setAttribute('fill', PINK); vis = wrong * flow
+      }
+      d.c.setAttribute('cx', pt.x); d.c.setAttribute('cy', pt.y)
+      d.c.setAttribute('opacity', vis * (phase > 0.96 ? 0 : 1))
+    }
+  }
+
+  // ---------- layout: work that feeds itself ----------
+  function buildLoop(A) {
+    const cx = 270, cy = 340, R = 140
+    S.ring = el('path', { d: `M${cx} ${cy - R} A${R} ${R} 0 1 1 ${cx - 0.01} ${cy - R}`, pathLength: 1, stroke: MUTED, 'stroke-width': 3, opacity: .7 }, A)
+    const ang = [-90, 30, 150].map((a) => (a * Math.PI) / 180)
+    S.nodes = C.nodes.map((n, i) => {
+      const x = cx + R * Math.cos(ang[i]), y = cy + R * Math.sin(ang[i])
+      const g = el('g', { opacity: 0 }, A)
+      el('circle', { cx: x, cy: y, r: 46, fill: '#171d27', stroke: n.color ?? VIOLET, 'stroke-width': 3 }, g)
+      glyph(g, n.glyph, x - 22, y - 22, 0.7, n.color ?? VIOLET, 2.6)
+      const ly = i === 0 ? y - 62 : y + 70
+      text(g, x, ly, n.label, { size: 19, fill: n.color ?? VIOLET })
+      return { g }
+    })
+    S.count = text(A, cx, cy + 22, '0', { size: 66, fill: MUTED })
+    S.countLbl = text(A, cx, cy + 50, C.counterLabel ?? 'runs tonight', { size: 17, fill: MUTED })
+    S.meterBox = el('rect', { x: 120, y: 560, width: 300, height: 16, rx: 8, fill: '#171d27', stroke: '#253041', 'stroke-width': 2 }, A)
+    S.meterFill = el('rect', { x: 122, y: 562, width: 0, height: 12, rx: 6, fill: MUTED }, A)
+    S.meterLbl = text(A, 270, 604, C.meterLabel ?? 'the bill', { size: 17, fill: MUTED })
+    S.badge = el('g', {}, A)
+    el('circle', { cx: 0, cy: 0, r: 24, fill: '#171d27', stroke: PINK, 'stroke-width': 3.5 }, S.badge)
+    text(S.badge, 0, 11, '!', { size: 32, fill: PINK })
+    S.dots = el('g', {}, A)
+    S.dotList = []
+    for (let i = 0; i < 3; i++) S.dotList.push({ c: el('circle', { r: 7, fill: TEAL }, S.dots), i })
+  }
+
+  function drawLoop(t) {
+    const at = (i) => TL.lines[i].s
+    const t1 = at(2), t2 = at(3) + 3, s0 = 0.09, s1 = 0.75
+    S.A.setAttribute('opacity', 1 - ease(prog(t, at(4) - 0.1, at(4) + 0.5)))
+    draw1(S.ring, prog(t, 0.6, 2.2))
+    S.nodes.forEach((n, i) => n.g.setAttribute('opacity', ease(prog(t, 0.3 + i * 0.35, 0.9 + i * 0.35))))
+    // the speed ramps up once the second review is named; phase is the integral of the speed
+    const P = t <= t1 ? s0 * t : t <= t2 ? s0 * t + (s1 - s0) * ((t - t1) ** 2) / (2 * (t2 - t1)) : s0 * t + (s1 - s0) * ((t2 - t1) / 2 + (t - t2))
+    const len = S.ring.getTotalLength()
+    const flow = ease(prog(t, 1.6, 2.2))
+    const wrong = ease(prog(t, at(3), at(3) + 0.5)), bad = wrong > 0.5
+    for (const d of S.dotList) {
+      const phase = ((P + d.i / 3) % 1 + 1) % 1
+      const pt = S.ring.getPointAtLength(phase * len)
+      d.c.setAttribute('cx', pt.x); d.c.setAttribute('cy', pt.y)
+      d.c.setAttribute('fill', t > t1 ? PINK : TEAL); d.c.setAttribute('opacity', flow)
+    }
+    const run = Math.floor(48 * prog(t, t1, t2 + 1))
+    S.count.textContent = String(run)
+    S.count.setAttribute('fill', t > t1 ? PINK : MUTED)
+    S.count.setAttribute('opacity', ease(prog(t, 1.8, 2.4)))
+    S.countLbl.setAttribute('opacity', ease(prog(t, 1.8, 2.4)))
+    S.meterFill.setAttribute('width', String(296 * prog(t, t1, t2 + 1)))
+    S.meterFill.setAttribute('fill', bad ? PINK : MUTED)
+    S.meterBox.setAttribute('stroke', bad ? PINK : '#253041')
+    S.meterBox.setAttribute('opacity', ease(prog(t, 1.8, 2.4))); S.meterLbl.setAttribute('opacity', ease(prog(t, 1.8, 2.4)))
+    S.badge.setAttribute('opacity', wrong)
+    S.badge.setAttribute('transform', `translate(430 250) scale(${0.4 + 0.6 * wrong})`)
+  }
+
+  // ---------- the three fixes (both layouts) ----------
+  function buildFixes(svg) {
+    S.B = el('g', { opacity: 0 }, svg)
+    S.t1 = text(S.B, 270, 150, C.fixTitle[0], { size: 38, fill: '#eef2f7' })
+    S.t2 = text(S.B, 270, 198, C.fixTitle[1], { size: 38, fill: '#eef2f7' })
+    S.old = el('g', {}, S.B)
+    S.oldBox = el('rect', { x: 50, y: 320, width: 440, height: 110, rx: 22, fill: '#171d27', stroke: '#253041', 'stroke-width': 2.5 }, S.old)
+    text(S.old, 270, 364, C.oldIdea[0], { size: 23, fill: MUTED, h: false, weight: 500 })
+    text(S.old, 270, 396, C.oldIdea[1], { size: 23, fill: MUTED, h: false, weight: 500 })
+    S.x = el('g', { transform: 'translate(470 326)' }, S.old)
+    S.xc = el('circle', { r: 30, fill: '#171d27', stroke: PINK, 'stroke-width': 3.5, opacity: 0 }, S.x)
+    S.x1 = el('path', { d: 'M-12 -12 L12 12', pathLength: 1, stroke: PINK, 'stroke-width': 6 }, S.x)
+    S.x2 = el('path', { d: 'M12 -12 L-12 12', pathLength: 1, stroke: PINK, 'stroke-width': 6 }, S.x)
+    S.cards = C.fixes.map((f, i) => {
+      const y = 250 + i * 144
+      const g = el('g', { opacity: 0 }, S.B)
+      el('rect', { width: 440, height: 124, rx: 22, fill: '#171d27', stroke: '#253041', 'stroke-width': 2 }, g)
+      const gl = glyph(g, f.glyph, 18, 14, 1.45, f.color, 2.4)
+      text(g, 124, 58, f.label, { size: 29, fill: '#eef2f7', anchor: 'start' })
+      text(g, 124, 88, f.sub, { size: 18, fill: MUTED, anchor: 'start', h: false })
+      return { g, p: gl.p, y }
+    })
+    S.C = el('g', { opacity: 0 }, svg)
+    text(S.C, 270, 330, C.outro[0], { size: 40, fill: TEAL })
+    text(S.C, 270, 380, C.outro[1], { size: 40, fill: TEAL })
+    S.arrow = el('path', { d: 'M270 420 v50 M246 448 l24 24 24-24', stroke: TEAL, 'stroke-width': 6 }, S.C)
+  }
+
+  function drawFixes(t) {
+    const at = (i) => TL.lines[i].s
+    const dim = 1 - 0.88 * ease(prog(t, at(8), at(8) + 0.5))
+    S.B.setAttribute('opacity', ease(prog(t, at(4) + 0.1, at(4) + 0.7)))
+    S.t1.setAttribute('opacity', ease(prog(t, at(4) + 0.2, at(4) + 0.8)) * dim)
+    S.t2.setAttribute('opacity', ease(prog(t, at(4) + 0.4, at(4) + 1.0)) * dim)
+    S.old.setAttribute('opacity', ease(prog(t, at(4) + 0.5, at(4) + 1.0)) * (1 - ease(prog(t, at(5) - 0.45, at(5) - 0.05))))
+    S.xc.setAttribute('opacity', ease(prog(t, at(4) + 2.2, at(4) + 2.5)))
+    draw1(S.x1, prog(t, at(4) + 2.3, at(4) + 2.6)); draw1(S.x2, prog(t, at(4) + 2.55, at(4) + 2.85))
+    S.oldBox.setAttribute('stroke', t > at(4) + 2.5 ? PINK : '#253041')
+    S.cards.forEach((c, i) => {
+      const a = ease(prog(t, at(5 + i) - 0.15, at(5 + i) + 0.4))
+      c.g.setAttribute('opacity', a * dim)
+      c.g.setAttribute('transform', `translate(50 ${c.y + (1 - a) * 24})`)
+      draw1(c.p, prog(t, at(5 + i), at(5 + i) + 0.9))
+    })
+    S.C.setAttribute('opacity', ease(prog(t, at(8), at(8) + 0.5)))
+    S.arrow.setAttribute('transform', `translate(0 ${Math.sin(t * 5) * 7})`)
+  }
+
+  window.draw = (t) => {
+    if (C.layout === 'access') drawAccess(t); else drawLoop(t)
+    drawFixes(t)
+    let cap = ''
+    for (const l of TL.lines) if (t >= l.s - 0.05 && t <= l.e + 0.2) cap = l.caption
+    $('cap').textContent = cap
+    $('bar').style.width = `${(t / TL.total) * 100}%`
+  }
+</script>
+</body>
+</html>
