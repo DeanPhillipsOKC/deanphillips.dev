@@ -1,5 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import llm01 from '../../scripts/video/owasp/llm01.mjs';
+import llm02 from '../../scripts/video/owasp/llm02.mjs';
+import llm06 from '../../scripts/video/owasp/llm06.mjs';
+import llm10 from '../../scripts/video/owasp/llm10.mjs';
 
 // A click-through guide to the OWASP Top 10 for LLM Applications (2025 list). The wording is
 // my own summary, shaped as ten short cards with the same parts each. Unlisted for now:
@@ -18,6 +22,15 @@ interface Card {
   // An optional short video, shown under the one-line version, with its words as a transcript.
   video?: { src: string; poster: string; label: string; transcript: string[] };
 }
+
+// The short narrated video on a card. Its transcript is the script the video was voiced from,
+// with the [audio tags] taken out, so the two can't drift apart.
+const clip = (slug: string, made: { script: [number, string][] }, label: string) => ({
+  src: `/video/owasp-${slug}.mp4`,
+  poster: `/img/owasp-${slug}-poster.jpg`,
+  label: `${label}, narrated by Dean Phillips`,
+  transcript: made.script.map(([, line]) => line.replace(/\[[^\]]*\]\s*/g, '')),
+});
 
 const cards: Card[] = [
   {
@@ -45,22 +58,7 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm01-prompt-injection/',
-    video: {
-      src: '/video/owasp-llm01.mp4',
-      poster: '/img/owasp-llm01-poster.jpg',
-      label: 'Prompt injection in 40 seconds, narrated by Dean Phillips',
-      transcript: [
-        'Prompt injection, in under a minute.',
-        'A model reads words. Your instructions, an email, a web page. It all arrives as plain text.',
-        "So when an email says ignore your rules, the model can't always tell it's just data.",
-        "That's the whole attack. Outside text, trying to give orders.",
-        "Here's the part people miss. The fix isn't a better prompt.",
-        'Give the model less power.',
-        'Keep the checks in code.',
-        'And let a person approve anything risky.',
-        'Try the quick check on this card. Then take on the other nine.',
-      ],
-    },
+    video: clip('llm01', llm01, 'Prompt injection in 40 seconds'),
   },
   {
     id: 'LLM02',
@@ -87,6 +85,7 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/',
+    video: clip('llm02', llm02, 'Sensitive information disclosure in 35 seconds'),
   },
   {
     id: 'LLM03',
@@ -191,6 +190,7 @@ const cards: Card[] = [
       label: 'The accepted trade-offs',
     },
     source: 'https://genai.owasp.org/llmrisk/llm062025-excessive-agency/',
+    video: clip('llm06', llm06, 'Excessive agency in 33 seconds'),
   },
   {
     id: 'LLM07',
@@ -290,6 +290,7 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/',
+    video: clip('llm10', llm10, 'Unbounded consumption in 35 seconds'),
   },
 ];
 ---
