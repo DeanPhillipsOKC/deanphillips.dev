@@ -344,8 +344,8 @@ const cards: Card[] = [
 
     <nav class="jump" aria-label="Jump to a card">
       {cards.map((c, i) => (
-        <button type="button" class="chip" data-jump={i} aria-label={`${c.id} ${c.name}`}>
-          <svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path d={ICONS[c.id]} /></svg><span class="num">{i + 1}</span><span class="lbl">{c.short}</span><span class="tick" aria-hidden="true"></span>
+        <button type="button" class="chip" data-jump={i} aria-label={`${c.id} ${c.name}`} title={c.short}>
+          <svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path d={ICONS[c.id]} /></svg><span class="num" aria-hidden="true">{i + 1}</span><span class="tick" aria-hidden="true"></span>
         </button>
       ))}
     </nav>
@@ -537,16 +537,20 @@ const cards: Card[] = [
   .fill { display: block; height: 100%; width: 0; background: var(--grad); transition: width 0.3s ease; }
   .count { margin: 0; font: 600 0.9rem/1 Inter, sans-serif; color: var(--teal); white-space: nowrap; }
 
-  .jump { display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .js .jump { display: flex; }
-  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: 500 0.88rem/1 Inter, sans-serif; cursor: pointer; min-height: 40px; }
+  /* Ten same-size tiles, one per card: its icon and number. The card's title names it. */
+  .jump { display: none; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .js .jump { display: grid; }
+  .chip { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 0 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: 600 0.8rem/1 Inter, sans-serif; cursor: pointer; min-height: 56px; }
   .chip:hover { border-color: var(--teal); }
-  .chip .num { font-weight: 600; color: var(--teal); }
+  .chip .num { color: var(--muted); }
   .ico { flex: none; fill: none; stroke: var(--violet); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
-  .chip .ico { width: 18px; height: 18px; }
+  .chip .ico { width: 22px; height: 22px; }
   .chip.is-current { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal) inset; }
-  .chip .tick { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
-  .chip.is-done .tick { background: var(--ok); border-color: var(--ok); }
+  .chip.is-current .num { color: var(--teal); }
+  .chip .tick { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; }
+  .chip.is-done { border-color: var(--ok); }
+  .chip.is-done .tick { background: var(--ok); }
+  .chip.is-done .ico { stroke: var(--ok); }
 
   .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; color: var(--muted); font-size: 0.92rem; }
   .all { display: none; align-items: center; gap: 8px; cursor: pointer; }
@@ -559,8 +563,8 @@ const cards: Card[] = [
   .card.is-done { border-color: var(--ok); }
   .kicker { margin: 0 0 6px; font: 600 0.8rem/1 Inter, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
   .kicker span { color: var(--muted); letter-spacing: 0; text-transform: none; font-weight: 500; margin-left: 8px; }
-  .card h2 { font-size: 1.7rem; margin: 0 0 10px; line-height: 1.15; display: flex; align-items: center; gap: 12px; }
-  .card h2 .ico { width: 34px; height: 34px; stroke-width: 3.6; }
+  .card h2 { font-size: 1.7rem; margin: 0 0 10px; line-height: 1.15; display: flex; align-items: flex-start; gap: 12px; }
+  .card h2 .ico { width: 30px; height: 30px; stroke-width: 3.8; margin-top: 0.1em; }
   .card h2:focus { outline: none; }
   .line { font-size: 1.12rem; margin: 0 0 18px; }
   .clip { margin: 0 0 16px; }
@@ -602,6 +606,7 @@ const cards: Card[] = [
   :global(.guide button:focus-visible), :global(.guide a:focus-visible), :global(.guide input:focus-visible) { outline: 3px solid var(--violet); outline-offset: 2px; }
 
   @media (max-width: 560px) {
+    .jump { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .card { padding: 20px; }
     .picks { grid-template-columns: 1fr; }
     .actions { flex-wrap: wrap; }
