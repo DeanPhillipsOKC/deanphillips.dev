@@ -13,6 +13,7 @@ draft: true
 ---
 import SneakEmail from '../../components/blog/SneakEmail.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
+import InputCards from '../../components/blog/InputCards.astro';
 
 Anyone in the world can email RepBunny's support address. An AI agent reads every one of those emails. Other AI agents write and merge code.
 
@@ -74,15 +75,19 @@ That third email is the reason this post exists. It's the one gap the trace turn
 
 A threat model for an AI pipeline starts with one question: what text does an agent read that someone else wrote? An agent can't reliably tell an instruction it should follow from one someone slipped into the thing it's reading. So every piece of outside text is a way in.
 
-| Input | Who controls it | Which agent reads it |
-|---|---|---|
-| Support email and in-app bug reports | Anyone who can send an email | The support triage agent |
-| Issue text and comments | Me, and the agents, which write most of it | Every build and review agent |
-| Pull request bodies and diffs | Agents and Dependabot | The review agent |
-| Dependency releases and changelogs | Upstream maintainers, and anyone who compromises one | Build agents installing packages, the review agent |
-| Web pages | Whoever publishes them | The monthly review agents |
+<InputCards
+  caption="Every outside text an agent reads. The orange ones, anyone can write."
+  inputs={[
+    { name: 'Support email and bug reports', writer: 'Anyone who can send an email', reader: 'The support triage agent', open: true },
+    { name: 'Web pages', writer: 'Whoever publishes them', reader: 'The monthly review agents', open: true },
+    { name: 'Dependency releases and changelogs', writer: 'Upstream maintainers, and anyone who compromises one', reader: 'Build agents installing packages, and the review agent' },
+    { name: 'Issue text and comments', writer: 'Me, and the agents, which write most of it', reader: 'Every build and review agent' },
+    { name: 'Pull request bodies and diffs', writer: 'Agents and Dependabot', reader: 'The review agent' },
+  ]}
+  trusted={['Code on main', 'Skills and docs', 'Me', 'GitHub']}
+/>
 
-Everything else is trusted: the code on main, the skills and docs the agents run from, me, and GitHub itself. That middle item matters more than it looks. If an agent could quietly change a doc every other agent reads, it would poison all of them at once.
+Everything else is trusted: the code on main, the skills and docs the agents run from, me, and GitHub itself. The skills and docs matter more than they look. If an agent could quietly change a doc every other agent reads, it would poison all of them at once.
 
 ## The threats
 
