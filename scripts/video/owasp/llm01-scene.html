@@ -6,6 +6,10 @@
   Everything is drawn from one function, draw(t), so the renderer can step through time exactly
   and take a screenshot per frame. The art is hand-drawn SVG line glyphs (no outside art to
   license). setup(timeline) runs first with { lines: [{ s, e, caption }], total }.
+  After the turn ("the fix isn't a better prompt") the diagram shrinks up to make room for three
+  things the model can do, and each fix line changes them: delete is cut, and send gets a check
+  in code and a person. Then the same email runs again and is stopped, and the video closes on a
+  recap of the three fixes so it makes sense shared on its own.
 -->
 <html>
 <head>
@@ -21,6 +25,7 @@
   svg { position: absolute; inset: 0; width: 540px; height: 960px; }
   .tag { position: absolute; left: 28px; top: 40px; display: flex; align-items: center; gap: 10px; font: 700 20px 'Space Grotesk', sans-serif; }
   .tag b { color: var(--teal); letter-spacing: .12em; font-size: 14px; padding: 5px 10px; border: 1px solid var(--teal); border-radius: 999px; }
+  .list { position: absolute; left: 0; right: 0; bottom: 58px; text-align: center; font: 500 14px Inter, sans-serif; color: var(--muted); }
   .site { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font: 500 15px Inter, sans-serif; color: var(--muted); }
   .cap { position: absolute; left: 0; right: 0; top: 700px; text-align: center; padding: 0 36px; font: 600 29px/1.3 Inter, sans-serif; text-shadow: 0 2px 12px #0e1116, 0 0 3px #0e1116; }
   .bar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: linear-gradient(100deg, var(--teal), var(--violet)); }
@@ -31,6 +36,7 @@
 <body>
 <div class="glow"></div>
 <div class="tag"><b>LLM01</b><span>Prompt injection</span></div>
+<div class="list">From the OWASP Top 10 for LLM apps</div>
 <div class="site">deanphillips.dev</div>
 
 <svg viewBox="0 0 540 960" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -82,8 +88,39 @@
     </g>
   </g>
 
+  <!-- What the model can do, shown under the shrunken diagram once the fixes start -->
+  <g id="act" opacity="0">
+    <path id="aRead" pathLength="1" d="M270 472 C 270 520, 110 500, 110 552" stroke="#9aa6b6" stroke-width="3" opacity=".7"/>
+    <path id="aSend" pathLength="1" d="M270 472 V 552" stroke="#9aa6b6" stroke-width="3" opacity=".7"/>
+    <path id="aDel" pathLength="1" d="M270 472 C 270 520, 430 500, 430 552" stroke="#9aa6b6" stroke-width="3" opacity=".7"/>
+    <g transform="translate(86 556) scale(.75)" stroke="#9aa6b6" stroke-width="4"><path d="M6 12h52v40H6z M6 12l26 24 26-24"/></g>
+    <g transform="translate(246 556) scale(.75)" stroke="#9aa6b6" stroke-width="4"><path d="M6 30L58 8 44 56 32 38z M32 38L58 8"/></g>
+    <g id="delItem">
+      <g transform="translate(406 556) scale(.75)" stroke="#9aa6b6" stroke-width="4"><path d="M12 18h40 M24 18v-6h16v6 M16 18l4 38h24l4-38 M28 28v18 M36 28v18"/></g>
+      <text x="430" y="632" class="h" text-anchor="middle" font-size="17" fill="#9aa6b6">Delete files</text>
+    </g>
+    <text x="110" y="632" class="h" text-anchor="middle" font-size="17" fill="#9aa6b6">Read inbox</text>
+    <text x="270" y="632" class="h" text-anchor="middle" font-size="17" fill="#9aa6b6">Send email</text>
+    <path id="cut" pathLength="1" d="M372 548 L388 524 M384 554 L400 530" stroke="#4fd1c5" stroke-width="5"/>
+    <g id="shield" opacity="0">
+      <circle r="25" fill="#0e1116" stroke="#a78bfa" stroke-width="3"/>
+      <g transform="translate(-17 -17) scale(.53)" stroke="#a78bfa" stroke-width="4.9"><path id="gShield" pathLength="1" d="M32 6l22 8v16c0 14-9 24-22 28C19 54 10 44 10 30V14z M21 32l8 8 14-16"/></g>
+    </g>
+    <g id="person" opacity="0">
+      <circle r="25" fill="#0e1116" stroke="#3ddc97" stroke-width="3"/>
+      <g transform="translate(-17 -17) scale(.53)" stroke="#3ddc97" stroke-width="4.9"><path id="gPerson" pathLength="1" d="M26 18a8 8 0 1 0 .01 0 M8 54c0-11 8-18 18-18s18 7 18 18 M40 38l6 6 12-13"/></g>
+    </g>
+    <g id="tries"></g>
+    <g id="ok" opacity="0">
+      <circle r="24" fill="#171d27" stroke="#3ddc97" stroke-width="3.5"/>
+      <path d="M-10 1l7 7 13-15" stroke="#3ddc97" stroke-width="4.5"/>
+    </g>
+  </g>
+
   <!-- Scene B: the old idea, crossed out, then the three fixes -->
   <g id="sceneB">
+    <text id="recap1" class="h" x="270" y="150" text-anchor="middle" font-size="38" fill="#eef2f7">Three fixes for</text>
+    <text id="recap2" class="h" x="270" y="198" text-anchor="middle" font-size="38" fill="#eef2f7">prompt injection</text>
     <text id="fixTitle1" class="h" x="270" y="150" text-anchor="middle" font-size="38" fill="#eef2f7">The fix isn't</text>
     <text id="fixTitle2" class="h" x="270" y="198" text-anchor="middle" font-size="38" fill="#eef2f7">a better prompt</text>
     <g id="oldFix">
@@ -116,12 +153,6 @@
     </g>
   </g>
 
-  <!-- Scene C: what to do next -->
-  <g id="sceneC">
-    <text x="270" y="330" text-anchor="middle" class="h" font-size="40" fill="#4fd1c5">Try the quick</text>
-    <text x="270" y="380" text-anchor="middle" class="h" font-size="40" fill="#4fd1c5">check below</text>
-    <path id="arrow" d="M270 420 v50 M246 448 l24 24 24-24" stroke="#4fd1c5" stroke-width="6"/>
-  </g>
 </svg>
 
 <div class="cap" id="cap"></div>
@@ -143,6 +174,12 @@
       c.setAttribute('r', '6'); c.dataset.src = k; c.dataset.i = i
       dots.appendChild(c)
     }
+    // on the replay, the email's orders head for send and delete and stop short
+    for (const k of ['aSend', 'aDel']) for (let i = 0; i < 3; i++) {
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      c.setAttribute('r', '6'); c.setAttribute('fill', '#f2879c'); c.dataset.path = k; c.dataset.i = i
+      $('tries').appendChild(c)
+    }
   }
 
   // A point part-way along a source path, then along the merged line.
@@ -157,8 +194,17 @@
     const at = (i) => L[i].s
     const pink = '#f2879c'
 
-    // Scene A: build up, then flow
-    $('sceneA').setAttribute('opacity', 1 - ease(prog(t, at(4) - 0.1, at(4) + 0.5)))
+    // Beats: the turn is line 4, the fixes 5 to 7, the replay 8, and the recap is the last line.
+    const T = at(4), F = at(5), RP = at(8), O = at(L.length - 1)
+    const reset = ease(prog(t, T, T + 0.5)), again = ease(prog(t, RP, RP + 0.5))
+
+    // Scene A: build up, then flow. It dims behind the turn, comes back smaller for the fixes,
+    // and dims away for the recap.
+    const back = ease(prog(t, F - 0.6, F))
+    $('sceneA').setAttribute('opacity', (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * back) * (1 - 0.97 * ease(prog(t, O - 0.1, O + 0.5))))
+    const k = 1 - 0.3 * back
+    $('sceneA').setAttribute('transform', `translate(270 40) scale(${k}) translate(-270 -40)`)
+    $('act').setAttribute('opacity', back * (1 - 0.97 * ease(prog(t, O - 0.1, O + 0.5))))
     draw1($('srcDoc').firstElementChild, prog(t, 0.2, 1.0))
     draw1($('srcMail').firstElementChild, prog(t, 0.35, 1.15))
     draw1($('srcWeb').firstElementChild, prog(t, 0.5, 1.3))
@@ -167,11 +213,11 @@
     draw1($('pMerge'), prog(t, 1.9, 2.5))
     $('lblStream').setAttribute('opacity', ease(prog(t, 2.6, 3.2)))
     draw1($('mBox'), prog(t, 1.6, 2.6)); draw1($('mPins'), prog(t, 2.0, 2.8)); draw1($('mNet'), prog(t, 2.3, 3.0))
-    $('lblModel').setAttribute('opacity', ease(prog(t, 2.6, 3.2)))
+    $('lblModel').setAttribute('opacity', ease(prog(t, 2.6, 3.2)) * (1 - back))
 
     // The email turns pink when the line about it starts; the model reacts when the attack is named.
-    const emailOn = ease(prog(t, at(2), at(2) + 0.5))
-    const alert = ease(prog(t, at(3), at(3) + 0.5))
+    const emailOn = Math.max(ease(prog(t, at(2), at(2) + 0.5)) * (1 - reset), again)
+    const alert = ease(prog(t, at(3), at(3) + 0.5)) * (1 - reset)
     $('srcMail').setAttribute('stroke', emailOn > 0.5 ? pink : '#9aa6b6')
     $('lblMail').setAttribute('fill', emailOn > 0.5 ? pink : '#9aa6b6')
     $('pMail').setAttribute('stroke', emailOn > 0.5 ? pink : '#9aa6b6')
@@ -183,7 +229,7 @@
     $('qmark').setAttribute('transform', `translate(420 470) scale(${0.4 + 0.6 * alert})`)
 
     // Flowing dots, same size and speed for every source
-    const flow = ease(prog(t, 2.8, 3.4))
+    const flow = Math.max(ease(prog(t, 2.8, 3.4)) * (1 - reset), again)
     const colors = { pDoc: '#4fd1c5', pMail: emailOn > 0.5 ? pink : '#9aa6b6', pWeb: '#9aa6b6' }
     for (const c of $('dots').children) {
       const k = c.dataset.src, i = Number(c.dataset.i)
@@ -194,28 +240,46 @@
       c.setAttribute('opacity', flow * (p > 0.96 ? 0 : 1))
     }
 
-    // Scene B: the title, the crossed-out prompt, then three cards, one per line
+    // The fixes, on the actions: delete is cut, send gets a check in code and then a person
+    const f1 = ease(prog(t, at(5), at(5) + 0.6)), f2 = ease(prog(t, at(6), at(6) + 0.6)), f3 = ease(prog(t, at(7), at(7) + 0.6))
+    $('aDel').setAttribute('opacity', 0.7 - 0.58 * f1)
+    $('delItem').setAttribute('opacity', 1 - 0.65 * f1)
+    draw1($('cut'), prog(t, at(5) + 0.1, at(5) + 0.5))
+    $('shield').setAttribute('opacity', f2); $('shield').setAttribute('transform', `translate(270 512) scale(${0.6 + 0.4 * f2})`)
+    draw1($('gShield'), prog(t, at(6) + 0.1, at(6) + 0.9))
+    $('person').setAttribute('opacity', f3); $('person').setAttribute('transform', `translate(328 512) scale(${0.6 + 0.4 * f3})`)
+    draw1($('gPerson'), prog(t, at(7) + 0.1, at(7) + 0.9))
+    const go = ease(prog(t, RP + 0.6, RP + 1.0)) * (1 - ease(prog(t, O - 0.2, O + 0.3)))
+    for (const c of $('tries').children) {
+      const path = $(c.dataset.path), stop = c.dataset.path === 'aSend' ? 0.2 : 0.62
+      const p = ((t - RP) * 0.5 + Number(c.dataset.i) / 3) % 1
+      const pt = path.getPointAtLength(p * stop * path.getTotalLength())
+      c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y)
+      c.setAttribute('opacity', t < RP ? 0 : go * (p > 0.9 ? (1 - p) * 10 : 1))
+    }
+    const ok = ease(prog(t, RP + 1.6, RP + 2.1))
+    $('ok').setAttribute('opacity', ok); $('ok').setAttribute('transform', `translate(366 376) scale(${0.4 + 0.6 * ok})`)
+
+    // Scene B: the title and the crossed-out prompt at the turn, then the fix cards as a recap
     const B = ease(prog(t, at(4) + 0.1, at(4) + 0.7))
-    const dim = 1 - 0.88 * ease(prog(t, at(8), at(8) + 0.5))
+    const leave = 1 - ease(prog(t, F - 0.45, F - 0.05))
     $('sceneB').setAttribute('opacity', B)
-    $('fixTitle1').setAttribute('opacity', ease(prog(t, at(4) + 0.2, at(4) + 0.8)) * dim)
-    $('fixTitle2').setAttribute('opacity', ease(prog(t, at(4) + 0.4, at(4) + 1.0)) * dim)
+    $('fixTitle1').setAttribute('opacity', ease(prog(t, at(4) + 0.2, at(4) + 0.8)) * leave)
+    $('fixTitle2').setAttribute('opacity', ease(prog(t, at(4) + 0.4, at(4) + 1.0)) * leave)
+    $('recap1').setAttribute('opacity', ease(prog(t, O, O + 0.5)))
+    $('recap2').setAttribute('opacity', ease(prog(t, O + 0.15, O + 0.65)))
     const old = ease(prog(t, at(4) + 0.5, at(4) + 1.0)) * (1 - ease(prog(t, at(5) - 0.45, at(5) - 0.05)))
     $('oldFix').setAttribute('opacity', old)
     // The X is drawn as two strokes, like a hand marking it wrong
     draw1($('x1'), prog(t, at(4) + 2.3, at(4) + 2.6)); draw1($('x2'), prog(t, at(4) + 2.55, at(4) + 2.85))
     $('xmark').firstElementChild.setAttribute('opacity', ease(prog(t, at(4) + 2.2, at(4) + 2.5)))
     $('oldBox').setAttribute('stroke', t > at(4) + 2.5 ? pink : '#253041')
-    ;[['card1', 'g1', 5, 250], ['card2', 'g2', 6, 394], ['card3', 'g3', 7, 538]].forEach(([card, g, i, y]) => {
-      const a = ease(prog(t, at(i) - 0.15, at(i) + 0.4))
-      $(card).setAttribute('opacity', a * dim)
+    ;[['card1', 'g1', 250], ['card2', 'g2', 394], ['card3', 'g3', 538]].forEach(([card, g, y], i) => {
+      const a0 = O + 0.4 + i * 0.35, a = ease(prog(t, a0, a0 + 0.5))
+      $(card).setAttribute('opacity', a)
       $(card).setAttribute('transform', `translate(50 ${y + (1 - a) * 24})`)
-      draw1($(g), prog(t, at(i), at(i) + 0.9))
+      draw1($(g), prog(t, a0, a0 + 0.9))
     })
-
-    // Scene C: point at the quick check
-    $('sceneC').setAttribute('opacity', ease(prog(t, at(8), at(8) + 0.5)))
-    $('arrow').setAttribute('transform', `translate(0 ${Math.sin(t * 5) * 7})`)
 
     // Caption and progress
     let cap = ''
