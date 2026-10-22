@@ -7,6 +7,11 @@
 // RepBunny repo's demo-video/review/README.md): short plain sentences, no colons, semicolons,
 // dashes, or parentheses.
 //
+// Each video should make sense shared on its own, away from the guide: say which list it's from,
+// show the fixes working on the diagram (config.replay), and close on a recap of the fixes
+// (config.recap), not a pointer to the card. Being helpful and easy to follow matters more than
+// length; under a minute is ideal, but going over is fine.
+//
 // Needs ffmpeg and ffprobe on the PATH and Playwright's Chromium (set PW_CHROME to a Chrome binary
 // if the pinned build isn't installed). Lines are cached by their text in the work folder
 // (VIDEO_WORK, default the temp dir), so re-rendering after a visual tweak makes no ElevenLabs calls.
