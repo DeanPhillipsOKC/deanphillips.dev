@@ -12,7 +12,10 @@ const draftPaths = new Set(
     .map((f) => `/blog/${f.replace(/\.mdx?$/, '')}/`),
 );
 
+// Pages that are built but not announced yet: noindex in the page, and out of the sitemap.
+const unlistedPages = new Set(['/owasp-llm-top-10/']);
+
 export default defineConfig({
   site: 'https://deanphillips.dev',
-  integrations: [mdx(), sitemap({ filter: (page) => !draftPaths.has(new URL(page).pathname) })],
+  integrations: [mdx(), sitemap({ filter: (page) => { const path = new URL(page).pathname; return !draftPaths.has(path) && !unlistedPages.has(path); } })],
 });
