@@ -1,0 +1,46 @@
+---
+// Cards for "who writes this text, and which agent reads it", easier to scan than a table on a
+// phone. Cards with open: true are writable by anyone outside and get a warning edge. An optional
+// trusted list sits underneath as chips.
+interface Input { name: string; writer: string; reader: string; open?: boolean }
+interface Props { inputs: Input[]; trusted?: string[]; caption?: string }
+const { inputs, trusted, caption } = Astro.props;
+---
+<figure class="inputs panel bleed">
+  <ul class="cards">
+    {inputs.map((i) => (
+      <li class={i.open ? 'open' : undefined}>
+        <b>{i.name}</b>
+        {i.open && <em class="tag">Anyone outside</em>}
+        <dl>
+          <dt>Written by</dt><dd>{i.writer}</dd>
+          <dt>Read by</dt><dd>{i.reader}</dd>
+        </dl>
+      </li>
+    ))}
+  </ul>
+  {trusted && (
+    <div class="trusted">
+      <span class="label">Trusted</span>
+      <ul class="chips">{trusted.map((t) => <li>{t}</li>)}</ul>
+    </div>
+  )}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .inputs { padding: 18px; }
+  .inputs .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .cards > li { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); border-left: 4px solid var(--teal); }
+  .cards > li.open { border-left-color: var(--warn); }
+  .cards b { font-family: "Space Grotesk", sans-serif; font-size: 1rem; display: block; }
+  .tag { display: inline-block; margin-top: 6px; font: 600 0.66rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); }
+  dl { margin: 10px 0 0; display: grid; gap: 2px; }
+  dt { font: 600 0.7rem/1.2 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  dt:first-child { margin-top: 0; }
+  dd { margin: 0; font-size: 0.92rem; line-height: 1.45; }
+  .trusted { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .trusted .label { font: 600 0.7rem/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--ok); }
+  .inputs .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips li { margin: 0; font-size: 0.85rem; padding: 5px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--ok) 50%, var(--line)); background: var(--bg-2); }
+</style>
