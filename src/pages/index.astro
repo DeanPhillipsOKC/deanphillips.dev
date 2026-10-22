@@ -23,7 +23,7 @@ import Base from '../layouts/Base.astro';
     <div class="stat"><b class="grad-text">20+</b><span>years writing production software</span></div>
     <div class="stat"><b class="grad-text">7</b><span>industries, from aerospace to banking</span></div>
     <div class="stat"><b class="grad-text">500+</b><span>RepBunny commits in its first three weeks</span></div>
-    <div class="stat"><b class="grad-text">630+</b><span>automated tests guarding every RepBunny release</span></div>
+    <div class="stat"><b class="grad-text">900+</b><span>automated tests guarding every RepBunny release</span></div>
   </div>
 
   <section class="wrap" id="experience">
@@ -82,7 +82,7 @@ import Base from '../layouts/Base.astro';
 <path class="v" d="M116 42h22M142 52h20M118 72h30"/>
 <rect class="cursor" x="94" y="77" width="3" height="10" rx="1"/></svg></div>
         <h3><small>03 Build</small>Agents work the backlog</h3>
-        <p>An automated runner picks the highest-value issue, builds it, and moves on to the next. I set direction and make the calls only a person should make.</p>
+        <p>An automated runner picks the highest-value issue, builds it, and moves on to the next. I set direction and make the calls only a person should make. A review agent reads every change, and anything touching the agents' own rules waits for my approval in GitHub.</p>
       </div>
       <div class="step">
         <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect class="dim" x="56" y="8" width="58" height="96" rx="11"/>
@@ -92,8 +92,8 @@ import Base from '../layouts/Base.astro';
 <path class="tf t" d="M162 18l30 10v22c0 20-14 32-30 38-16-6-30-18-30-38V28z"/>
 <path class="ok big" d="M149 52l9 9 18-18"/>
 <g class="spark"><path d="M206 80l1.5 3.5 3.5 1.5-3.5 1.5-1.5 3.5-1.5-3.5-3.5-1.5 3.5-1.5z"/></g></svg></div>
-        <h3><small>04 Verify</small>Nothing ships untested</h3>
-        <p>Every change has to pass a full build and more than 630 end-to-end tests before it reaches anyone's phone.</p>
+        <h3><small>04 Verify</small>Nothing ships unchecked</h3>
+        <p>Agents run a full build and more than 900 end-to-end tests before they merge anything. GitHub runs independent build and security checks on every change, and a clean independent test run gates every store release.</p>
       </div>
       <div class="step">
         <div class="art"><svg viewBox="0 0 240 110" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="v" d="M24 100C70 98 120 80 160 38" stroke-dasharray="3 7"/>
@@ -121,7 +121,7 @@ import Base from '../layouts/Base.astro';
         <p>AI reads incoming support email, turns real bugs into backlog issues once I OK them, and drafts a reply that I review, edit, and approve before it goes out. Store screenshots and how-to guides are captured automatically too.</p>
       </div>
     </div>
-    <p class="pipeline-foot">The result: an app that went from first commit to TestFlight in under three weeks, with tests, docs, and a marketing site along for the ride. <a href="/blog/ai-delivery-team/">Read the full write-up</a>.</p>
+    <p class="pipeline-foot">The result: an app that went from first commit to TestFlight in under three weeks, with tests, docs, and a marketing site along for the ride. <a href="/blog/ai-delivery-team/">Read the full write-up</a>, or <a href="/blog/ai-governance/">how it's governed</a>.</p>
   </section>
 
   <section class="wrap" id="repbunny">
