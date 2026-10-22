@@ -71,6 +71,13 @@
     merge: 'M18 12a5 5 0 1 0 .01 0 M18 52a5 5 0 1 0 .01 0 M18 17v30 M46 26a5 5 0 1 0 .01 0 M46 31c0 10-28 4-28 -8',
     agent: 'M14 22h36v28H14z M32 22v-8 M32 10a3 3 0 1 0 .01 0 M24 34h.01 M40 34h.01 M24 42h16',
     review: 'M10 6h30l14 14v38H10z M40 6v14h14 M22 40l8 8 14-16',
+    pkg: 'M32 6l24 12v28L32 58 8 46V18z M8 18l24 12 24-12 M32 30v28',
+    code: 'M22 18L8 32l14 14 M42 18l14 14-14 14 M36 12L28 52',
+    page: 'M6 10h52v44H6z M6 22h52 M14 16h.01 M20 16h.01 M26 16h.01 M16 32l8 6-8 6 M30 44h14',
+    term: 'M6 10h52v44H6z M14 24l10 8-10 8 M28 42h16',
+    history: 'M12 32a20 20 0 1 0 6-14 M12 10v10h10 M32 22v12l8 5',
+    search: 'M28 10a18 18 0 1 0 .01 0 M41 41l15 15',
+    bot: 'M14 22h36v28H14z M32 22v-8 M32 10a3 3 0 1 0 .01 0 M24 34h.01 M40 34h.01 M24 42h16',
   }
   const el = (name, attrs = {}, parent) => {
     const e = document.createElementNS(NS, name)
@@ -128,11 +135,17 @@
     el('path', { d: `M${270 - w / 2} 86h${w}a12 12 0 0 1 12 12v22a12 12 0 0 1-12 12H292l-22 14-22-14h-${w / 2 - 22 + 6}a12 12 0 0 1-12-12V98a12 12 0 0 1 12-12z`, fill: '#171d27', stroke: PINK, 'stroke-width': 2.5 }, S.bubble)
     text(S.bubble, 270, 119, top.bubble, { size: 19, fill: PINK, h: false, weight: 600 })
     S.req = el('path', { d: 'M270 268 V 360', pathLength: 1, stroke: TEAL, 'stroke-width': 3, opacity: .85 }, A)
-    // the model chip
-    S.mBox = el('rect', { x: 190, y: 360, width: 160, height: 110, rx: 22, pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
-    S.mPins = el('path', { d: 'M190 392h-16 M190 415h-16 M190 438h-16 M350 392h16 M350 415h16 M350 438h16 M225 470v14 M270 470v14 M315 470v14', pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
-    S.mNet = el('path', { d: 'M222 392 L270 415 L318 390 M270 415 L228 440 M270 415 L314 440', pathLength: 1, stroke: VIOLET, 'stroke-width': 3, opacity: .8 }, A)
-    for (const [x, y, r] of [[222, 392, 6], [270, 415, 8], [318, 390, 6], [228, 440, 6], [314, 440, 6]]) el('circle', { cx: x, cy: y, r, fill: '#0e1116', stroke: VIOLET, 'stroke-width': 2.5 }, A)
+    // the model chip, or (config.hub) a plain glyph for something that isn't a model, like a doc
+    if (C.hub) {
+      S.mBox = el('path', { d: GLYPH[C.hub], pathLength: 1, transform: 'translate(222 362) scale(1.5)', stroke: VIOLET, 'stroke-width': 2.7 }, A)
+      S.mPins = el('path', { d: 'M270 458 V 484', pathLength: 1, stroke: VIOLET, 'stroke-width': 3 }, A)
+      S.mNet = el('path', { d: '', pathLength: 1 }, A)
+    } else {
+      S.mBox = el('rect', { x: 190, y: 360, width: 160, height: 110, rx: 22, pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
+      S.mPins = el('path', { d: 'M190 392h-16 M190 415h-16 M190 438h-16 M350 392h16 M350 415h16 M350 438h16 M225 470v14 M270 470v14 M315 470v14', pathLength: 1, stroke: VIOLET, 'stroke-width': 4 }, A)
+      S.mNet = el('path', { d: 'M222 392 L270 415 L318 390 M270 415 L228 440 M270 415 L314 440', pathLength: 1, stroke: VIOLET, 'stroke-width': 3, opacity: .8 }, A)
+      for (const [x, y, r] of [[222, 392, 6], [270, 415, 8], [318, 390, 6], [228, 440, 6], [314, 440, 6]]) el('circle', { cx: x, cy: y, r, fill: '#0e1116', stroke: VIOLET, 'stroke-width': 2.5 }, A)
+    }
     S.mLbl = text(A, 384, 424, C.modelLabel ?? 'The model', { size: 18, fill: VIOLET, anchor: 'start' })
     S.badge = el('g', {}, A)
     el('circle', { cx: 0, cy: 0, r: 24, fill: '#171d27', stroke: PINK, 'stroke-width': 3.5 }, S.badge)
@@ -217,7 +230,8 @@
   //     request's link when item is 'req'), at a fraction of its length: a check, a person
   // On the replay line the request comes down again. A try { item, stop } follows that item's
   // link down and stops at `stop` (a fraction of its length); a try { item, up: true, stop } sends
-  // the item's data back up instead, and it stops at `stop` of the way up the request's link.
+  // the item's data back up instead, and it stops at `stop` of the way up the request's link; a
+  // try { item: 'req', stop } is the request itself, stopped `stop` of the way down its own link.
   // Then the model gets a green tick and endNote shows.
   const pointOn = (path, f) => path.getPointAtLength(f * path.getTotalLength())
   function buildReplay(A) {
@@ -263,12 +277,13 @@
     const go = ease(prog(t, rp + 0.2, rp + 0.6)) * (1 - ease(prog(t, out - 0.2, out + 0.3)))
     const lr = S.req.getTotalLength()
     for (const tr of S.tries) {
-      const path = S.items[tr.item].path, lp = path.getTotalLength()
+      const path = tr.item === 'req' ? S.req : S.items[tr.item].path, lp = path.getTotalLength()
       const stop = tr.up ? lr * (1 - tr.stop) : tr.stop * lp
       tr.dots.forEach((c, i) => {
         const phase = ((t - rp) * 0.45 + i / 3) % 1
         let pt
         if (tr.up) { const d = phase * (lp + lr * tr.stop); pt = d < lp ? path.getPointAtLength(lp - d) : S.req.getPointAtLength(lr - (d - lp)) }
+        else if (tr.item === 'req') pt = S.req.getPointAtLength(phase * stop)
         else { const d = phase * (lr + stop); pt = d < lr ? S.req.getPointAtLength(d) : path.getPointAtLength(d - lr) }
         c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y)
         c.setAttribute('opacity', t < rp + 0.2 ? 0 : go * (phase > 0.9 ? (1 - phase) * 10 : 1))
