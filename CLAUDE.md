@@ -11,6 +11,11 @@ in `src/components/blog/`. A push to `main` deploys through Cloudflare in about 
 - The weekly `blog-update` routine (`.claude/skills/blog-update/SKILL.md`) proposes freshness edits,
   at most one new draft, and a share suggestion. Post ideas are queued in `docs/blog-ideas.md`.
 - Check changes with `npm run build`.
+- When you write or update a blog post, also check whether the homepage's "How I build" section
+  (`src/pages/index.astro`, the `#how` steps and the stats strip above it) and the resume
+  (`src/pages/resume.astro`) need updating, and put those edits in the same PR. A changed resume
+  means regenerating `public/dean-phillips-resume.pdf` with `scripts/resume-pdf.mjs` and keeping it
+  to two pages. Say in the PR what you checked, even when nothing changed.
 
 ## Reply format
 
