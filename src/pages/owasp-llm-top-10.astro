@@ -4,6 +4,7 @@ import llm01 from '../../scripts/video/owasp/llm01.mjs';
 import llm02 from '../../scripts/video/owasp/llm02.mjs';
 import llm06 from '../../scripts/video/owasp/llm06.mjs';
 import llm10 from '../../scripts/video/owasp/llm10.mjs';
+import seconds from '../../scripts/video/owasp/durations.json';
 
 // A click-through guide to the OWASP Top 10 for LLM Applications (2025 list). The wording is
 // my own summary, shaped as ten short cards with the same parts each. Unlisted for now:
@@ -24,11 +25,12 @@ interface Card {
 }
 
 // The short narrated video on a card. Its transcript is the script the video was voiced from,
-// with the [audio tags] taken out, so the two can't drift apart.
-const clip = (slug: string, made: { script: [number, string][] }, label: string) => ({
+// with the [audio tags] taken out, so the two can't drift apart. Its length comes from the
+// video builder, which records it in durations.json each time it renders.
+const clip = (slug: keyof typeof seconds, made: { script: [number, string][] }, name: string) => ({
   src: `/video/owasp-${slug}.mp4`,
   poster: `/img/owasp-${slug}-poster.jpg`,
-  label: `${label}, narrated by Dean Phillips`,
+  label: `${name} in ${seconds[slug]} seconds, narrated by Dean Phillips`,
   transcript: made.script.map(([, line]) => line.replace(/\[[^\]]*\]\s*/g, '')),
 });
 
@@ -58,14 +60,14 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm01-prompt-injection/',
-    video: clip('llm01', llm01, 'Prompt injection in 40 seconds'),
+    video: clip('llm01', llm01, 'Prompt injection'),
   },
   {
     id: 'LLM02',
     short: 'Sensitive data',
     name: 'Sensitive Information Disclosure',
     line: 'The model, or the app around it, shows something it never should have.',
-    attack: 'A support bot can see every customer\'s record. Someone asks, "list the last ten people who wrote in, with their emails." It does.',
+    attack: 'A support bot can see every customer\'s details. Someone asks, "list the last ten people who wrote in, with their emails." It does.',
     why: 'It had access to data it never needed, and nothing checked its reply.',
     doThis: [
       'Clean or leave out sensitive data before it reaches the model, training data included.',
@@ -85,7 +87,7 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/',
-    video: clip('llm02', llm02, 'Sensitive information disclosure in 35 seconds'),
+    video: clip('llm02', llm02, 'Sensitive information disclosure'),
   },
   {
     id: 'LLM03',
@@ -190,7 +192,7 @@ const cards: Card[] = [
       label: 'The accepted trade-offs',
     },
     source: 'https://genai.owasp.org/llmrisk/llm062025-excessive-agency/',
-    video: clip('llm06', llm06, 'Excessive agency in 33 seconds'),
+    video: clip('llm06', llm06, 'Excessive agency'),
   },
   {
     id: 'LLM07',
@@ -290,7 +292,7 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/',
-    video: clip('llm10', llm10, 'Unbounded consumption in 35 seconds'),
+    video: clip('llm10', llm10, 'Unbounded consumption'),
   },
 ];
 ---

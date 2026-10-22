@@ -10,11 +10,14 @@
 // Needs ffmpeg and ffprobe on the PATH and Playwright's Chromium (set PW_CHROME to a Chrome binary
 // if the pinned build isn't installed). Lines are cached by their text in the work folder
 // (VIDEO_WORK, default the temp dir), so re-rendering after a visual tweak makes no ElevenLabs calls.
+// VIDEO_STILLS=12,20.5 writes only those moments (in seconds) as PNGs to <work>/stills and stops,
+// which checks a layout in seconds instead of a full render. Each finished video's length goes into
+// scripts/video/owasp/durations.json, which the guide page reads for the video's label.
 
 import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -71,6 +74,16 @@ export async function makeVideo({ slug, script, scene, config = {}, posterLine =
   await page.goto(pathToFileURL(resolve(scene)).href, { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(([tl, cfg]) => window.setup(tl, cfg), [{ lines, total }, config]);
+  if (process.env.VIDEO_STILLS) {
+    mkdirSync(join(work, 'stills'), { recursive: true });
+    for (const s of process.env.VIDEO_STILLS.split(',').map(Number)) {
+      await page.evaluate((t) => window.draw(t), s);
+      await page.screenshot({ path: join(work, 'stills', `${s}.png`) });
+    }
+    await browser.close();
+    console.log(`Wrote stills to ${join(work, 'stills')}; lines start at ${lines.map((l) => l.s.toFixed(1)).join(', ')}`);
+    return;
+  }
   const count = Math.round(total * FPS);
   for (let i = 0; i < count; i++) {
     await page.evaluate((t) => window.draw(t), i / FPS);
@@ -91,5 +104,9 @@ export async function makeVideo({ slug, script, scene, config = {}, posterLine =
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(FPS), '-i', join(frames, '%04d.jpg'), '-i', audio,
     '-c:v', 'libx264', '-crf', '27', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-shortest', '-movflags', '+faststart', out]);
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(lines[posterLine].e + 0.3), '-i', out, '-frames:v', '1', '-q:v', '3', `public/img/owasp-${slug}-poster.jpg`]);
+  const durations = 'scripts/video/owasp/durations.json';
+  const all = existsSync(durations) ? JSON.parse(readFileSync(durations, 'utf8')) : {};
+  all[slug] = Math.round(duration(out));
+  writeFileSync(durations, `${JSON.stringify(Object.fromEntries(Object.entries(all).sort()), null, 2)}\n`);
   console.log(`Wrote ${out} and public/img/owasp-${slug}-poster.jpg`);
 }

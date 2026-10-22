@@ -15,7 +15,7 @@ export default {
   config: {
     layout: 'access',
     tag: ['LLM02', 'Sensitive information'],
-    top: { glyph: 'user', label: 'Someone asking', color: '#9aa6b6', bubble: 'list everyone’s emails' },
+    top: { glyph: 'user', label: 'Someone asking', color: '#9aa6b6', bubble: 'the last ten, with emails' },
     modelLabel: 'The support bot',
     items: [
       { glyph: 'db', label: ['Ava’s', 'details'] },
