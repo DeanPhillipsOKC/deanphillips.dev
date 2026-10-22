@@ -2,7 +2,7 @@
 title: "From trust to enforcement: governing an AI delivery pipeline"
 tabTitle: Trust to Enforcement
 partTitle: From trust to enforcement
-description: An experiment in whether AI agents can carry SDLC best practices, even for a low-risk app. How the pipeline moved from trusting its agents to rules GitHub enforces, with independent CI, separate bot identities, evidence for every control, and two trade-offs written down.
+description: An experiment in whether AI agents can carry SDLC best practices, even for a low-risk app. How the pipeline moved from trusting its agents to rules GitHub enforces, with independent CI, separate bot identities, evidence for every control, and three trade-offs written down.
 dek: My AI pipeline tests whether SDLC best practices still have to be followed by hand. Its agents started out merging their own changes. Then I held them to the standard a sensitive-data app would need. Here's what that took, in two days.
 date: 2026-10-21
 readMinutes: 5
@@ -87,16 +87,18 @@ The last piece was a ruleset on main: pull request required, one approval, code 
   ]}
 />
 
-## Two trade-offs, written down
+## Three trade-offs, written down
 
-Two controls aren't as strong as they could be yet. Both are written down as accepted risks, with what still holds and a trigger to revisit.
+Three controls aren't as strong as they could be yet. Each is written down as an accepted risk, with what still holds and a trigger to revisit.
 
 **End-to-end tests run independently only at release time.** Running the full suite on every pull request would take about 8,000 to 10,000 CI minutes a month, far past what Pro includes, so it would need a dedicated runner that the app doesn't earn enough to pay for yet. Agents still run the suite before merging, and a clean independent run gates every store release. A bug an agent misses can sit on main until release, but it can't reach anyone's phone.
 
-**The review agent runs where the agents it reviews run.** It works in the same kind of cloud session as the build agents. Fully separating them means running the review inside GitHub Actions on a pay-per-use API key. Until that's worth paying for, the changes that matter, tier 3, wait for my approval.
+**The review agent runs where the agents it reviews run.** It works in the same kind of cloud session as the build agents, so its approval is a record, not proof: any session could start the workflow that posts it. Fully separating them means running the review inside GitHub Actions on a pay-per-use API key. Until that's worth paying for, the changes that matter, tier 3, also wait for my approval.
+
+**A session could post my approval.** GitHub checks that a tier 3 approval comes from my account, not who tapped the button. The agent sessions hold a credential for that account, and for the cloud ones a proxy sets it, so I can't take it away. Only the agents' own rules say never to approve. What still holds: every tier 3 change gets a review first, the reviewer never approves tier 3, each approval sits in the review history with a timestamp, and a pause switch stops every run. If one ever shows up that I didn't give, that's the trigger to revisit.
 
 <Callout title="When to revisit:">
-both trade-offs are in the threat model, each with what still holds and the trigger to revisit. The main one: the app earning enough to pay for them.
+all three are in the threat model, each with what still holds and the trigger to revisit. For the first two, the trigger is the app earning enough to pay for a fix. For the third, it's the cloud platform letting a session use its own token.
 </Callout>
 
 ## What else broke
