@@ -3,7 +3,10 @@
 // (owasp-llm01-scene.html, drawn frame by frame with Playwright) over a narration voiced by
 // ElevenLabs. Only the script text below goes to ElevenLabs.
 //
-// Voice: the owner's ElevenLabs clone, model eleven_v4, with audio tags such as [leans in] that
+// Portrait 9:16, 1080x1920, so it plays full screen on a phone and can be posted to TikTok or
+// Facebook reels as is.
+//
+// Voice: the owner's ElevenLabs clone, model eleven_v4, with audio tags such as [casual] that
 // direct the delivery (the tags are acted out, not read, and are dropped from the captions).
 // Spoken-text rules (docs in the RepBunny repo, demo-video/review/README.md): short plain
 // sentences, no colons, semicolons, dashes, or parentheses.
@@ -32,10 +35,10 @@ const FPS = 30;
 
 // [seconds of silence before the line, the line]. The scene's timing follows these lines.
 const SCRIPT = [
-  [0.7, '[leans in] Prompt injection, in under a minute.'],
+  [0.7, '[casual] Prompt injection, in under a minute.'],
   [0.35, 'A model reads words. Your instructions, an email, a web page. It all arrives as plain text.'],
   [0.45, "[curious] So when an email says ignore your rules, the model can't always tell it's just data."],
-  [0.3, "[serious] That's the whole attack. Outside text, trying to give orders."],
+  [0.3, "That's the whole attack. Outside text, trying to give orders."],
   [0.7, "[calm] Here's the part people miss. The fix isn't a better prompt."],
   [0.35, 'Give the model less power.'],
   [0.3, 'Keep the checks in code.'],
@@ -83,14 +86,14 @@ const frames = join(WORK, 'frames');
 rmSync(frames, { recursive: true, force: true });
 mkdirSync(frames, { recursive: true });
 const browser = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
 await page.goto(pathToFileURL(resolve('scripts/video/owasp-llm01-scene.html')).href, { waitUntil: 'load' });
 await page.evaluate(() => document.fonts.ready);
 await page.evaluate((tl) => window.setup(tl), { lines, total });
 const count = Math.round(total * FPS);
 for (let i = 0; i < count; i++) {
   await page.evaluate((t) => window.draw(t), i / FPS);
-  await page.screenshot({ path: join(frames, `${String(i).padStart(4, '0')}.jpg`), type: 'jpeg', quality: 90 });
+  await page.screenshot({ path: join(frames, `${String(i).padStart(4, '0')}.jpg`), type: 'jpeg', quality: 88 });
 }
 await browser.close();
 
@@ -105,7 +108,7 @@ execFileSync('ffmpeg', ['-y', '-v', 'error', ...inputs, '-filter_complex', mix, 
 mkdirSync('public/video', { recursive: true });
 mkdirSync('public/img', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(FPS), '-i', join(frames, '%04d.jpg'), '-i', audio,
-  '-c:v', 'libx264', '-crf', '26', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-shortest', '-movflags', '+faststart', 'public/video/owasp-llm01.mp4']);
+  '-c:v', 'libx264', '-crf', '27', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-shortest', '-movflags', '+faststart', 'public/video/owasp-llm01.mp4']);
 
 // Poster: the three fixes
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', String(lines[7].e + 0.3), '-i', 'public/video/owasp-llm01.mp4', '-frames:v', '1', '-q:v', '3', 'public/img/owasp-llm01-poster.jpg']);

@@ -292,6 +292,7 @@ const cards: Card[] = [
       <p class="eyebrow">Guide</p>
       <h1>The OWASP Top 10 for <span class="grad-text">LLM apps</span>, in ten cards</h1>
       <p class="lede">About a minute a card. Go in any order, skip around, and stop whenever you want. Your progress stays on this device.</p>
+      <p class="how">I wrote it the way I like to learn: small pieces, a concrete example, and something to try before moving on.</p>
       <p class="big-idea"><b>The short version:</b> most of the list comes down to two facts. A model can't reliably tell instructions from data, and we often give it more power than the job needs.</p>
     </header>
 
@@ -482,6 +483,7 @@ const cards: Card[] = [
   .intro { padding: 56px 0 8px; }
   .intro h1 { font-size: clamp(2rem, 5vw, 2.8rem); margin: 8px 0 12px; line-height: 1.1; }
   .lede { color: var(--muted); font-size: 1.1rem; margin: 0 0 14px; }
+  .how { color: var(--muted); font-size: 0.95rem; margin: 0 0 14px; }
   .big-idea { margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
 
   .meter-wrap { margin: 22px 0 14px; display: flex; align-items: center; gap: 14px; }
@@ -513,7 +515,7 @@ const cards: Card[] = [
   .card h2:focus { outline: none; }
   .line { font-size: 1.12rem; margin: 0 0 18px; }
   .clip { margin: 0 0 16px; }
-  .clip video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); }
+  .clip video { display: block; width: min(320px, 100%); aspect-ratio: 9 / 16; margin: 0 auto; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); }
   .clip details { margin-top: 8px; color: var(--muted); font-size: 0.92rem; }
   .clip summary { cursor: pointer; padding: 6px 0; }
   .clip details p { margin: 4px 0 0; }
