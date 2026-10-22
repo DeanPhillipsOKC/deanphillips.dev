@@ -14,6 +14,8 @@ interface Card {
   quiz: { q: string; a: string; b: string; right: 'a' | 'b'; why: string };
   pipeline?: { text: string; href: string; label: string };
   source: string;
+  // An optional short video, shown under the one-line version, with its words as a transcript.
+  video?: { src: string; poster: string; label: string; transcript: string[] };
 }
 
 const cards: Card[] = [
@@ -41,6 +43,22 @@ const cards: Card[] = [
       label: 'The threat model',
     },
     source: 'https://genai.owasp.org/llmrisk/llm01-prompt-injection/',
+    video: {
+      src: '/video/owasp-llm01.mp4',
+      poster: '/img/owasp-llm01-poster.jpg',
+      label: 'Prompt injection in 40 seconds, narrated by Dean Phillips',
+      transcript: [
+        'Prompt injection, in under a minute.',
+        'A model reads words. Your instructions, an email, a web page. It all arrives as plain text.',
+        "So when an email says ignore your rules, the model can't always tell it's just data.",
+        "That's the whole attack. Outside text, trying to give orders.",
+        "Here's the part people miss. The fix isn't a better prompt.",
+        'Give the model less power.',
+        'Keep the checks in code.',
+        'And let a person approve anything risky.',
+        'Try the quick check on this card. Then take on the other nine.',
+      ],
+    },
   },
   {
     id: 'LLM02',
@@ -302,6 +320,18 @@ const cards: Card[] = [
           <h2 id={`${c.id}-h`}>{c.name}</h2>
           <p class="line">{c.line}</p>
 
+          {c.video && (
+            <figure class="clip">
+              <video controls playsinline preload="metadata" poster={c.video.poster} aria-label={c.video.label}>
+                <source src={c.video.src} type="video/mp4" />
+              </video>
+              <details>
+                <summary>Read the transcript</summary>
+                <p>{c.video.transcript.join(' ')}</p>
+              </details>
+            </figure>
+          )}
+
           <section class="part">
             <h3>Picture it</h3>
             <p>{c.example}</p>
@@ -482,6 +512,11 @@ const cards: Card[] = [
   .card h2 { font-size: 1.7rem; margin: 0 0 10px; line-height: 1.15; }
   .card h2:focus { outline: none; }
   .line { font-size: 1.12rem; margin: 0 0 18px; }
+  .clip { margin: 0 0 16px; }
+  .clip video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); }
+  .clip details { margin-top: 8px; color: var(--muted); font-size: 0.92rem; }
+  .clip summary { cursor: pointer; padding: 6px 0; }
+  .clip details p { margin: 4px 0 0; }
   .part { margin: 0 0 14px; padding: 14px 16px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
   .part h3 { margin: 0 0 6px; font: 600 0.78rem/1.2 Inter, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
   .part p { margin: 0; }
