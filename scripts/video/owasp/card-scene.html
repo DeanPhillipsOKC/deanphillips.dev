@@ -95,6 +95,14 @@
   // the three fixes follow it, the replay (if any) comes next, and the closing line is last.
   let B
   const at = (i) => TL.lines[i].s
+  // Without a replay the diagram leaves at the turn. With one, it dims behind the turn, comes
+  // back for the fixes with the attack undone, and dims again for the closing line.
+  const sceneOpacity = (t) => {
+    const T = at(B.turn)
+    if (!C.replay) return S.A.setAttribute('opacity', 1 - ease(prog(t, T - 0.1, T + 0.5)))
+    S.A.setAttribute('opacity', (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * ease(prog(t, at(B.fixes[0]) - 0.5, at(B.fixes[0]))))
+      * (1 - (C.recap ? 0.97 : 0.88) * ease(prog(t, at(B.outro) - 0.1, at(B.outro) + 0.5))))
+  }
 
   window.setup = (tl, cfg) => {
     TL = tl; C = cfg
@@ -106,7 +114,7 @@
     const svg = $('svg')
     S.A = el('g', {}, svg)
     if (C.layout === 'access') buildAccess(S.A); else buildLoop(S.A)
-    if (C.replay) buildReplay(S.A)
+    if (C.replay) (C.layout === 'access' ? buildReplay : buildLoopReplay)(S.A)
     buildFixes(svg)
   }
 
@@ -150,11 +158,7 @@
   function drawAccess(t) {
     const bubbleAt = at(C.t?.bubble ?? 2), wrongAt = at(C.t?.wrong ?? 3)
     const T = at(B.turn)
-    // Without a replay the diagram leaves at the turn. With one, it dims behind the turn, comes
-    // back for the fixes with the attack undone, and dims again for the closing line.
-    if (!C.replay) S.A.setAttribute('opacity', 1 - ease(prog(t, T - 0.1, T + 0.5)))
-    else S.A.setAttribute('opacity', (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * ease(prog(t, at(B.fixes[0]) - 0.5, at(B.fixes[0]))))
-      * (1 - (C.recap ? 0.97 : 0.88) * ease(prog(t, at(B.outro) - 0.1, at(B.outro) + 0.5))))
+    sceneOpacity(t)
     const reset = C.replay ? ease(prog(t, T, T + 0.5)) : 0
     const again = C.replay ? ease(prog(t, at(B.replay), at(B.replay) + 0.5)) : 0
     draw1(S.topG.p, prog(t, 0.2, 1.0))
@@ -207,29 +211,31 @@
   }
 
   // ---------- the fixes, drawn onto the access diagram ----------
-  // config.replay: { fixes: [three effects, one per fix line], tries: [{ item, stop }], endNote }
+  // config.replay: { fixes: [one effect, or a list of them, per fix line], tries, endNote }
   //   { do: 'cut', item, at, note }  the link to an item is cut and the item greys out
-  //   { do: 'mark', item, at, dx, glyph, color }  a badge on the link to an item, at a fraction of
-  //     its length (a check, a person who approves)
-  // On the replay line the request comes down again, follows each try's link, and stops at `stop`
-  // (a fraction of that link's length). Then the model gets a green tick and endNote shows.
+  //   { do: 'mark', item, at, dx, glyph, color }  a badge on the link to an item (or on the
+  //     request's link when item is 'req'), at a fraction of its length: a check, a person
+  // On the replay line the request comes down again. A try { item, stop } follows that item's
+  // link down and stops at `stop` (a fraction of its length); a try { item, up: true, stop } sends
+  // the item's data back up instead, and it stops at `stop` of the way up the request's link.
+  // Then the model gets a green tick and endNote shows.
   const pointOn = (path, f) => path.getPointAtLength(f * path.getTotalLength())
   function buildReplay(A) {
     const R = C.replay
-    S.fx = R.fixes.map((f) => {
-      const it = S.items[f.item]
+    S.fx = R.fixes.flatMap((f, line) => [f].flat().map((f) => ({ f, line }))).map(({ f, line }) => {
+      const it = f.item === 'req' ? { path: S.req } : S.items[f.item]
       if (f.do === 'cut') {
         const p = pointOn(it.path, f.at ?? 0.5)
         const slash = el('path', { d: `M${p.x - 16} ${p.y + 8} L${p.x + 4} ${p.y - 16} M${p.x - 4} ${p.y + 16} L${p.x + 16} ${p.y - 8}`, pathLength: 1, stroke: TEAL, 'stroke-width': 5 }, A)
         const note = f.note ? text(A, it.x, 700, f.note, { size: 17, fill: TEAL }) : null
-        return { f, it, slash, note }
+        return { f, line, it, slash, note }
       }
       const p = pointOn(it.path, f.at ?? 0.5)
       const g = el('g', {}, A)
       const color = f.color ?? TEAL
       el('circle', { cx: 0, cy: 0, r: 25, fill: '#0e1116', stroke: color, 'stroke-width': 3 }, g)
       const gl = glyph(g, f.glyph, -17, -17, 0.53, color, 2.6)
-      return { f, it, g, gl, x: p.x + (f.dx ?? 0), y: p.y + (f.dy ?? 0) }
+      return { f, line, it, g, gl, x: p.x + (f.dx ?? 0), y: p.y + (f.dy ?? 0) }
     })
     S.tries = R.tries.map((tr) => ({ ...tr, dots: [0, 1, 2].map(() => el('circle', { r: 6, fill: PINK, opacity: 0 }, A)), ring: el('circle', { r: 0, fill: 'none', stroke: GREEN, 'stroke-width': 3, opacity: 0 }, A) }))
     S.ok = el('g', { opacity: 0 }, A)
@@ -240,8 +246,8 @@
 
   function drawReplay(t) {
     const rp = at(B.replay), out = at(B.outro)
-    S.fx.forEach((x, i) => {
-      const a = at(B.fixes[i]), p = ease(prog(t, a, a + 0.6))
+    S.fx.forEach((x) => {
+      const a = at(B.fixes[x.line]), p = ease(prog(t, a, a + 0.6))
       if (x.f.do === 'cut') {
         x.it.path.setAttribute('opacity', 0.7 - 0.58 * p)
         for (const e of [x.it.g.g, x.it.l1, x.it.l2]) e && e.setAttribute('opacity', 1 - 0.65 * p)
@@ -257,15 +263,17 @@
     const go = ease(prog(t, rp + 0.2, rp + 0.6)) * (1 - ease(prog(t, out - 0.2, out + 0.3)))
     const lr = S.req.getTotalLength()
     for (const tr of S.tries) {
-      const path = S.items[tr.item].path, stop = tr.stop * path.getTotalLength()
+      const path = S.items[tr.item].path, lp = path.getTotalLength()
+      const stop = tr.up ? lr * (1 - tr.stop) : tr.stop * lp
       tr.dots.forEach((c, i) => {
         const phase = ((t - rp) * 0.45 + i / 3) % 1
-        const d = phase * (lr + stop)
-        const pt = d < lr ? S.req.getPointAtLength(d) : path.getPointAtLength(d - lr)
+        let pt
+        if (tr.up) { const d = phase * (lp + lr * tr.stop); pt = d < lp ? path.getPointAtLength(lp - d) : S.req.getPointAtLength(lr - (d - lp)) }
+        else { const d = phase * (lr + stop); pt = d < lr ? S.req.getPointAtLength(d) : path.getPointAtLength(d - lr) }
         c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y)
         c.setAttribute('opacity', t < rp + 0.2 ? 0 : go * (phase > 0.9 ? (1 - phase) * 10 : 1))
       })
-      const end = path.getPointAtLength(stop), pulse = ((t - rp - 0.8) * 1.2) % 1
+      const end = tr.up ? S.req.getPointAtLength(stop) : path.getPointAtLength(stop), pulse = ((t - rp - 0.8) * 1.2) % 1
       tr.ring.setAttribute('cx', end.x); tr.ring.setAttribute('cy', end.y)
       tr.ring.setAttribute('r', String(8 + 18 * pulse))
       tr.ring.setAttribute('opacity', t < rp + 0.8 ? 0 : go * (1 - pulse))
@@ -304,20 +312,21 @@
   }
 
   function drawLoop(t) {
-    const t1 = at(2), t2 = at(3) + 3, s0 = 0.09, s1 = 0.75
-    S.A.setAttribute('opacity', 1 - ease(prog(t, at(4) - 0.1, at(4) + 0.5)))
+    const t1 = at(C.t?.ramp ?? 2), t2 = at(C.t?.wrong ?? 3) + 3, s0 = 0.09, s1 = 0.75
+    sceneOpacity(t)
+    const T = at(B.turn), reset = C.replay ? ease(prog(t, T, T + 0.5)) : 0
     draw1(S.ring, prog(t, 0.6, 2.2))
     S.nodes.forEach((n, i) => n.g.setAttribute('opacity', ease(prog(t, 0.3 + i * 0.35, 0.9 + i * 0.35))))
     // the speed ramps up once the second review is named; phase is the integral of the speed
     const P = t <= t1 ? s0 * t : t <= t2 ? s0 * t + (s1 - s0) * ((t - t1) ** 2) / (2 * (t2 - t1)) : s0 * t + (s1 - s0) * ((t2 - t1) / 2 + (t - t2))
     const len = S.ring.getTotalLength()
     const flow = ease(prog(t, 1.6, 2.2))
-    const wrong = ease(prog(t, at(3), at(3) + 0.5)), bad = wrong > 0.5
+    const wrong = ease(prog(t, at(C.t?.wrong ?? 3), at(C.t?.wrong ?? 3) + 0.5)) * (1 - reset), bad = wrong > 0.5
     for (const d of S.dotList) {
       const phase = ((P + d.i / 3) % 1 + 1) % 1
       const pt = S.ring.getPointAtLength(phase * len)
       d.c.setAttribute('cx', pt.x); d.c.setAttribute('cy', pt.y)
-      d.c.setAttribute('fill', t > t1 ? PINK : TEAL); d.c.setAttribute('opacity', flow)
+      d.c.setAttribute('fill', t > t1 ? PINK : TEAL); d.c.setAttribute('opacity', flow * (1 - reset))
     }
     const run = Math.floor(48 * prog(t, t1, t2 + 1))
     S.count.textContent = String(run)
@@ -330,6 +339,66 @@
     S.meterBox.setAttribute('opacity', ease(prog(t, 1.8, 2.4))); S.meterLbl.setAttribute('opacity', ease(prog(t, 1.8, 2.4)))
     S.badge.setAttribute('opacity', wrong)
     S.badge.setAttribute('transform', `translate(430 250) scale(${0.4 + 0.6 * wrong})`)
+    if (C.replay) drawLoopReplay(t, reset)
+  }
+
+  // ---------- the fixes, drawn onto the loop ----------
+  // config.replay: { cap, fixes: [{ glyph, color, angle } or { glyph, color, x, y }, one per fix
+  //   line], endNote }. The first fix is the gate on the loop. On the replay line the work goes
+  // round again, the counter climbs to `cap` and stops, the bill barely moves, and the work parks
+  // at the gate.
+  function buildLoopReplay(A) {
+    const R = C.replay, cx = 270, cy = 340, Rr = 140
+    S.lfx = R.fixes.map((f) => {
+      const a = ((f.angle ?? 0) * Math.PI) / 180
+      const x = f.x ?? cx + Rr * Math.cos(a), y = f.y ?? cy + Rr * Math.sin(a)
+      const g = el('g', { opacity: 0 }, A)
+      el('circle', { cx: 0, cy: 0, r: 25, fill: '#0e1116', stroke: f.color, 'stroke-width': 3 }, g)
+      const gl = glyph(g, f.glyph, -17, -17, 0.53, f.color, 2.6)
+      return { g, gl, x, y, a }
+    })
+    S.capRing = el('circle', { r: 0, fill: 'none', stroke: GREEN, 'stroke-width': 3, opacity: 0 }, A)
+    S.lok = el('g', { opacity: 0 }, A)
+    el('circle', { cx: 0, cy: 0, r: 24, fill: '#171d27', stroke: GREEN, 'stroke-width': 3.5 }, S.lok)
+    el('path', { d: 'M-10 1l7 7 13-15', stroke: GREEN, 'stroke-width': 4.5 }, S.lok)
+    S.lnote = R.endNote ? text(A, 270, 650, R.endNote, { size: 19, fill: GREEN }) : null
+    S.lnote?.setAttribute('opacity', 0)
+  }
+
+  function drawLoopReplay(t, reset) {
+    const R = C.replay, rp = at(B.replay), out = at(B.outro)
+    S.lfx.forEach((x, i) => {
+      const a = at(B.fixes[i]), p = ease(prog(t, a, a + 0.6))
+      x.g.setAttribute('opacity', p)
+      x.g.setAttribute('transform', `translate(${x.x} ${x.y}) scale(${0.6 + 0.4 * p})`)
+      draw1(x.gl.p, prog(t, a + 0.1, a + 0.9))
+    })
+    if (t < at(B.turn)) return
+    // after the turn the counter and the bill start over; on the replay they climb to the cap
+    const run = t < rp ? 0 : Math.min(R.cap, Math.floor((t - rp - 0.3) * 10))
+    const full = Math.max(0, run) >= R.cap
+    S.count.textContent = String(Math.max(0, run))
+    S.count.setAttribute('fill', full ? GREEN : MUTED)
+    S.meterFill.setAttribute('width', String(296 * 0.18 * Math.max(0, run) / R.cap))
+    S.meterFill.setAttribute('fill', TEAL)
+    const len = S.ring.getTotalLength(), gate = S.lfx[0], go = t > rp ? 1 - ease(prog(t, out - 0.2, out + 0.3)) : 0
+    const doneAt = rp + 0.3 + R.cap / 10
+    S.dotList.forEach((d) => {
+      // round the loop until the cap, then each dot slides to the gate and fades there
+      const phase = (((t - rp) * 0.5 + d.i / 3) % 1 + 1) % 1
+      const pt = S.ring.getPointAtLength(phase * len), k = ease(prog(t, doneAt, doneAt + 0.6))
+      d.c.setAttribute('cx', pt.x + (gate.x - pt.x) * k); d.c.setAttribute('cy', pt.y + (gate.y - pt.y) * k)
+      d.c.setAttribute('fill', TEAL)
+      d.c.setAttribute('opacity', go * (1 - k))
+    })
+    const pulse = ((t - doneAt) * 1.2) % 1
+    S.capRing.setAttribute('cx', gate.x); S.capRing.setAttribute('cy', gate.y)
+    S.capRing.setAttribute('r', String(26 + 16 * pulse))
+    S.capRing.setAttribute('opacity', t < doneAt ? 0 : go * (1 - pulse))
+    const ok = ease(prog(t, doneAt + 0.3, doneAt + 0.8))
+    S.lok.setAttribute('opacity', ok)
+    S.lok.setAttribute('transform', `translate(430 250) scale(${0.4 + 0.6 * ok})`)
+    if (S.lnote) S.lnote.setAttribute('opacity', ease(prog(t, doneAt + 0.5, doneAt + 1.0)))
   }
 
   // ---------- the three fixes (both layouts) ----------
