@@ -166,8 +166,12 @@
   const draw1 = (el, p) => { el.setAttribute('stroke-dasharray', '1 1'); el.setAttribute('stroke-dashoffset', String(1 - clamp(p))) }
   let TL = null
 
-  window.setup = (tl) => {
+  // cfg.silent (from owasp-loops.mjs) draws only the diagram for the guide page's silent loops; a
+  // loop that starts after the turn shows the smaller diagram with its actions from the first frame.
+  let SILENT = false
+  window.setup = (tl, cfg = {}) => {
     TL = tl
+    SILENT = !!cfg.silent
     const dots = $('dots')
     for (const k of ['pDoc', 'pMail', 'pWeb']) for (let i = 0; i < 4; i++) {
       const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
@@ -200,8 +204,8 @@
 
     // Scene A: build up, then flow. It dims behind the turn, comes back smaller for the fixes,
     // and dims away for the recap.
-    const back = ease(prog(t, F - 0.6, F))
-    $('sceneA').setAttribute('opacity', (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * back) * (1 - 0.97 * ease(prog(t, O - 0.1, O + 0.5))))
+    const back = SILENT && T < 0 ? 1 : ease(prog(t, F - 0.6, F))
+    $('sceneA').setAttribute('opacity', SILENT ? 1 : (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * back) * (1 - 0.97 * ease(prog(t, O - 0.1, O + 0.5))))
     const k = 1 - 0.3 * back
     $('sceneA').setAttribute('transform', `translate(270 40) scale(${k}) translate(-270 -40)`)
     $('act').setAttribute('opacity', back * (1 - 0.97 * ease(prog(t, O - 0.1, O + 0.5))))
@@ -263,7 +267,7 @@
     // Scene B: the title and the crossed-out prompt at the turn, then the fix cards as a recap
     const B = ease(prog(t, at(4) + 0.1, at(4) + 0.7))
     const leave = 1 - ease(prog(t, F - 0.45, F - 0.05))
-    $('sceneB').setAttribute('opacity', B)
+    $('sceneB').setAttribute('opacity', SILENT ? 0 : B)
     $('fixTitle1').setAttribute('opacity', ease(prog(t, at(4) + 0.2, at(4) + 0.8)) * leave)
     $('fixTitle2').setAttribute('opacity', ease(prog(t, at(4) + 0.4, at(4) + 1.0)) * leave)
     $('recap1').setAttribute('opacity', ease(prog(t, O, O + 0.5)))
@@ -284,7 +288,7 @@
     // Caption and progress
     let cap = ''
     for (const l of L) if (t >= l.s - 0.05 && t <= l.e + 0.2) cap = l.caption
-    $('cap').textContent = cap
+    $('cap').textContent = SILENT ? '' : cap
     $('bar').style.width = `${(t / TL.total) * 100}%`
   }
 </script>

@@ -115,3 +115,35 @@ export async function makeVideo({ slug, script, scene, config = {}, posterLine =
   writeFileSync(durations, `${JSON.stringify(Object.fromEntries(Object.entries(all).sort()), null, 2)}\n`);
   console.log(`Wrote ${out} and public/img/owasp-${slug}-poster.jpg`);
 }
+
+// A short silent loop of one scene for the guide page: no narration, no captions, cropped to the
+// diagram. timeline is { lines: [{ s, e }], total } on a made-up schedule (see owasp-loops.mjs),
+// and the loop runs from `start` (after the diagram has drawn itself in) to timeline.total. The
+// poster is the loop's last frame, which is also what reduced-motion visitors see.
+export async function makeLoop({ name, scene, config, timeline, start = 0, crop = { y: 72, h: 652 } }) {
+  const work = process.env.VIDEO_WORK ? join(process.env.VIDEO_WORK, name) : join(tmpdir(), `owasp-${name}`);
+  const frames = join(work, 'frames');
+  rmSync(frames, { recursive: true, force: true });
+  mkdirSync(frames, { recursive: true });
+  const browser = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
+  const page = await browser.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
+  await page.goto(pathToFileURL(resolve(scene)).href, { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(([tl, cfg]) => window.setup(tl, cfg), [timeline, { ...config, silent: true }]);
+  const count = Math.round((timeline.total - start) * FPS);
+  const clip = { x: 0, y: crop.y, width: 540, height: crop.h };
+  const stills = process.env.VIDEO_STILLS?.split(',').map(Number);
+  for (const [i, t] of (stills ?? [...Array(count).keys()].map((i) => start + i / FPS)).entries()) {
+    await page.evaluate((t) => window.draw(t), t);
+    await page.screenshot({ path: join(frames, stills ? `${t}.png` : `${String(i).padStart(4, '0')}.jpg`), clip, ...(stills ? {} : { type: 'jpeg', quality: 90 }) });
+  }
+  await browser.close();
+  if (stills) return console.log(`Wrote stills to ${frames}`);
+  mkdirSync('public/video', { recursive: true });
+  mkdirSync('public/img', { recursive: true });
+  const out = `public/video/owasp-${name}.mp4`;
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(FPS), '-i', join(frames, '%04d.jpg'),
+    '-vf', 'scale=720:-2', '-c:v', 'libx264', '-crf', '28', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', out]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', join(frames, `${String(count - 1).padStart(4, '0')}.jpg`), '-vf', 'scale=720:-2', '-q:v', '4', `public/img/owasp-${name}.jpg`]);
+  console.log(`Wrote ${out} and public/img/owasp-${name}.jpg (${(timeline.total - start).toFixed(1)}s)`);
+}
