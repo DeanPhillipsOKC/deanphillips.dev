@@ -23,11 +23,10 @@ interface Card {
   attack: string;
   why: string;
   doThis: string[];
-  quiz?: { q: string; a: string; b: string; right: 'a' | 'b'; why: string };
-  // "Your move": the reader picks every fix that would stop the attack, from real fixes and
-  // tempting wrong ones. The card then shows silent loops of the attack and of it being stopped
-  // (scripts/video/owasp-loops.mjs), and the narrated video moves behind a link.
-  play?: { options: { text: string; right: boolean; why: string }[] };
+  // "Your move": the reader picks every fix that protects against the attack, from real fixes and
+  // tempting wrong ones, beside silent loops of the attack and of it being stopped
+  // (scripts/video/owasp-loops.mjs). `done` replaces the usual message for getting it right.
+  play: { done?: string; options: { text: string; right: boolean; why: string }[] };
   pipeline?: { text: string; href: string; label: string };
   source: string;
   // An optional short video, shown under the one-line version, with its words as a transcript.
@@ -72,12 +71,15 @@ const cards: Card[] = [
       'Give the model only the powers its job needs, and check permissions in code, not in the prompt.',
       'Keep outside text apart from your instructions, and make a person approve anything risky.',
     ],
-    quiz: {
-      q: 'A chatbot\'s prompt says "never reveal customer data." Is that enough to protect the data?',
-      a: 'Yes, the model follows its instructions',
-      b: 'No, enforce it outside the model',
-      right: 'b',
-      why: 'A prompt is a request, not a lock. The enforcement belongs in code the model can\'t talk its way past.',
+    play: {
+      done: 'Right. None of them stops injection itself, but together they keep it from doing real harm.',
+      options: [
+        { text: 'Add "never obey instructions in emails" to the prompt', right: false, why: 'That\'s one more instruction in the same stream of text. The email can argue with it, and sometimes wins.' },
+        { text: 'Give the model only the tools its job needs', right: true, why: 'If it can\'t delete or send on its own, an injected order has little to pull on.' },
+        { text: 'Use a bigger, smarter model', right: false, why: 'Bigger models still read everything as one stream of text. None of them reliably tells orders from data yet.' },
+        { text: 'Check permissions in code, outside the model', right: true, why: 'The system decides what\'s allowed, so talking the model into something isn\'t enough.' },
+        { text: 'Have a person approve anything risky', right: true, why: 'A risky step waits for someone who can see it\'s an attack.' },
+      ],
     },
     pipeline: {
       text: 'Triage treats email as data, anything it files is held until I answer, and a script with no AI in it decides what gets picked up.',
@@ -99,12 +101,14 @@ const cards: Card[] = [
       'Limit what the app can look up for each user.',
       'Tell users not to paste secrets into prompts.',
     ],
-    quiz: {
-      q: 'Which is safer for a customer service bot?',
-      a: 'Give it every customer record so it can answer anything',
-      b: 'Let it look up only the signed-in user\'s records',
-      right: 'b',
-      why: 'Least access means a leak, or a trick, can only expose so much.',
+    play: {
+      options: [
+        { text: 'Let it look up only the signed-in person\'s details', right: true, why: 'Ava\'s question can only reach Ava\'s data.' },
+        { text: 'Tell it in the prompt never to share private data', right: false, why: 'Someone can talk it out of a rule in its prompt. The data is still in reach.' },
+        { text: 'Remove private data it never needs before it sees anything', right: true, why: 'It can\'t leak what it was never given.' },
+        { text: 'Make everyone sign in first', right: false, why: 'Signing in says who\'s asking. It doesn\'t stop the bot answering with everyone else\'s details.' },
+        { text: 'Check replies for other people\'s data before they go out', right: true, why: 'A leak caught on the way out never reaches the asker.' },
+      ],
     },
     pipeline: {
       text: 'RepBunny keeps workouts on the phone. For support email, a reply goes out only with text I approved, and a sender\'s address never goes into GitHub.',
@@ -126,12 +130,14 @@ const cards: Card[] = [
       'Check models and packages against signatures and hashes where you can.',
       'Scan and patch on a schedule.',
     ],
-    quiz: {
-      q: 'A new version of a library came out an hour ago. What\'s the safer move?',
-      a: 'Install it right away to stay current',
-      b: 'Wait a few days, then scan and review it',
-      right: 'b',
-      why: 'Bad releases tend to get caught fast, so a short delay lets other people find the problem first. Security fixes are the exception: take those quickly.',
+    play: {
+      options: [
+        { text: 'Only use popular packages', right: false, why: 'Popular packages are the ones attackers hijack, because they reach the most people.' },
+        { text: 'Wait a few days before taking new versions, except security fixes', right: true, why: 'Bad releases tend to get caught fast, so a short wait lets other people find the problem first.' },
+        { text: 'Check the download against its published hash', right: false, why: 'The real maintainer\'s account published the bad version, so its hash matches. Hashes catch a swapped file, not a bad release.' },
+        { text: 'Pin exact versions so nothing updates on its own', right: true, why: 'The new version only comes in when someone chooses to take it.' },
+        { text: 'Don\'t let installs run the package\'s own scripts', right: true, why: 'The hidden code was set to run on install, so it never gets the chance.' },
+      ],
     },
     pipeline: {
       text: 'Updates wait seven days, installs skip scripts, and the one third-party action that touches release keys is pinned to an exact commit.',
@@ -153,12 +159,14 @@ const cards: Card[] = [
       'Test against trusted answers before and after every change, and probe for hidden triggers.',
       'Keep unverified data out of training and lookup stores.',
     ],
-    quiz: {
-      q: 'Which one is a poisoning risk for a coding assistant?',
-      a: 'A doc it reads that was quietly edited to include a bad instruction',
-      b: 'A user making a typo',
-      right: 'a',
-      why: 'Anything the model learns from or trusts as true can be edited. Docs and notes count.',
+    play: {
+      options: [
+        { text: 'Record who changed what, and when', right: true, why: 'A quiet edit stops being quiet, and it can be traced and rolled back.' },
+        { text: 'Tell agents to ignore rules that look unsafe', right: false, why: 'The edit is written to look reasonable. "Skip slow tests" doesn\'t look unsafe.' },
+        { text: 'Have a person review every change to the doc', right: true, why: 'The edit waits for someone who can see it\'s wrong before any agent reads it.' },
+        { text: 'Give every agent its own copy of the doc', right: false, why: 'Copies of a poisoned doc are still poisoned, and the edit is no easier to spot.' },
+        { text: 'Test against answers you already trust', right: true, why: 'Agents that start skipping tests fail checks they used to pass.' },
+      ],
     },
     pipeline: {
       text: 'My agents all read the same skills and docs. Those files are code-owned, so a change waits for my approval in GitHub.',
@@ -180,12 +188,14 @@ const cards: Card[] = [
       'Encode it for where it lands: HTML, SQL, a shell.',
       'Use parameterized queries and a content security policy.',
     ],
-    quiz: {
-      q: 'A model turns a user\'s question into a database query, and your app runs it as is. What\'s the fix?',
-      a: 'Ask the model to be careful',
-      b: 'Run queries you wrote, with values it picks, from a read-only account',
-      right: 'b',
-      why: 'Careful instructions can fail. A fixed query with parameters, run by an account that can only read, limits what any output can do.',
+    play: {
+      options: [
+        { text: 'Treat the model\'s output like any untrusted input', right: true, why: 'The page stops assuming the reply is safe just because the app produced it.' },
+        { text: 'Tell the model never to write code in its replies', right: false, why: 'A crafted question can talk it into it. The page has to be safe whatever the model writes.' },
+        { text: 'Encode the output for where it lands', right: true, why: 'In a web page, encoded HTML shows as text instead of running as a script.' },
+        { text: 'Only show replies to signed-in users', right: false, why: 'The attacker can sign in too, and the script still runs in the next visitor\'s browser.' },
+        { text: 'Add a content security policy to the page', right: true, why: 'Even if a script slips through, the browser refuses to run it.' },
+      ],
     },
     pipeline: {
       text: 'An agent\'s output is code, so it never goes straight to main. Every change goes through a pull request, independent CI checks, and a review.',
@@ -236,12 +246,14 @@ const cards: Card[] = [
       'Enforce rules in code outside the model.',
       'Assume the prompt can be read.',
     ],
-    quiz: {
-      q: 'Where should an API key live?',
-      a: 'In the system prompt, so the model can use it',
-      b: 'In a secret store the app uses, never in the prompt',
-      right: 'b',
-      why: 'Anything in a prompt can be asked for. The app should hold the secret and make the call itself.',
+    play: {
+      options: [
+        { text: 'Tell the bot never to repeat its instructions', right: false, why: 'That\'s one more line in the prompt it can be talked into repeating.' },
+        { text: 'Keep secrets out of the prompt', right: true, why: 'Then a leaked prompt gives away nothing worth having.' },
+        { text: 'Hide the code in a longer, more confusing prompt', right: false, why: 'Length doesn\'t hide anything. The bot will repeat all of it.' },
+        { text: 'Enforce the rules in code, outside the model', right: true, why: 'An override that lives in code can\'t be talked out of the model.' },
+        { text: 'Assume anyone can read the prompt', right: true, why: 'Write it as if it were public, and a leak stops being a breach.' },
+      ],
     },
     pipeline: {
       text: 'My agents\' instructions are plain files in the repo and hold no secrets. Keys live only in GitHub Actions secrets.',
@@ -263,12 +275,14 @@ const cards: Card[] = [
       'Check and clean sources before they\'re indexed.',
       'Keep logs of what gets retrieved.',
     ],
-    quiz: {
-      q: 'Several customers share one search index behind an AI assistant. What matters most?',
-      a: 'That the index is fast',
-      b: 'That each customer can only retrieve their own documents',
-      right: 'b',
-      why: 'One shared pile with no access rules means one customer\'s question can pull up another\'s data.',
+    play: {
+      options: [
+        { text: 'Clean every document before it\'s indexed', right: true, why: 'Hidden text is stripped out, so the assistant never reads it.' },
+        { text: 'Tell the assistant to be fair to every candidate', right: false, why: 'It reads the hidden text as part of the application. Being fair to it means ranking that person first.' },
+        { text: 'Have a person review the shortlist', right: true, why: 'Someone checks the top picks against the actual applications.' },
+        { text: 'Give each hiring team its own search index', right: false, why: 'Separate indexes stop data leaking between teams. This application is in the right index, with hidden text in it.' },
+        { text: 'Log what each search pulls up', right: true, why: 'An odd result can be traced back to the document that caused it.' },
+      ],
     },
     source: 'https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/',
     video: clip('llm08', llm08, 'Vector and embedding weaknesses'),
@@ -285,12 +299,14 @@ const cards: Card[] = [
       'Verify important output automatically or with a person.',
       'Tell users plainly what the tool can get wrong.',
     ],
-    quiz: {
-      q: 'An agent says "all tests passed." What counts as evidence?',
-      a: 'The agent\'s own message',
-      b: 'A test run by something other than the agent',
-      right: 'b',
-      why: 'A claim from the thing being checked isn\'t a check.',
+    play: {
+      options: [
+        { text: 'Ask the assistant whether it\'s sure', right: false, why: 'It can be confidently wrong about being right. Ask for something it can\'t fake, like a link you can check.' },
+        { text: 'Check a package is real and trusted before installing it', right: true, why: 'A made-up name either doesn\'t exist or has no history worth trusting.' },
+        { text: 'Install it in a fresh project to try it out', right: false, why: 'Bad code can run the moment it installs, wherever that is.' },
+        { text: 'Have the assistant cite sources with links', right: true, why: 'A real library has real documentation to point to. A made-up one doesn\'t.' },
+        { text: 'Have a person verify anything important', right: true, why: 'Someone checks before the answer becomes code.' },
+      ],
     },
     pipeline: {
       text: 'I don\'t take an agent\'s word that tests passed. Build, docs, and security checks run on GitHub\'s own runners, and a clean independent test run gates every store release.',
@@ -312,12 +328,14 @@ const cards: Card[] = [
       'Set timeouts and queue limits.',
       'Watch usage and alert on odd spikes.',
     ],
-    quiz: {
-      q: 'Agents file follow-up work that other agents pick up. What stops a runaway loop?',
-      a: 'Asking the agents to stop at some point',
-      b: 'A plain script that caps how many runs start each day',
-      right: 'b',
-      why: 'A cap that doesn\'t depend on the agents behaving is the one that holds.',
+    play: {
+      options: [
+        { text: 'Cap how many runs can start each day', right: true, why: 'The loop stops at the cap, whatever the agents think.' },
+        { text: 'Tell agents to stop when they\'ve done enough', right: false, why: 'Each agent thinks its follow up job is worth doing. None of them sees the whole loop.' },
+        { text: 'Set time limits so stale work expires', right: true, why: 'Work that sits too long drops out instead of piling up.' },
+        { text: 'Pay for a bigger plan', right: false, why: 'A bigger plan raises the ceiling on the bill. It doesn\'t stop the loop.' },
+        { text: 'Alert on unusual spikes in usage', right: true, why: 'You hear about it in minutes, not when the bill arrives.' },
+      ],
     },
     pipeline: {
       text: 'A script with no AI in it caps how many agent runs start each day.',
@@ -331,7 +349,7 @@ const cards: Card[] = [
 ---
 <Base
   title="Ten ways to break an AI app, and how to stop each one | Dean Phillips"
-  description="A click-through guide to the OWASP Top 10 for LLM Applications: ten short cards, each with a video, an example, the fix, and a quick check."
+  description="A click-through guide to the OWASP Top 10 for LLM Applications: ten short cards, each with an example, a short animation, and a chance to pick the fix yourself."
   noindex
 >
   <div class="guide" id="guide" data-count={cards.length}>
@@ -368,28 +386,14 @@ const cards: Card[] = [
           <h2 id={`${c.id}-h`}><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path d={ICONS[c.id]} /></svg>{c.name}</h2>
           <p class="line">{c.line}</p>
 
-          {c.video && !c.play && (
-            <figure class="clip">
-              <video controls playsinline preload="metadata" poster={c.video.poster} aria-label={c.video.label}>
-                <source src={c.video.src} type="video/mp4" />
-              </video>
-              <details>
-                <summary>Read the transcript</summary>
-                <p>{c.video.transcript.join(' ')}</p>
-              </details>
-            </figure>
-          )}
-
           <section class="part attack">
             <h3>How it goes wrong</h3>
-            {c.play && (
-              <figure class="loop">
-                <video class="anim" muted loop playsinline preload="metadata" poster={`/img/owasp-${c.id.toLowerCase()}-attack.jpg`} aria-label={`An animation of the attack: ${c.attack}`}>
-                  <source src={`/video/owasp-${c.id.toLowerCase()}-attack.mp4`} type="video/mp4" />
-                </video>
-                <button type="button" class="pause">Pause</button>
-              </figure>
-            )}
+            <figure class="loop">
+              <video class="anim" muted loop playsinline preload="metadata" poster={`/img/owasp-${c.id.toLowerCase()}-attack.jpg`} aria-label={`An animation of the attack: ${c.attack}`}>
+                <source src={`/video/owasp-${c.id.toLowerCase()}-attack.mp4`} type="video/mp4" />
+              </video>
+              <button type="button" class="pause">Pause</button>
+            </figure>
             <p>{c.attack}</p>
           </section>
 
@@ -398,49 +402,35 @@ const cards: Card[] = [
             <p>{c.why}</p>
           </section>
 
-          {c.play && (
-            <section class="part play">
-              <h3>Your move</h3>
-              <fieldset>
-                <legend>Which of these would stop it? Pick all that work.</legend>
-                {c.play.options.map((o, k) => (
-                  <label class="opt" data-right={String(o.right)}>
-                    <input type="checkbox" value={k} />
-                    <span class="txt">{o.text}</span>
-                    <span class="note">{o.why}</span>
-                  </label>
-                ))}
-              </fieldset>
-              <div class="play-actions">
-                <button type="button" class="check">Check</button>
-                <button type="button" class="show">Show me</button>
-              </div>
-              <p class="verdict" aria-live="polite"></p>
-              <figure class="loop result" hidden>
-                <video class="anim" muted loop playsinline preload="none" poster={`/img/owasp-${c.id.toLowerCase()}-fixed.jpg`} aria-label="An animation of the same attack with the fixes in place, stopped">
-                  <source src={`/video/owasp-${c.id.toLowerCase()}-fixed.mp4`} type="video/mp4" />
-                </video>
-                <button type="button" class="pause">Pause</button>
-              </figure>
-            </section>
-          )}
+          <section class="part play" data-done={c.play.done}>
+            <h3>Your move</h3>
+            <fieldset>
+              <legend>Which of these would protect against it? Pick all that work.</legend>
+              {c.play.options.map((o, k) => (
+                <label class="opt" data-right={String(o.right)}>
+                  <input type="checkbox" value={k} />
+                  <span class="txt">{o.text}</span>
+                  <span class="note">{o.why}</span>
+                </label>
+              ))}
+            </fieldset>
+            <div class="play-actions">
+              <button type="button" class="check">Check</button>
+              <button type="button" class="show">Show me</button>
+            </div>
+            <p class="verdict" aria-live="polite"></p>
+            <figure class="loop result" hidden>
+              <video class="anim" muted loop playsinline preload="none" poster={`/img/owasp-${c.id.toLowerCase()}-fixed.jpg`} aria-label="An animation of the same attack with the fixes in place, stopped">
+                <source src={`/video/owasp-${c.id.toLowerCase()}-fixed.mp4`} type="video/mp4" />
+              </video>
+              <button type="button" class="pause">Pause</button>
+            </figure>
+          </section>
 
           <section class="part">
             <h3>What to do</h3>
             <ul>{c.doThis.map((d) => <li>{d}</li>)}</ul>
           </section>
-
-          {c.quiz && (
-            <section class="part quiz" data-right={c.quiz.right}>
-              <h3>Quick check</h3>
-              <p class="q">{c.quiz.q}</p>
-              <div class="picks">
-                <button type="button" data-pick="a">{c.quiz.a}</button>
-                <button type="button" data-pick="b">{c.quiz.b}</button>
-              </div>
-              <p class="why"><b class="verdict"></b> {c.quiz.why}</p>
-            </section>
-          )}
 
           {c.pipeline && (
             <section class="part pipe">
@@ -449,7 +439,7 @@ const cards: Card[] = [
             </section>
           )}
 
-          {c.video && c.play && (
+          {c.video && (
             <details class="narrated">
               <summary>Watch the narrated version ({c.video.label.match(/(\d+) seconds/)?.[1]} seconds)</summary>
               <figure class="clip">
@@ -551,24 +541,8 @@ const cards: Card[] = [
       save();
       render();
     });
-    const quiz = card.querySelector<HTMLElement>('.quiz');
-    if (!quiz) return;
-    const why = quiz.querySelector<HTMLElement>('.why')!;
-    why.hidden = true;
-    why.querySelector('.verdict')!.textContent = '';
-    for (const b of quiz.querySelectorAll<HTMLButtonElement>('[data-pick]')) {
-      b.addEventListener('click', () => {
-        const ok = b.dataset.pick === quiz.dataset.right;
-        quiz.querySelectorAll<HTMLButtonElement>('[data-pick]').forEach((x) => {
-          x.disabled = true;
-          if (x.dataset.pick === quiz.dataset.right) x.classList.add('right');
-        });
-        if (!ok) b.classList.add('wrong');
-        why.hidden = false;
-        why.querySelector('.verdict')!.textContent = ok ? 'Right.' : 'Not quite.';
-      });
-    }
   });
+
   // Silent loops play while they're on screen, unless the visitor paused them or asked for less
   // motion, in which case the poster (the loop's last frame) stands in.
   const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -628,10 +602,10 @@ const cards: Card[] = [
         if (attack && !attack.dataset.paused) { attack.currentTime = 0; attack.play().catch(() => {}); }
         return;
       }
-      if (missed.length) { verdict.textContent = `Good so far. ${missed.length === 1 ? 'One more' : 'Two more'} would stop it too.`; return; }
-      reveal('Right. Each of those stops it, and together the attack goes nowhere.');
+      if (missed.length) { verdict.textContent = `Good so far. ${missed.length === 1 ? 'One more' : 'Two more'} would help too.`; return; }
+      reveal(play.dataset.done || 'Right. Each of those helps, and together the attack goes nowhere.');
     });
-    play.querySelector('.show')!.addEventListener('click', () => reveal('Here\'s what stops it, and why the others don\'t.'));
+    play.querySelector('.show')!.addEventListener('click', () => reveal('Here\'s what helps, and why the others don\'t.'));
   }
 
   chips.forEach((chip, i) => chip.addEventListener('click', () => go(i)));
@@ -728,14 +702,6 @@ const cards: Card[] = [
   .pipe { border-color: var(--teal); }
   .pipe h3 { color: var(--teal); }
 
-  .q { font-weight: 600; margin-bottom: 10px !important; }
-  .picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .picks button { text-align: left; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--text); font: 500 0.95rem/1.35 Inter, sans-serif; cursor: pointer; min-height: 48px; }
-  .picks button:hover:not(:disabled) { border-color: var(--teal); }
-  .picks button:disabled { cursor: default; }
-  .picks button.right { border-color: var(--ok); }
-  .picks button.wrong { border-color: var(--pink); }
-  .why { margin-top: 10px !important; }
   .verdict { color: var(--teal); }
 
   .actions { display: none; gap: 10px; margin-top: 18px; }
@@ -755,8 +721,7 @@ const cards: Card[] = [
   @media (max-width: 560px) {
     .jump { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .card { padding: 20px; }
-    .picks { grid-template-columns: 1fr; }
-    .actions { flex-wrap: wrap; }
+      .actions { flex-wrap: wrap; }
     .actions .done { flex-basis: 100%; order: -1; }
   }
   @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }

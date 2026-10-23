@@ -48,4 +48,17 @@ export default {
     ],
     recap: ['Three fixes for', 'lookup stores'],
   },
+  // The guide page's loop shows the fixes its "Your move" counts as right for this attack: access
+  // per person matters for lookup stores, but it doesn't stop a planted application.
+  loop: {
+    replay: {
+      fixes: [
+        { do: 'mark', item: 2, at: 0.55, glyph: 'eyeoff', color: '#4fd1c5' },
+        { do: 'mark', item: 'req', at: 0.5, glyph: 'person', color: '#3ddc97' },
+        { do: 'mark', item: 'req', at: 0.5, dx: 58, glyph: 'doc', color: '#a78bfa' },
+      ],
+      tries: [{ item: 2, stop: 0.42 }],
+      endNote: { item: 2, text: 'cleaned' },
+    },
+  },
 };
