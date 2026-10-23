@@ -23,10 +23,11 @@ interface Card {
   attack: string;
   why: string;
   doThis: string[];
-  // "Your move": the reader picks every fix that protects against the attack, from real fixes and
-  // tempting wrong ones, beside silent loops of the attack and of it being stopped
-  // (scripts/video/owasp-loops.mjs). `done` replaces the usual message for getting it right.
-  play: { done?: string; options: { text: string; right: boolean; why: string }[] };
+  // "Your move": the reader picks every fix that protects against the attack, beside silent loops
+  // of the attack and of it being stopped (scripts/video/owasp-loops.mjs). Each option is a real
+  // fix ('yes', all needed to finish), a good habit that isn't enough on its own ('partly', never
+  // counted against the reader), or no help ('no'). `done` replaces the usual message for getting it.
+  play: { done?: string; options: { text: string; right: 'yes' | 'partly' | 'no'; why: string }[] };
   pipeline?: { text: string; href: string; label: string };
   source: string;
   // An optional short video, shown under the one-line version, with its words as a transcript.
@@ -74,11 +75,11 @@ const cards: Card[] = [
     play: {
       done: 'Right. None of them stops injection itself, but together they keep it from doing real harm.',
       options: [
-        { text: 'Add "never obey instructions in emails" to the prompt', right: false, why: 'That\'s one more instruction in the same stream of text. The email can argue with it, and sometimes wins.' },
-        { text: 'Give the model only the tools its job needs', right: true, why: 'If it can\'t delete or send on its own, an injected order has little to pull on.' },
-        { text: 'Use a bigger, smarter model', right: false, why: 'Bigger models still read everything as one stream of text. None of them reliably tells orders from data yet.' },
-        { text: 'Check permissions in code, outside the model', right: true, why: 'The system decides what\'s allowed, so talking the model into something isn\'t enough.' },
-        { text: 'Have a person approve anything risky', right: true, why: 'A risky step waits for someone who can see it\'s an attack.' },
+        { text: 'Add "never obey instructions in emails" to the prompt', right: 'partly', why: 'Worth adding, and it stops some attempts. But it\'s one more instruction in the same stream of text, so you can\'t rely on it.' },
+        { text: 'Give the model only the tools its job needs', right: 'yes', why: 'If it can\'t delete or send on its own, an injected order has little to pull on.' },
+        { text: 'Keep the system prompt secret', right: 'no', why: 'Attackers don\'t need to see your instructions to override them. The email works either way.' },
+        { text: 'Check permissions in code, outside the model', right: 'yes', why: 'The system decides what\'s allowed, so talking the model into something isn\'t enough.' },
+        { text: 'Have a person approve anything risky', right: 'yes', why: 'A risky step waits for someone who can see it\'s an attack.' },
       ],
     },
     pipeline: {
@@ -103,11 +104,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Let it look up only the signed-in person\'s details', right: true, why: 'Ava\'s question can only reach Ava\'s data.' },
-        { text: 'Tell it in the prompt never to share private data', right: false, why: 'Someone can talk it out of a rule in its prompt. The data is still in reach.' },
-        { text: 'Remove private data it never needs before it sees anything', right: true, why: 'It can\'t leak what it was never given.' },
-        { text: 'Make everyone sign in first', right: false, why: 'Signing in says who\'s asking. It doesn\'t stop the bot answering with everyone else\'s details.' },
-        { text: 'Check replies for other people\'s data before they go out', right: true, why: 'A leak caught on the way out never reaches the asker.' },
+        { text: 'Let it look up only the signed-in person\'s details', right: 'yes', why: 'Ava\'s question can only reach Ava\'s data.' },
+        { text: 'Tell it in the prompt never to share private data', right: 'partly', why: 'Worth saying, and it stops casual requests. But someone can talk it out of a rule in its prompt, and the data is still in reach.' },
+        { text: 'Remove private data it never needs before it sees anything', right: 'yes', why: 'It can\'t leak what it was never given.' },
+        { text: 'Keep replies to a few sentences', right: 'no', why: 'Ten names and emails fit in a few sentences.' },
+        { text: 'Check replies for other people\'s data before they go out', right: 'yes', why: 'A leak caught on the way out never reaches the asker.' },
       ],
     },
     pipeline: {
@@ -132,11 +133,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Only use popular packages', right: false, why: 'Popular packages are the ones attackers hijack, because they reach the most people.' },
-        { text: 'Wait a few days before taking new versions, except security fixes', right: true, why: 'Bad releases tend to get caught fast, so a short wait lets other people find the problem first.' },
-        { text: 'Check the download against its published hash', right: false, why: 'The real maintainer\'s account published the bad version, so its hash matches. Hashes catch a swapped file, not a bad release.' },
-        { text: 'Pin exact versions so nothing updates on its own', right: true, why: 'The new version only comes in when someone chooses to take it.' },
-        { text: 'Don\'t let installs run the package\'s own scripts', right: true, why: 'The hidden code was set to run on install, so it never gets the chance.' },
+        { text: 'Update everything the moment a release comes out', right: 'no', why: 'That\'s how the bad version got in the same day.' },
+        { text: 'Wait a few days before taking new versions, except security fixes', right: 'yes', why: 'Bad releases tend to get caught fast, so a short wait lets other people find the problem first.' },
+        { text: 'Check the download against its published hash', right: 'partly', why: 'Worth doing. It catches files tampered with after release. But this bad version came from the real maintainer, so its hash matches.' },
+        { text: 'Pin exact versions so nothing updates on its own', right: 'yes', why: 'The new version only comes in when someone chooses to take it.' },
+        { text: 'Don\'t let installs run the package\'s own scripts', right: 'yes', why: 'The hidden code was set to run on install, so it never gets the chance.' },
       ],
     },
     pipeline: {
@@ -161,11 +162,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Record who changed what, and when', right: true, why: 'A quiet edit stops being quiet, and it can be traced and rolled back.' },
-        { text: 'Tell agents to ignore rules that look unsafe', right: false, why: 'The edit is written to look reasonable. "Skip slow tests" doesn\'t look unsafe.' },
-        { text: 'Have a person review every change to the doc', right: true, why: 'The edit waits for someone who can see it\'s wrong before any agent reads it.' },
-        { text: 'Give every agent its own copy of the doc', right: false, why: 'Copies of a poisoned doc are still poisoned, and the edit is no easier to spot.' },
-        { text: 'Test against answers you already trust', right: true, why: 'Agents that start skipping tests fail checks they used to pass.' },
+        { text: 'Record who changed what, and when', right: 'yes', why: 'A quiet edit stops being quiet, and it can be traced and rolled back.' },
+        { text: 'Tell agents to ignore rules that look unsafe', right: 'partly', why: 'Worth saying, but the edit is written to look reasonable. "Skip slow tests" doesn\'t look unsafe.' },
+        { text: 'Have a person review every change to the doc', right: 'yes', why: 'The edit waits for someone who can see it\'s wrong before any agent reads it.' },
+        { text: 'Give every agent its own copy of the doc', right: 'no', why: 'Copies of a poisoned doc are still poisoned, and the edit is no easier to spot.' },
+        { text: 'Test against answers you already trust', right: 'yes', why: 'Agents that start skipping tests fail checks they used to pass.' },
       ],
     },
     pipeline: {
@@ -190,11 +191,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Treat the model\'s output like any untrusted input', right: true, why: 'The page stops assuming the reply is safe just because the app produced it.' },
-        { text: 'Tell the model never to write code in its replies', right: false, why: 'A crafted question can talk it into it. The page has to be safe whatever the model writes.' },
-        { text: 'Encode the output for where it lands', right: true, why: 'In a web page, encoded HTML shows as text instead of running as a script.' },
-        { text: 'Only show replies to signed-in users', right: false, why: 'The attacker can sign in too, and the script still runs in the next visitor\'s browser.' },
-        { text: 'Add a content security policy to the page', right: true, why: 'Even if a script slips through, the browser refuses to run it.' },
+        { text: 'Treat the model\'s output like any untrusted input', right: 'yes', why: 'The page stops assuming the reply is safe just because the app produced it.' },
+        { text: 'Tell the model never to write code in its replies', right: 'partly', why: 'Worth saying, and it cuts down on accidents. But a crafted question can talk it into it, so the page has to be safe whatever the model writes.' },
+        { text: 'Encode the output for where it lands', right: 'yes', why: 'In a web page, encoded HTML shows as text instead of running as a script.' },
+        { text: 'Only show replies to signed-in users', right: 'no', why: 'The attacker can sign in too, and the script still runs in the next visitor\'s browser.' },
+        { text: 'Add a content security policy to the page', right: 'yes', why: 'Even if a script slips through, the browser refuses to run it.' },
       ],
     },
     pipeline: {
@@ -219,11 +220,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Tell it in its prompt never to touch settings', right: false, why: 'A prompt is a request. The poisoned issue is a prompt too, and it can win the argument.' },
-        { text: 'Take away the settings tool', right: true, why: 'It can\'t turn off checks it has no way to reach.' },
-        { text: 'Use a smarter model', right: false, why: 'A smarter model still reads the issue as instructions. The problem is the power it holds, not how clever it is.' },
-        { text: 'Check permissions in code before anything merges', right: true, why: 'The system says no whatever the agent believes, so being fooled isn\'t enough.' },
-        { text: 'Have a person approve risky changes', right: true, why: 'The risky step waits for someone who can tell it\'s wrong.' },
+        { text: 'Tell it in its prompt never to touch settings', right: 'partly', why: 'Worth saying, and it stops some attempts. But the poisoned issue is a prompt too, and sometimes it wins the argument.' },
+        { text: 'Take away the settings tool', right: 'yes', why: 'It can\'t turn off checks it has no way to reach.' },
+        { text: 'Use a smarter model', right: 'no', why: 'A smarter model still reads the issue as instructions. The problem is the power it holds, not how clever it is.' },
+        { text: 'Check permissions in code before anything merges', right: 'yes', why: 'The system says no whatever the agent believes, so being fooled isn\'t enough.' },
+        { text: 'Have a person approve risky changes', right: 'yes', why: 'The risky step waits for someone who can tell it\'s wrong.' },
       ],
     },
     pipeline: {
@@ -248,11 +249,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Tell the bot never to repeat its instructions', right: false, why: 'That\'s one more line in the prompt it can be talked into repeating.' },
-        { text: 'Keep secrets out of the prompt', right: true, why: 'Then a leaked prompt gives away nothing worth having.' },
-        { text: 'Hide the code in a longer, more confusing prompt', right: false, why: 'Length doesn\'t hide anything. The bot will repeat all of it.' },
-        { text: 'Enforce the rules in code, outside the model', right: true, why: 'An override that lives in code can\'t be talked out of the model.' },
-        { text: 'Assume anyone can read the prompt', right: true, why: 'Write it as if it were public, and a leak stops being a breach.' },
+        { text: 'Tell the bot never to repeat its instructions', right: 'partly', why: 'Worth saying, and it stops casual attempts. But it can still be talked into it, so what\'s in the prompt has to be safe to leak.' },
+        { text: 'Keep secrets out of the prompt', right: 'yes', why: 'Then a leaked prompt gives away nothing worth having.' },
+        { text: 'Hide the code in a longer, more confusing prompt', right: 'no', why: 'Length doesn\'t hide anything. The bot will repeat all of it.' },
+        { text: 'Enforce the rules in code, outside the model', right: 'yes', why: 'An override that lives in code can\'t be talked out of the model.' },
+        { text: 'Assume anyone can read the prompt', right: 'yes', why: 'Write it as if it were public, and a leak stops being a breach.' },
       ],
     },
     pipeline: {
@@ -277,11 +278,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Clean every document before it\'s indexed', right: true, why: 'Hidden text is stripped out, so the assistant never reads it.' },
-        { text: 'Tell the assistant to be fair to every candidate', right: false, why: 'It reads the hidden text as part of the application. Being fair to it means ranking that person first.' },
-        { text: 'Have a person review the shortlist', right: true, why: 'Someone checks the top picks against the actual applications.' },
-        { text: 'Give each hiring team its own search index', right: false, why: 'Separate indexes stop data leaking between teams. This application is in the right index, with hidden text in it.' },
-        { text: 'Log what each search pulls up', right: true, why: 'An odd result can be traced back to the document that caused it.' },
+        { text: 'Clean every document before it\'s indexed', right: 'yes', why: 'Hidden text is stripped out, so the assistant never reads it.' },
+        { text: 'Tell it to ignore instructions found inside applications', right: 'partly', why: 'Worth saying, and it stops some attempts. But it reads the hidden text as part of the application, so you can\'t rely on it.' },
+        { text: 'Have a person review the shortlist', right: 'yes', why: 'Someone checks the top picks against the actual applications.' },
+        { text: 'Give each hiring team its own search index', right: 'no', why: 'Separate indexes stop data leaking between teams. This application is in the right index, with hidden text in it.' },
+        { text: 'Log what each search pulls up', right: 'yes', why: 'An odd result can be traced back to the document that caused it.' },
       ],
     },
     source: 'https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/',
@@ -301,11 +302,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Ask the assistant whether it\'s sure', right: false, why: 'It can be confidently wrong about being right. Ask for something it can\'t fake, like a link you can check.' },
-        { text: 'Check a package is real and trusted before installing it', right: true, why: 'A made-up name either doesn\'t exist or has no history worth trusting.' },
-        { text: 'Install it in a fresh project to try it out', right: false, why: 'Bad code can run the moment it installs, wherever that is.' },
-        { text: 'Have the assistant cite sources with links', right: true, why: 'A real library has real documentation to point to. A made-up one doesn\'t.' },
-        { text: 'Have a person verify anything important', right: true, why: 'Someone checks before the answer becomes code.' },
+        { text: 'Ask the assistant whether it\'s sure', right: 'partly', why: 'Worth asking, and sometimes it catches its own mistake. But it can be confidently wrong about being right, so check something it can\'t fake, like a link.' },
+        { text: 'Check a package is real and trusted before installing it', right: 'yes', why: 'A made-up name either doesn\'t exist or has no history worth trusting.' },
+        { text: 'Install it in a fresh project to try it out', right: 'no', why: 'Bad code can run the moment it installs, wherever that is.' },
+        { text: 'Have the assistant cite sources with links', right: 'yes', why: 'A real library has real documentation to point to. A made-up one doesn\'t.' },
+        { text: 'Have a person verify anything important', right: 'yes', why: 'Someone checks before the answer becomes code.' },
       ],
     },
     pipeline: {
@@ -330,11 +331,11 @@ const cards: Card[] = [
     ],
     play: {
       options: [
-        { text: 'Cap how many runs can start each day', right: true, why: 'The loop stops at the cap, whatever the agents think.' },
-        { text: 'Tell agents to stop when they\'ve done enough', right: false, why: 'Each agent thinks its follow up job is worth doing. None of them sees the whole loop.' },
-        { text: 'Set time limits so stale work expires', right: true, why: 'Work that sits too long drops out instead of piling up.' },
-        { text: 'Pay for a bigger plan', right: false, why: 'A bigger plan raises the ceiling on the bill. It doesn\'t stop the loop.' },
-        { text: 'Alert on unusual spikes in usage', right: true, why: 'You hear about it in minutes, not when the bill arrives.' },
+        { text: 'Cap how many runs can start each day', right: 'yes', why: 'The loop stops at the cap, whatever the agents think.' },
+        { text: 'Tell agents to stop when they\'ve done enough', right: 'partly', why: 'Worth saying, but each agent thinks its follow up job is worth doing. None of them sees the whole loop.' },
+        { text: 'Set time limits so stale work expires', right: 'yes', why: 'Work that sits too long drops out instead of piling up.' },
+        { text: 'Pay for a bigger plan', right: 'no', why: 'A bigger plan raises the ceiling on the bill. It doesn\'t stop the loop.' },
+        { text: 'Alert on unusual spikes in usage', right: 'yes', why: 'You hear about it in minutes, not when the bill arrives.' },
       ],
     },
     pipeline: {
@@ -407,7 +408,7 @@ const cards: Card[] = [
             <fieldset>
               <legend>Which of these would protect against it? Pick all that work.</legend>
               {c.play.options.map((o, k) => (
-                <label class="opt" data-right={String(o.right)}>
+                <label class="opt" data-right={o.right}>
                   <input type="checkbox" value={k} />
                   <span class="txt">{o.text}</span>
                   <span class="note">{o.why}</span>
@@ -567,21 +568,24 @@ const cards: Card[] = [
     onScreen.observe(v);
   }
 
-  // Your move: pick every fix that would stop the attack. A wrong pick says why and replays the
-  // attack; the right set (or "Show me") reveals every answer and the loop of the attack stopped.
+  // Your move: pick every fix that protects against the attack. A pick that doesn't help says why
+  // and replays the attack; a good habit that isn't enough shows its note but never counts
+  // against the reader; all the real fixes (or "Show me") reveal every answer and the loop of the
+  // attack stopped.
   for (const play of root.querySelectorAll<HTMLElement>('.play')) {
     const opts = [...play.querySelectorAll<HTMLLabelElement>('.opt')];
     const box = (o: HTMLLabelElement) => o.querySelector('input')!;
-    const isRight = (o: HTMLLabelElement) => o.dataset.right === 'true';
+    const isRight = (o: HTMLLabelElement) => o.dataset.right === 'yes';
+    const isPartly = (o: HTMLLabelElement) => o.dataset.right === 'partly';
     const verdict = play.querySelector<HTMLElement>('.verdict')!;
     const result = play.querySelector<HTMLElement>('.result')!;
     const attack = play.closest('.card')!.querySelector<HTMLVideoElement>('.attack video');
     const reveal = (msg: string) => {
       for (const o of opts) {
-        box(o).checked = isRight(o);
+        box(o).checked = isRight(o) || (isPartly(o) && box(o).checked);
         box(o).disabled = true;
         o.classList.remove('wrong');
-        o.classList.add(isRight(o) ? 'right' : 'off', 'told');
+        o.classList.add(isRight(o) ? 'right' : isPartly(o) ? 'partly' : 'off', 'told');
       }
       verdict.textContent = msg;
       play.querySelector<HTMLElement>('.play-actions')!.hidden = true;
@@ -589,20 +593,25 @@ const cards: Card[] = [
       result.scrollIntoView({ block: 'nearest', behavior: still ? 'auto' : 'smooth' });
     };
     play.querySelector('.check')!.addEventListener('click', () => {
-      opts.forEach((o) => o.classList.remove('wrong', 'told'));
+      opts.forEach((o) => o.classList.remove('wrong', 'partly', 'told'));
       const picked = opts.filter((o) => box(o).checked);
-      const wrong = picked.filter((o) => !isRight(o));
+      picked.filter(isPartly).forEach((o) => o.classList.add('partly', 'told'));
+      const wrong = picked.filter((o) => !isRight(o) && !isPartly(o));
       const missed = opts.filter((o) => isRight(o) && !box(o).checked);
       verdict.classList.remove('bad');
       if (!picked.length) { verdict.textContent = 'Pick at least one.'; return; }
       if (wrong.length) {
         wrong.forEach((o) => o.classList.add('wrong', 'told'));
         verdict.classList.add('bad');
-        verdict.textContent = `Not quite. ${wrong.length === 1 ? 'That one wouldn\'t' : 'Those wouldn\'t'} stop it, and the attack still lands.`;
+        verdict.textContent = `Not quite. ${wrong.length === 1 ? 'That one doesn\'t' : 'Those don\'t'} help here, and the attack still lands.`;
         if (attack && !attack.dataset.paused) { attack.currentTime = 0; attack.play().catch(() => {}); }
         return;
       }
-      if (missed.length) { verdict.textContent = `Good so far. ${missed.length === 1 ? 'One more' : 'Two more'} would help too.`; return; }
+      if (missed.length) {
+        const more = ['', 'One more', 'Two more', 'Three more'][missed.length] ?? 'A few more';
+        verdict.textContent = `${picked.some(isRight) ? 'Good so far' : 'That helps'}. ${more} would protect against it too.`;
+        return;
+      }
       reveal(play.dataset.done || 'Right. Each of those helps, and together the attack goes nowhere.');
     });
     play.querySelector('.show')!.addEventListener('click', () => reveal('Here\'s what helps, and why the others don\'t.'));
@@ -676,6 +685,7 @@ const cards: Card[] = [
   .opt.told .note { display: block; }
   .opt.wrong { border-color: var(--pink); }
   .opt.right { border-color: var(--ok); }
+  .opt.partly { border-color: var(--warn); }
   .opt.off { opacity: 0.8; }
   .opt:has(input:disabled) { cursor: default; }
   .play-actions { display: flex; gap: 10px; margin-top: 12px; }
