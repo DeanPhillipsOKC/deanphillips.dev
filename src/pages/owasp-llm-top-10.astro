@@ -23,7 +23,11 @@ interface Card {
   attack: string;
   why: string;
   doThis: string[];
-  quiz: { q: string; a: string; b: string; right: 'a' | 'b'; why: string };
+  quiz?: { q: string; a: string; b: string; right: 'a' | 'b'; why: string };
+  // "Your move": the reader picks every fix that would stop the attack, from real fixes and
+  // tempting wrong ones. The card then shows silent loops of the attack and of it being stopped
+  // (scripts/video/owasp-loops.mjs), and the narrated video moves behind a link.
+  play?: { options: { text: string; right: boolean; why: string }[] };
   pipeline?: { text: string; href: string; label: string };
   source: string;
   // An optional short video, shown under the one-line version, with its words as a transcript.
@@ -203,12 +207,14 @@ const cards: Card[] = [
       'Check authorization in the system the tool talks to, not by asking the model.',
       'Require a person\'s approval for high-impact actions.',
     ],
-    quiz: {
-      q: 'Which design limits the damage most?',
-      a: 'One all-powerful token for every agent',
-      b: 'Separate tokens, each with narrow permissions',
-      right: 'b',
-      why: 'If one is misused, the damage stops at that token\'s reach.',
+    play: {
+      options: [
+        { text: 'Tell it in its prompt never to touch settings', right: false, why: 'A prompt is a request. The poisoned issue is a prompt too, and it can win the argument.' },
+        { text: 'Take away the settings tool', right: true, why: 'It can\'t turn off checks it has no way to reach.' },
+        { text: 'Use a smarter model', right: false, why: 'A smarter model still reads the issue as instructions. The problem is the power it holds, not how clever it is.' },
+        { text: 'Check permissions in code before anything merges', right: true, why: 'The system says no whatever the agent believes, so being fooled isn\'t enough.' },
+        { text: 'Have a person approve risky changes', right: true, why: 'The risky step waits for someone who can tell it\'s wrong.' },
+      ],
     },
     pipeline: {
       text: 'My agents act as separate Builder and Reviewer bots with short-lived tokens, and risky changes wait for my approval.',
@@ -362,7 +368,7 @@ const cards: Card[] = [
           <h2 id={`${c.id}-h`}><svg class="ico" viewBox="0 0 64 64" aria-hidden="true"><path d={ICONS[c.id]} /></svg>{c.name}</h2>
           <p class="line">{c.line}</p>
 
-          {c.video && (
+          {c.video && !c.play && (
             <figure class="clip">
               <video controls playsinline preload="metadata" poster={c.video.poster} aria-label={c.video.label}>
                 <source src={c.video.src} type="video/mp4" />
@@ -376,6 +382,14 @@ const cards: Card[] = [
 
           <section class="part attack">
             <h3>How it goes wrong</h3>
+            {c.play && (
+              <figure class="loop">
+                <video class="anim" muted loop playsinline preload="metadata" poster={`/img/owasp-${c.id.toLowerCase()}-attack.jpg`} aria-label={`An animation of the attack: ${c.attack}`}>
+                  <source src={`/video/owasp-${c.id.toLowerCase()}-attack.mp4`} type="video/mp4" />
+                </video>
+                <button type="button" class="pause">Pause</button>
+              </figure>
+            )}
             <p>{c.attack}</p>
           </section>
 
@@ -384,26 +398,70 @@ const cards: Card[] = [
             <p>{c.why}</p>
           </section>
 
+          {c.play && (
+            <section class="part play">
+              <h3>Your move</h3>
+              <fieldset>
+                <legend>Which of these would stop it? Pick all that work.</legend>
+                {c.play.options.map((o, k) => (
+                  <label class="opt" data-right={String(o.right)}>
+                    <input type="checkbox" value={k} />
+                    <span class="txt">{o.text}</span>
+                    <span class="note">{o.why}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <div class="play-actions">
+                <button type="button" class="check">Check</button>
+                <button type="button" class="show">Show me</button>
+              </div>
+              <p class="verdict" aria-live="polite"></p>
+              <figure class="loop result" hidden>
+                <video class="anim" muted loop playsinline preload="none" poster={`/img/owasp-${c.id.toLowerCase()}-fixed.jpg`} aria-label="An animation of the same attack with the fixes in place, stopped">
+                  <source src={`/video/owasp-${c.id.toLowerCase()}-fixed.mp4`} type="video/mp4" />
+                </video>
+                <button type="button" class="pause">Pause</button>
+              </figure>
+            </section>
+          )}
+
           <section class="part">
             <h3>What to do</h3>
             <ul>{c.doThis.map((d) => <li>{d}</li>)}</ul>
           </section>
 
-          <section class="part quiz" data-right={c.quiz.right}>
-            <h3>Quick check</h3>
-            <p class="q">{c.quiz.q}</p>
-            <div class="picks">
-              <button type="button" data-pick="a">{c.quiz.a}</button>
-              <button type="button" data-pick="b">{c.quiz.b}</button>
-            </div>
-            <p class="why"><b class="verdict"></b> {c.quiz.why}</p>
-          </section>
+          {c.quiz && (
+            <section class="part quiz" data-right={c.quiz.right}>
+              <h3>Quick check</h3>
+              <p class="q">{c.quiz.q}</p>
+              <div class="picks">
+                <button type="button" data-pick="a">{c.quiz.a}</button>
+                <button type="button" data-pick="b">{c.quiz.b}</button>
+              </div>
+              <p class="why"><b class="verdict"></b> {c.quiz.why}</p>
+            </section>
+          )}
 
           {c.pipeline && (
             <section class="part pipe">
               <h3>How my pipeline handles it</h3>
               <p>{c.pipeline.text} <a href={c.pipeline.href}>{c.pipeline.label}</a></p>
             </section>
+          )}
+
+          {c.video && c.play && (
+            <details class="narrated">
+              <summary>Watch the narrated version ({c.video.label.match(/(\d+) seconds/)?.[1]} seconds)</summary>
+              <figure class="clip">
+                <video controls playsinline preload="none" poster={c.video.poster} aria-label={c.video.label}>
+                  <source src={c.video.src} type="video/mp4" />
+                </video>
+                <details>
+                  <summary>Read the transcript</summary>
+                  <p>{c.video.transcript.join(' ')}</p>
+                </details>
+              </figure>
+            </details>
           )}
 
           <div class="actions">
@@ -493,7 +551,8 @@ const cards: Card[] = [
       save();
       render();
     });
-    const quiz = card.querySelector<HTMLElement>('.quiz')!;
+    const quiz = card.querySelector<HTMLElement>('.quiz');
+    if (!quiz) return;
     const why = quiz.querySelector<HTMLElement>('.why')!;
     why.hidden = true;
     why.querySelector('.verdict')!.textContent = '';
@@ -510,6 +569,71 @@ const cards: Card[] = [
       });
     }
   });
+  // Silent loops play while they're on screen, unless the visitor paused them or asked for less
+  // motion, in which case the poster (the loop's last frame) stands in.
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const onScreen = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const v = e.target as HTMLVideoElement;
+      if (e.isIntersecting && !v.dataset.paused) v.play().catch(() => {});
+      else v.pause();
+    }
+  }, { threshold: 0.3 });
+  for (const fig of root.querySelectorAll<HTMLElement>('.loop')) {
+    const v = fig.querySelector('video')!;
+    const b = fig.querySelector<HTMLButtonElement>('.pause')!;
+    const label = () => { b.textContent = v.paused ? 'Play animation' : 'Pause animation'; };
+    if (still) v.dataset.paused = '1';
+    v.addEventListener('play', label);
+    v.addEventListener('pause', label);
+    label();
+    b.addEventListener('click', () => {
+      if (v.paused) { delete v.dataset.paused; v.play().catch(() => {}); } else { v.dataset.paused = '1'; v.pause(); }
+    });
+    onScreen.observe(v);
+  }
+
+  // Your move: pick every fix that would stop the attack. A wrong pick says why and replays the
+  // attack; the right set (or "Show me") reveals every answer and the loop of the attack stopped.
+  for (const play of root.querySelectorAll<HTMLElement>('.play')) {
+    const opts = [...play.querySelectorAll<HTMLLabelElement>('.opt')];
+    const box = (o: HTMLLabelElement) => o.querySelector('input')!;
+    const isRight = (o: HTMLLabelElement) => o.dataset.right === 'true';
+    const verdict = play.querySelector<HTMLElement>('.verdict')!;
+    const result = play.querySelector<HTMLElement>('.result')!;
+    const attack = play.closest('.card')!.querySelector<HTMLVideoElement>('.attack video');
+    const reveal = (msg: string) => {
+      for (const o of opts) {
+        box(o).checked = isRight(o);
+        box(o).disabled = true;
+        o.classList.remove('wrong');
+        o.classList.add(isRight(o) ? 'right' : 'off', 'told');
+      }
+      verdict.textContent = msg;
+      play.querySelector<HTMLElement>('.play-actions')!.hidden = true;
+      result.hidden = false;
+      result.scrollIntoView({ block: 'nearest', behavior: still ? 'auto' : 'smooth' });
+    };
+    play.querySelector('.check')!.addEventListener('click', () => {
+      opts.forEach((o) => o.classList.remove('wrong', 'told'));
+      const picked = opts.filter((o) => box(o).checked);
+      const wrong = picked.filter((o) => !isRight(o));
+      const missed = opts.filter((o) => isRight(o) && !box(o).checked);
+      verdict.classList.remove('bad');
+      if (!picked.length) { verdict.textContent = 'Pick at least one.'; return; }
+      if (wrong.length) {
+        wrong.forEach((o) => o.classList.add('wrong', 'told'));
+        verdict.classList.add('bad');
+        verdict.textContent = `Not quite. ${wrong.length === 1 ? 'That one wouldn\'t' : 'Those wouldn\'t'} stop it, and the attack still lands.`;
+        if (attack && !attack.dataset.paused) { attack.currentTime = 0; attack.play().catch(() => {}); }
+        return;
+      }
+      if (missed.length) { verdict.textContent = `Good so far. ${missed.length === 1 ? 'One more' : 'Two more'} would stop it too.`; return; }
+      reveal('Right. Each of those stops it, and together the attack goes nowhere.');
+    });
+    play.querySelector('.show')!.addEventListener('click', () => reveal('Here\'s what stops it, and why the others don\'t.'));
+  }
+
   chips.forEach((chip, i) => chip.addEventListener('click', () => go(i)));
   showAll.addEventListener('change', () => { state.all = showAll.checked; save(); render(); });
   reset.addEventListener('click', () => { state = { done: [], current: 0, all: state.all }; save(); render(true); });
@@ -567,6 +691,29 @@ const cards: Card[] = [
   .card h2 .ico { width: 30px; height: 30px; stroke-width: 3.8; margin-top: 0.1em; }
   .card h2:focus { outline: none; }
   .line { font-size: 1.12rem; margin: 0 0 18px; }
+  .loop { margin: 0 0 12px; }
+  .loop video { display: block; width: min(340px, 100%); aspect-ratio: 540 / 652; margin: 0 auto; border-radius: 14px; border: 1px solid var(--line); background: #0e1116; }
+  .loop .pause { display: block; margin: 4px auto 0; padding: 8px 12px; background: none; border: none; color: var(--muted); text-decoration: underline; font: inherit; font-size: 0.85rem; cursor: pointer; }
+  .play fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; min-width: 0; }
+  .play legend { font-weight: 600; padding: 0; margin-bottom: 10px; }
+  .opt { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: start; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; }
+  .opt input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--teal); }
+  .opt .note { grid-column: 2; display: none; color: var(--muted); font-size: 0.92rem; }
+  .opt.told .note { display: block; }
+  .opt.wrong { border-color: var(--pink); }
+  .opt.right { border-color: var(--ok); }
+  .opt.off { opacity: 0.8; }
+  .opt:has(input:disabled) { cursor: default; }
+  .play-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .play-actions button { padding: 12px 16px; border-radius: 12px; min-height: 48px; font: 600 0.95rem/1 Inter, sans-serif; cursor: pointer; }
+  .play-actions .check { flex: 1; background: var(--grad); color: #0b1016; border: none; }
+  .play-actions .show { background: var(--card); color: var(--text); border: 1px solid var(--line); }
+  .play .verdict { margin-top: 12px !important; font-weight: 600; }
+  .play .verdict:empty { display: none; }
+  .play .verdict.bad { color: var(--pink); }
+  .play .result { margin-top: 12px; }
+  .narrated { margin: 0 0 14px; }
+  .narrated > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
   .clip { margin: 0 0 16px; }
   .clip video { display: block; width: min(320px, 100%); aspect-ratio: 9 / 16; margin: 0 auto; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-2); }
   .clip details { margin-top: 8px; color: var(--muted); font-size: 0.92rem; }

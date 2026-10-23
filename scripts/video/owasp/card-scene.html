@@ -11,6 +11,8 @@
   fix line, followed by a line where the same request runs again and gets stopped. The last line
   is either config.outro (a pointer to the card below the video) or, when config.recap is set, the
   fix tiles again as a summary, so the video makes sense shared on its own.
+  config.silent draws only the diagram (no captions, title cards, or recap) for the short silent
+  loops on the guide page, which owasp-loops.mjs renders on their own made-up timelines.
 -->
 <html>
 <head>
@@ -106,6 +108,7 @@
   // back for the fixes with the attack undone, and dims again for the closing line.
   const sceneOpacity = (t) => {
     const T = at(B.turn)
+    if (C.silent) return S.A.setAttribute('opacity', 1)
     if (!C.replay) return S.A.setAttribute('opacity', 1 - ease(prog(t, T - 0.1, T + 0.5)))
     S.A.setAttribute('opacity', (1 - 0.88 * ease(prog(t, T - 0.1, T + 0.5)) + 0.88 * ease(prog(t, at(B.fixes[0]) - 0.5, at(B.fixes[0]))))
       * (1 - (C.recap ? 0.97 : 0.88) * ease(prog(t, at(B.outro) - 0.1, at(B.outro) + 0.5))))
@@ -485,6 +488,7 @@
 
   window.draw = (t) => {
     if (C.layout === 'access') drawAccess(t); else drawLoop(t)
+    if (C.silent) { S.B.setAttribute('opacity', 0); S.C.setAttribute('opacity', 0); return }
     drawFixes(t)
     let cap = ''
     for (const l of TL.lines) if (t >= l.s - 0.05 && t <= l.e + 0.2) cap = l.caption
