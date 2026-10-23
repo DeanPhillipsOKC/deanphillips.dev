@@ -10,11 +10,11 @@ export default {
     [0.45, '[curious] An agent installs it the same day.'],
     [0.3, 'The install script runs, and the keys are gone.'],
     [0.7, "[calm] Trusting popular packages won't fix that. Popular packages get hijacked too."],
-    [0.35, 'So wait a few days before taking an update.'],
-    [0.3, 'Check it against its published hashes.'],
+    [0.35, 'So wait a few days before taking an update, unless it fixes a security hole.'],
+    [0.3, 'Pin exact versions, so nothing updates on its own.'],
     [0.3, 'And never let installs run their own scripts.'],
     [0.5, 'Now the bad update never gets in.'],
-    [0.6, '[warm] So, wait a few days, check the hashes, and skip install scripts.'],
+    [0.6, '[warm] So, wait a few days, pin your versions, and skip install scripts.'],
   ],
   config: {
     layout: 'access',
@@ -35,7 +35,7 @@ export default {
     replay: {
       fixes: [
         { do: 'mark', item: 'req', at: 0.5, glyph: 'clock', color: '#a78bfa' },
-        { do: 'mark', item: 'req', at: 0.5, dx: 58, glyph: 'shield', color: '#4fd1c5' },
+        { do: 'mark', item: 'req', at: 0.5, dx: 58, glyph: 'lock', color: '#4fd1c5' },
         { do: 'cut', item: 1, at: 0.7, note: 'not allowed' },
       ],
       tries: [{ item: 'req', stop: 0.18 }],
@@ -43,7 +43,7 @@ export default {
     },
     fixes: [
       { glyph: 'clock', color: '#a78bfa', label: 'Wait a few days', sub: 'Let others find it first' },
-      { glyph: 'shield', color: '#4fd1c5', label: 'Check the hashes', sub: 'Is it what was published?' },
+      { glyph: 'lock', color: '#4fd1c5', label: 'Pin exact versions', sub: 'Nothing updates on its own' },
       { glyph: 'code', color: '#3ddc97', label: 'No install scripts', sub: 'Nothing runs on install' },
     ],
     recap: ['Three fixes for', 'the supply chain'],
