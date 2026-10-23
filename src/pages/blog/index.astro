@@ -24,6 +24,16 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'nu
       <h1>Building with <span class="grad-text">AI</span></h1>
       <p>Notes from shipping real software with AI agents: the workflows, the automation, and what broke along the way. <a href="/rss.xml">RSS feed</a>.</p>
     </div>
+    <div class="entry">
+      <a class="post has-cover" href="/owasp-llm-top-10/">
+        <img class="thumb" src="/img/owasp-guide-thumb.jpg" alt="" width="472" height="354" loading="lazy" />
+        <div>
+          <time>Interactive guide &middot; 10 cards</time>
+          <h2>Ten ways to break an AI app, and how to stop each one</h2>
+          <p>The OWASP Top 10 for LLM apps in ten short cards. Watch each attack, then pick the fixes that stop it.</p>
+        </div>
+      </a>
+    </div>
     {posts.map((p) => {
       const parts = partsOf(p.data.series);
       return (
