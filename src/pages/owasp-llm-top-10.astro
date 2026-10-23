@@ -13,8 +13,8 @@ import llm10 from '../../scripts/video/owasp/llm10.mjs';
 import seconds from '../../scripts/video/owasp/durations.json';
 
 // A click-through guide to the OWASP Top 10 for LLM Applications (2025 list). The wording is
-// my own summary, shaped as ten short cards with the same parts each. Unlisted for now:
-// noindex, no nav link, and a share link only when the owner decides.
+// my own summary, shaped as ten short cards with the same parts each. Linked from the Writing
+// page and the threat model post.
 interface Card {
   id: string;
   short: string;
@@ -351,7 +351,7 @@ const cards: Card[] = [
 <Base
   title="Ten ways to break an AI app, and how to stop each one | Dean Phillips"
   description="A click-through guide to the OWASP Top 10 for LLM Applications: ten short cards, each with an example, a short animation, and a chance to pick the fix yourself."
-  noindex
+  ogImage="/img/og/owasp-guide.jpg"
 >
   <div class="guide" id="guide" data-count={cards.length}>
     <header class="intro">

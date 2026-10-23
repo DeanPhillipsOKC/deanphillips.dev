@@ -13,7 +13,8 @@ const draftPaths = new Set(
 );
 
 // Pages that are built but not announced yet: noindex in the page, and out of the sitemap.
-const unlistedPages = new Set(['/owasp-llm-top-10/']);
+// Empty for now; the OWASP guide was the first, until it was published on October 23, 2026.
+const unlistedPages = new Set([]);
 
 export default defineConfig({
   site: 'https://deanphillips.dev',
