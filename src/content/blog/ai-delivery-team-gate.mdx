@@ -3,7 +3,7 @@ title: "No human code review: why I trust tests instead"
 tabTitle: Tests Instead of Code Review
 partTitle: Tests instead of code review
 description: Why AI agents merge their own changes after a full end-to-end gate, why a person still tests every release on a real phone, and how manual Android checks get batched instead of piling up.
-dek: My AI agents merge their own pull requests. Nobody reads the diff. Here's why that's a deliberate choice, and where a person still stands between the code and the people using it.
+dek: For their first month, my AI agents merged their own pull requests and nobody read the diff. Here's why that was a deliberate choice, and where a person still stands between the code and the people using it.
 date: 2026-10-12
 readMinutes: 4
 image: /img/og/ai-delivery-team.jpg
@@ -14,6 +14,8 @@ import Steps from '../../components/blog/Steps.astro';
 import Callout from '../../components/blog/Callout.astro';
 
 This is part 2 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part covers what happens after an agent writes a change: how it gets checked, merged, and finally released.
+
+*Updated October 25, 2026: since October 21 a review agent reads every pull request before it merges, and changes to the agents' own rules also need my approval. The full gate below still runs first. The [governance series](/blog/ai-governance/) explains what changed and why.*
 
 ## The gate is the code review
 

@@ -64,6 +64,8 @@ If it can't match a complaint to one change with confidence, it asks on the issu
 
 The pipeline went from my idea to its first real review in under a day. That review was on October 16, for version 1.4.0, and it's where most of the lessons below came from.
 
+The next one, for version 1.5.0 on October 21, was the first where I didn't like something. The guided first workout fell flat when you added an exercise: if what you wanted wasn't in the list, you had to read past dimmed controls to make a new one. I said so in a comment. I asked for a change first, and the change shipped that afternoon. That evening I decided I still didn't like it and wrote "pull it." The agent filed a revert issue, a build agent merged the revert overnight, and the setup wizard and the new rating and share rows stayed.
+
 <Callout title="The tests are for the agents. The demo is for me.">A minute of video is the fastest way I've found to catch "it works, but it's not what I meant." No test suite catches that kind of bug.</Callout>
 
 ## What broke
