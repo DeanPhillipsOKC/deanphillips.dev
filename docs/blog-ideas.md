@@ -6,9 +6,11 @@ has results).
 
 ## Waiting for material
 
-- **From self-merged to governed, with a threat model** (RepBunny #689, tracking #688): likely
-  new `ai-delivery-team` parts. Waits on RepBunny #681, #683, and #684. Drafted with the owner;
-  the issue has the shape and the rules for publishing a threat model safely.
+- **What governance cost in Actions minutes** (RepBunny #804, #818, #687): once CI and the bot
+  workflows went live, usage ran about 250 minutes a day, and the owner switched the dispatchers off
+  on 2026-10-22. Lanes now start by hand for one named issue. Write it once the owner has a
+  long-term minutes plan and the lanes are back (or the pause becomes the plan). Never mention plan
+  names or prices.
 
 ## Drafted
 
@@ -17,4 +19,8 @@ has results).
 - **Sprint review videos** (RepBunny #605, #606, #607, #663, #664, #668): `ai-delivery-team-sprint-review`,
   part 6. Drafted 2026-10-19 with the owner, before a review with a "change" or "pull" existed;
   it embeds a sample cut in Jessica's voice (`public/video/sprint-review-sample.mp4`). Freshness:
-  once a review sends a change back, add it to the reply section.
+  once a review sends a change back, add it to the reply section (done in Freshness PR #31,
+  the v1.5.0 review that pulled the guided first workout).
+- **From self-merged to governed, with a threat model** (RepBunny #689, tracking #688): became the
+  `ai-governance` series (`ai-governance`, `ai-governance-threat-model`, `ai-governance-hole`),
+  written with the owner and published 2026-10-22.
