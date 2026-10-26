@@ -12,6 +12,12 @@ anywhere (a Gmail draft, a GitHub comment, a store listing, a post).
 If the project has a voice or brand doc (for RepBunny, `docs/brand-identity.md`), follow it too.
 Where they conflict, the project's doc wins on tone and this file wins on AI tells.
 
+When the text is in Dean's own name (a blog post, a LinkedIn or Facebook draft, a reply or comment),
+also follow `dean-voice.md` in this folder: his rhythm, punctuation, word choice, and how his jokes
+work, from his own writing before AI tools. Where it allows something this file discourages (an
+occasional ":)" in a casual Facebook reply to a friend, or a second exclamation point in a birthday
+message), it wins, because it describes how he actually writes. It never relaxes the dash rule.
+
 ## The rules that matter most
 
 1. **No em dashes (—), ever.** Not in pairs, not for asides, not for emphasis. Use a period, a

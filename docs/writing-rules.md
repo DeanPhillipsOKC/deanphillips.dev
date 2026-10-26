@@ -8,6 +8,9 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
 - Dean writes in the first person: plain, specific, a little dry. Contractions are fine. Hype isn't.
 - Run the `humanizer` skill (`.claude/skills/humanizer/SKILL.md`) on every piece of text before it
   goes anywhere. **No em dashes or en dashes, ever.**
+- For Dean's own rhythm, punctuation, and humor, follow `.claude/skills/humanizer/dean-voice.md`.
+  Short sentences, parentheses for asides, few colons, a deadpan last line. Never swear, and no
+  politics.
 - Don't apologize for the work, and don't open with nerves. State what happened and let it stand.
 - Every number and claim has to be checked against the RepBunny repo or its GitHub issues. Don't
   write anything you can't point to.
