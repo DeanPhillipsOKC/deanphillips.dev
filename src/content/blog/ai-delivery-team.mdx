@@ -4,7 +4,7 @@ titleAccent: "Here's the AI team that does it."
 tabTitle: My AI Delivery Team
 partTitle: The AI team that ships my app
 description: How RepBunny's backlog, tests, releases, and monthly reviews run on AI agents, GitHub Issues, and a handful of labels. The overview of a six-part series.
-dek: RepBunny went from first commit to 251 closed issues in 21 days. I have a full-time job, so most of that work happened while I was somewhere else. This is an experiment in how far that can go, run on an app that keeps all its data on the user's phone.
+dek: RepBunny went from first commit to 534 closed issues in 34 days. I have a full-time job, so most of that work happened while I was somewhere else. This is an experiment in how far that can go, run on an app that keeps all its data on the user's phone.
 date: 2026-10-10
 readMinutes: 4
 image: /img/og/ai-delivery-team.jpg
@@ -17,11 +17,13 @@ import Flow from '../../components/blog/Flow.astro';
 import Callout from '../../components/blog/Callout.astro';
 
 <StatRow stats={[
-  { value: '21', label: 'days since the first commit' },
-  { value: '595', label: 'commits to main' },
-  { value: '251', label: 'GitHub issues closed' },
-  { value: '677', label: 'end-to-end tests run before every merge' },
+  { value: '34', label: 'days since the first commit' },
+  { value: '876', label: 'commits to main' },
+  { value: '534', label: 'GitHub issues closed' },
+  { value: '1,005', label: 'end-to-end tests run before every merge' },
 ]} />
+
+*Updated October 25, 2026: new numbers, and two changes. Since October 21 a review agent reads every pull request, and the riskiest ones wait for my approval in GitHub. The [governance series](/blog/ai-governance/) covers that. And since October 22 the dispatcher is switched off to stay inside the GitHub Actions minutes my plan includes, so for now I start an agent by hand for one named issue.*
 
 *Updated October 12, 2026: this started as one long post. It's now this overview plus four shorter parts, with what's changed since: support email that runs without me at the laptop, batched manual testing, and the agent that audits the process itself.*
 
@@ -40,8 +42,8 @@ None of that is one giant prompt. It's about ten small skills, a dozen GitHub Ac
     { who: 'ai', title: 'Refine', text: 'An agent checks it against the code and rewrites it as a spec with effort and value scores.' },
     { who: 'auto', title: 'Dispatch', text: "A plain script sees work in a lane and starts that lane's agent." },
     { who: 'ai', title: 'Build', text: 'The agent claims the top issue by ROI and writes the change.' },
-    { who: 'auto', title: 'Gate', text: 'Full build plus 677 end-to-end tests. Red means fix or stop.' },
-    { who: 'ai', title: 'Merge', text: 'Green means the agent merges its own PR and closes the issue.' },
+    { who: 'auto', title: 'Gate', text: 'Full build plus 1,005 end-to-end tests. Red means fix or stop.' },
+    { who: 'ai', title: 'Merge', text: 'Green, plus a pass from a review agent, merges the PR and closes the issue. Changes to the agents\' own rules wait for my approval.' },
     { who: 'auto', title: 'Tell me', text: 'A "shipped" email lands with what changed and how it was tested.' },
     { who: 'me', title: 'Release', text: 'I cut a release candidate and smoke test it on a real phone before it goes public.' },
   ]}
