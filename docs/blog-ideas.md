@@ -14,6 +14,10 @@ has results).
 
 ## Drafted
 
+- **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
+  2026-11-01 by the routine. The review agent caught the lost-phone overwrite on PR #870, then the
+  copy went on by default the same morning. Publish PR #35. Once it's live, the overview's
+  description should say "seven-part" (left out of #35 to avoid a conflict with Freshness #33).
 - **The adversarial review agent** (RepBunny #374): `ai-delivery-team-review`, part 5. Drafted
   2026-10-18, Publish PR #5.
 - **Sprint review videos** (RepBunny #605, #606, #607, #663, #664, #668): `ai-delivery-team-sprint-review`,
