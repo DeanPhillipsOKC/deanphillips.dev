@@ -1,0 +1,86 @@
+---
+title: "Your workouts live only on your phone. So what happens when you lose it?"
+tabTitle: The Backup
+partTitle: Backups with no servers
+description: How RepBunny got an automatic backup without any servers, the data-loss bug the review agent caught an hour before it could ship, and why the backup is now on by default.
+dek: RepBunny keeps every workout on the phone and nowhere else. That's the privacy promise. It also means a lost phone loses everything, unless the app keeps a copy somewhere the person controls. One morning took that from a design to a shipped default, with one close call in the middle.
+date: 2026-11-01
+readMinutes: 5
+image: /img/og/ai-delivery-team.jpg
+series: ai-delivery-team
+part: 7
+draft: true
+---
+import Steps from '../../components/blog/Steps.astro';
+import ChatThread from '../../components/blog/ChatThread.astro';
+
+This is part 7 of a series about the AI agents that build RepBunny, a strength training app I work on around a full-time job. The [overview](/blog/ai-delivery-team/) covers the whole setup. This part is about one feature, and the reviewer earning its keep on it.
+
+## The catch in the privacy promise
+
+RepBunny has no accounts and no servers holding anyone's data. Your workouts stay on the phone you logged them on. That's what makes it safe to let AI agents do most of the typing.
+
+It has a cost, though. If we never have your data, we can't give it back. Lose the phone, reset it, or delete the app, and months of workouts are gone. The app already had a manual Back up button. A button you have to remember to tap isn't much of a backup.
+
+So on October 13 I decided the app should keep a copy for you, in a folder you control, like your own iCloud Drive. The file goes to your folder, never to us. On October 23 I added two asks, after I couldn't find where my own backups went. Say plainly which folder the copy is in, and make restoring it easy.
+
+On the morning of October 27 I moved it ahead of everything else. Losing someone's history is the worst thing this app can do, so it ships before launch.
+
+## An hour from merge to the bug that mattered
+
+I built the first version with an agent in a session on my laptop. After every finished workout, the app saves a copy to the folder you picked, plus a dated copy once a week, keeping the newest four. The full end-to-end suite didn't finish on the laptop (it ran out of memory), so I handed the branch to a lane to run the gate and open the pull request.
+
+The change touched native code on both phones and the file where my product decisions live, so it was in the highest risk tier. That means the [review agent](/blog/ai-delivery-team-review/) reads it, and then it waits for my approval. The review took three minutes. It found no blockers and three should-fix items. The first one was the one that mattered.
+
+<ChatThread
+  title="PR #870: Save an automatic copy after every workout"
+  subtitle="GitHub, on my phone, October 27"
+  caption="Based on the real pull request and issue, shortened. Times are Central. The gray pills happen with no AI involved."
+  messages={[
+    { from: 'event', text: 'Gate green at <b>10:27 AM</b>. Highest risk tier, so it goes to review and then to me' },
+    { from: 'bot', name: 'Reviewer (Opus)', time: '10:32 AM', text: '<b>Should-fix:</b> picking a folder that already holds a copy overwrites it with whatever is on this phone. That\'s the lost-phone case the feature is for. Someone sets up a new phone, logs one workout, and picks their old iCloud folder. The file with their whole history becomes a one-workout file.' },
+    { from: 'event', text: 'Three follow-up issues filed. <b>#871</b> is the overwrite' },
+    { from: 'bot', name: 'GitHub workflow', time: '10:32 AM', text: 'PR #870 passed review. #871 is a data-loss path in the lost-phone case. You may want it fixed before launch. Approve it in GitHub?' },
+    { from: 'event', text: 'I approve at <b>10:39 AM</b>. It merges' },
+    { from: 'me', time: '10:47 AM', text: 'Fix #871 before launch. If a copy is already in the folder, never overwrite it. Keep it under a new name first, and tell the person. No extra choice for them.' },
+    { from: 'event', text: 'Fix merged at <b>11:55 AM</b>, with a test that failed before it' },
+  ]}
+/>
+
+I approved it with the bug in it. No release had the change yet, and the bug had its own issue to fix before launch.
+
+The fix is small. The first save to a newly picked folder checks for an existing copy. If one is there, it's kept as "RepBunny backup kept" plus the date, and the weekly cleanup never touches that name. The test seeds a folder with three workouts, picks it on a phone with one, and checks the three-workout copy is still there.
+
+None of this showed up in a passing test, because nobody had written that test yet. The reviewer found it by reading the diff and asking who the feature was for.
+
+## Then I changed my mind
+
+About ten minutes after approving it, I filed a new issue that undid part of it. The first version asked on the screen after your first workout, "Want to keep a copy?" Someone leaving the gym is going to tap Not now. A backup that depends on a decision is one most people won't have.
+
+So the copy is now on by default, in a folder the app picks.
+
+<Steps
+  caption="Where the copy goes now, with no question asked."
+  steps={[
+    { title: 'iPhone', text: 'Your own iCloud Drive, in a RepBunny folder you can see in the Files app. If iCloud Drive is off, it stays in the app\'s own storage.' },
+    { title: 'Android', text: 'A RepBunny folder in Documents, which survives deleting the app. Google\'s own backup covers the app\'s data if it\'s on.' },
+    { title: 'Setup', text: 'One information screen, "Your workouts, kept safe." Turning the copy off is possible, behind an honest warning.' },
+    { title: 'Restore', text: 'A list of your copies inside the app, with dates and workout counts. On a new iPhone, the welcome screen offers the latest one.' },
+  ]}
+/>
+
+One part of that only I could do. iCloud storage for the app has to be switched on in Apple's developer portal, and that's my account, not an agent's. It went on my list as a task, I did it in about seven minutes, and the build could go ahead. That version merged at 1:14 PM.
+
+The other two should-fix items were folded into it. One was my October 23 ask about naming the folder, which the first version had missed. The other was the privacy policy, which now describes the copy.
+
+From "this ships before launch" to on by default took about three and a half hours on a Tuesday. The checks only a real phone can do (saving to iCloud, restoring on a fresh install) are queued for my next test batch, like every other native change.
+
+## What broke
+
+- **The laptop couldn't run the gate.** It ran out of memory. The rule for that is a hand-off to a lane, not a skipped gate.
+- **The reviewer couldn't merge, again.** It passed the fix for #871 with no findings, then its own session refused the merge call. That's the same safety check that tripped it in [part 5](/blog/ai-delivery-team-review/). This time it said so on the issue right away, and I merged it by hand about 20 minutes later.
+- **The first version missed my own ask.** The October 23 comment about naming the folder was on the issue the whole time. The reviewer caught it. The session that built it didn't.
+
+Turns out the best backup button is the one you never see.
+
+<p class="end">RepBunny is in a small private pilot and coming to iPhone and Android. You can read about it at <a href="https://repbunny.app">repbunny.app</a>. Questions about any of this? Email me at <a href="mailto:me@deanphillips.dev">me@deanphillips.dev</a>.</p>
