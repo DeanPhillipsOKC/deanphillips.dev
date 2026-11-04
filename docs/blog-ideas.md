@@ -6,6 +6,12 @@ has results).
 
 ## Waiting for material
 
+- **Going public** (RepBunny #937, #946, #947): why RepBunny's code went public under PolyForm
+  Shield with the backlog kept private, the obstacles on the way (Actions minutes on a private
+  repo, retiring the PWA, prompt-injection risk from outside issues, what can't be published), and
+  the open source pieces it gives back (#948, #949, #950). The owner's pick for the next big story
+  (2026-11-04). Write it after the cutover (#946) ships. It can absorb the parked minutes draft below.
+
 ## Drafted
 
 - **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
@@ -23,5 +29,7 @@ has results).
   `ai-governance` series (`ai-governance`, `ai-governance-threat-model`, `ai-governance-hole`),
   written with the owner and published 2026-10-22.
 - **What governance cost in Actions minutes** (RepBunny #904, #905): `ai-governance-bill`, part 3
-  of the governance series. Drafted 2026-11-04 with the owner. Freshness: after a full month under
+  of the governance series. Drafted 2026-11-04 with the owner, then **parked by the owner the same
+  day** (Publish PR #39 closed): the going-public story is the better frame. Stays an unlisted draft;
+  reuse its material there. Freshness: after a full month under
   the guard, update "Two days in" with the month's total and whether the cap of 10 changed.
