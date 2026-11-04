@@ -6,12 +6,6 @@ has results).
 
 ## Waiting for material
 
-- **What governance cost in Actions minutes** (RepBunny #804, #818, #687): once CI and the bot
-  workflows went live, usage ran about 250 minutes a day, and the owner switched the dispatchers off
-  on 2026-10-22. Lanes now start by hand for one named issue. Write it once the owner has a
-  long-term minutes plan and the lanes are back (or the pause becomes the plan). Never mention plan
-  names or prices.
-
 ## Drafted
 
 - **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
@@ -28,3 +22,6 @@ has results).
 - **From self-merged to governed, with a threat model** (RepBunny #689, tracking #688): became the
   `ai-governance` series (`ai-governance`, `ai-governance-threat-model`, `ai-governance-hole`),
   written with the owner and published 2026-10-22.
+- **What governance cost in Actions minutes** (RepBunny #904, #905): `ai-governance-bill`, part 3
+  of the governance series. Drafted 2026-11-04 with the owner. Freshness: after a full month under
+  the guard, update "Two days in" with the month's total and whether the cap of 10 changed.
