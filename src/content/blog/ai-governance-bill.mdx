@@ -1,0 +1,70 @@
+---
+title: "My AI pipeline's new rules came with a bill"
+tabTitle: The Bill
+partTitle: What the rules cost
+description: Governing an AI delivery pipeline made every change cost more GitHub Actions minutes. I switched the automation off, measured what was really spending them, and built a guard that slows the agents before the month runs out. The review agent found two bugs in the guard.
+dek: The day my new rules went live, GitHub Actions usage spiked and I switched the automation off. Then I measured, found I had turned off the cheap part, and built a guard that slows the agents before the month runs out. My review agent sent the guard back with two real bugs.
+date: 2026-11-04
+readMinutes: 4
+image: /img/og/ai-governance.jpg
+series: ai-governance
+part: 3
+draft: true
+---
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is a follow-up to the [governing an AI delivery pipeline](/blog/ai-governance/) series. The first three posts covered the rules GitHub now enforces, the threat model behind them, and the hole the pipeline found in them. This one is about what those rules cost, and what I got wrong when I first saw the bill.
+
+## The spike
+
+RepBunny's repo is private, so every GitHub Actions minute counts against a monthly allowance of 3,000. I can't pay for overage yet. On October 22, the day the rules went live, the pipeline ran through about 250 minutes. I did the math, didn't like it, and switched off four automation workflows, including the one that starts the agents on their own.
+
+That worked. It also meant nothing got built unless I started it by hand, one issue at a time.
+
+## Measuring
+
+On November 2 I finally pulled the real numbers. October used 2,429 minutes on the billing page, about 80% of the allowance. So I never went over. But the busy stretches ran at a pace of 3,000 to 3,900 a month, so the worry was fair.
+
+Then the surprise. The four workflows I had switched off cost about 20 minutes a day. The expensive part was everything around a pull request. That's the independent CI check on every push, the bot steps that open and review each one, and store releases. Early in the month the dispatcher itself had been a big cost, until an October 15 change stopped it from running on every new issue.
+
+In other words, I had turned off the cheap part. The agents writing code cost no Actions minutes at all, because they run the build and the full end-to-end suite in their own cloud sessions. The minutes go to the governance around their work. That's the part I wanted to keep.
+
+<StatRow stats={[
+  { value: '2,429', label: "October's minutes on the billing page, about 80% of the allowance" },
+  { value: '~20', label: 'minutes a day for the four workflows I switched off' },
+  { value: '4 to 6', label: 'minutes for each pull request, plus about 30 per store release' },
+]} />
+
+## The fix
+
+The real question was how many pull requests a day I can pay for. So the fix has two parts.
+
+First, a cap. The dispatcher starts at most 10 agent runs a day. That cap already existed (it was set to 30), so this part was a settings change.
+
+Second, a guard that watches the month. Before it starts an agent, the dispatcher estimates this month's minutes and compares them with an even pace through the month. Ahead of pace, it halves the cap. At 90% of the allowance it stops starting agents, which keeps the rest for CI on open pull requests and a release. A repo token can't read the billing page, so the guard estimates from the repo's own list of workflow runs. For October that estimate came out within 2% of the bill.
+
+The other half was me. Pausing everything had hidden a different problem. Anything that needed me showed up as a scatter of emails. Now the agents leave their questions on GitHub and keep working on whatever isn't blocked. When I open a session and ask "what's waiting for me?", I get one list. It has pull requests to approve, questions from agents, issues to prioritize, and tests to run on a real phone. A new session opens with a one-line count.
+
+<Callout title="The rule I'm keeping:">
+the agents never wait on me for work that doesn't need me, and I never have to go looking for the work that does.
+</Callout>
+
+## What broke
+
+The review agent read the guard and sent it back with two blockers. Both were real.
+
+- **A buffer overflow.** Each run in GitHub's list carries about 14 KB of data the guard didn't need. Once a month had about 70 runs, the response overflowed the default buffer, and the guard quietly switched itself off for the rest of the month. My own live test passed only because it was the second of the month, with 64 runs.
+- **A hidden cap.** GitHub returns at most 1,000 runs for a date filter, however many pages you ask for. October had 2,500. From about the 12th of a busy month, the guard would have counted only the newest 1,000 and reported everything as fine, right when it mattered.
+
+Fixing both made a full month take about 110 seconds to read, which would have doubled what each dispatcher run cost. A guard that eats the budget it's guarding wasn't the plan. So finished days now go into a small cache, and the guard only checks when an agent is about to start. A normal check takes a couple of seconds.
+
+Then the pull request wouldn't merge. The reviewer's first-round "changes requested" was still blocking it. On my highest risk tier, the reviewer's passing verdict is a comment, never an approval, because that approval has to be mine. Nobody had noticed that a comment doesn't clear an earlier change request, since this was the first high-risk pull request ever sent back. I dismissed the old review, and fixing that properly is on the list.
+
+## Two days in
+
+Since the agents came back on, 19 issues have closed as done in under two days. The agents hit the daily cap of 10 runs on November 2, and again on November 3 (at 4:12 in the morning, my time). November is at about 225 minutes on the 4th by the guard's count, under the 400 an even pace allows.
+
+So the cap is the limit now, not the budget. I'd rather raise a cap that's too low than explain an overage.
+
+The guard isn't perfect. It's an estimate, releases are lumpy, and a session I start by hand still spends minutes outside it. If you've found a better way to budget CI for a team of agents, I'd like to hear it.
