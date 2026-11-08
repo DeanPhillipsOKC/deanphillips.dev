@@ -1,10 +1,11 @@
 {
-  "lastRun": "2026-11-01T14:20:00Z",
-  "lastRepCommit": "40d09c31d0155967009a0db6655df6d0ad6b7235",
+  "lastRun": "2026-11-08T14:14:17Z",
+  "lastRepCommit": "f553de666b7fbb6a04f612777747ed6c33c6cafa",
   "suggestedShares": [
     "ai-delivery-team-asking",
     "ai-delivery-team-gate",
     "ai-governance-hole",
-    "ai-governance-threat-model"
+    "ai-governance-threat-model",
+    "ai-delivery-team-backup"
   ]
 }

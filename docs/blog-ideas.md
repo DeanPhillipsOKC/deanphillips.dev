@@ -11,13 +11,19 @@ has results).
   repo, retiring the PWA, prompt-injection risk from outside issues, what can't be published), and
   the open source pieces it gives back (#948, #949, #950). The owner's pick for the next big story
   (2026-11-04). Write it after the cutover (#946) ships. It can absorb the parked minutes draft below.
+- **When the agent's own safety check blocks the reviewer** (RepBunny #1020, #1022, #1024): the
+  review agent passed clean PRs, then its session's permission check refused the merge call as
+  "merge without review" (part 5, part 7, and PR #1007 and #1018 on 2026-11-05, which the owner
+  merged by hand). The fix sends tier 1 and 2 through GitHub auto-merge like tier 3, so no session
+  calls merge. Could be a short governance part or a section in the going-public post. Wait until
+  a week of tier 1 and 2 merges have gone through the new path with no hand merges.
 
 ## Drafted
 
 - **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
   2026-11-01 by the routine. The review agent caught the lost-phone overwrite on PR #870, then the
-  copy went on by default the same morning. Publish PR #35. Once it's live, the overview's
-  description should say "seven-part" (left out of #35 to avoid a conflict with Freshness #33).
+  copy went on by default the same morning. Published 2026-11-02 (PR #35). The overview's
+  "seven-part" description is in Freshness PR #41.
 - **The adversarial review agent** (RepBunny #374): `ai-delivery-team-review`, part 5. Drafted
   2026-10-18, Publish PR #5.
 - **Sprint review videos** (RepBunny #605, #606, #607, #663, #664, #668): `ai-delivery-team-sprint-review`,
