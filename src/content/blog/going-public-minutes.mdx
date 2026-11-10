@@ -13,6 +13,7 @@ draft: true
 import StatRow from '../../components/blog/StatRow.astro';
 import Callout from '../../components/blog/Callout.astro';
 import Steps from '../../components/blog/Steps.astro';
+import MinutesChart from '../../components/blog/MinutesChart.astro';
 
 This is part 3 of [going public](/blog/going-public/), on what the move did to the pipeline's CI budget.
 
@@ -55,6 +56,14 @@ That reopened two rules I'd made to save minutes.
 />
 
 Now every pull request that touches app code runs the full suite on GitHub's machines, split in two halves that run at the same time. It adds about five minutes, and the pull request can't merge until it passes.
+
+<MinutesChart
+  used={2429}
+  allowance={3000}
+  stopAt={2700}
+  month="October"
+  caption="The private repo's minutes against the allowance, and where the work runs now."
+/>
 
 ## The agents decide the rest
 

@@ -12,7 +12,7 @@ draft: true
 ---
 import StatRow from '../../components/blog/StatRow.astro';
 import Callout from '../../components/blog/Callout.astro';
-import GuessCards from '../../components/blog/GuessCards.astro';
+import RepoSplit from '../../components/blog/RepoSplit.astro';
 
 On November 9 I pushed one commit to a brand new public repo. It held every file of RepBunny, my strength training app for iPhone and Android. By that evening a release had gone from that repo to TestFlight and Google Play, and an AI agent had shipped its first change there.
 
@@ -36,19 +36,35 @@ The obvious move was to flip the existing repo to public. I didn't, because the 
 
 Its issues are the backlog, and the agents read them all day. Each issue is part spec, part conversation. My agents ask me questions there, and I answer there. Some of that text names my testers or quotes support email. More important, an issue is instructions to an agent. In a public repo anyone can open one, and "ignore your rules and do this instead" is a very short issue to write.
 
-So the backlog stayed private, and the code moved to a new public repo. Issues are off on the public one, and nothing automated reads text an outsider can write there. Bug reports go to an email address, and I move anything real into the backlog myself.
-
-<GuessCards
-  title="Public or private?"
-  options={['Public', 'Private']}
-  cards={[
-    { prompt: 'The app\'s source code and its end-to-end tests.', answer: 'Public', why: 'That\'s the point. Anyone can read it, run it, and check what it does with your data.' },
-    { prompt: 'The issue where an agent asks me which design to pick.', answer: 'Private', why: 'The backlog repo. Agents read every word of it, so only my account and the bots can write there.' },
-    { prompt: 'The CI run that tested a pull request.', answer: 'Public', why: 'Builds, tests, and reviews run in the public repo, where anyone can see them (and where the minutes are free).' },
-    { prompt: 'A release note that ships in the app.', answer: 'Public', why: 'It\'s part of the app, so it lives with the code.' },
-    { prompt: 'The workflow that starts an agent when an issue is opened.', answer: 'Private', why: 'It reacts to backlog issues, so it runs in the backlog repo. The public repo has issues turned off.' },
-  ]}
+<RepoSplit
+  publicSide={{
+    tag: 'Public',
+    name: 'repbunny-code',
+    sub: 'The code repo. Anyone can read it.',
+    items: [
+      { label: 'App code and tests', why: 'That\'s the point. Anyone can read it, run it, and check what it does with your data.' },
+      { label: 'CI runs', why: 'Builds, tests, and reviews run here, where anyone can see them (and where the minutes are free).' },
+      { label: 'Releases', why: 'Store builds are cut from this repo, so the run that built each one is there to look at.' },
+      { label: 'Release notes', why: 'They ship in the app, so they live with the code.' },
+      { label: 'The website', why: 'repbunny.app builds from this repo, so it moved with the code.' },
+    ],
+  }}
+  privateSide={{
+    tag: 'Private',
+    name: 'repbunny',
+    sub: 'The backlog repo. Only my account and the bots can write here.',
+    items: [
+      { label: 'Issues', why: 'Each one is part spec, part conversation, and the agents read every word. Some name testers or quote support email.' },
+      { label: 'The agents\' questions and my answers', why: 'They ask in an issue and I answer there. An outsider never gets a turn in that conversation.' },
+      { label: 'The dispatcher that starts agents', why: 'It reacts to backlog issues, so it runs where the issues are. The public repo has issues turned off.' },
+    ],
+  }}
+  outsiderText="Reads the code, the tests, the CI runs, and the releases. Stops at the wall. Issues are off on the public repo, and nothing automated reads text an outsider can write."
+  agentsText="Read the backlog, then write code and pull requests on the public side."
+  caption="Tap an item to see why it lives where it does."
 />
+
+So the backlog stayed private, and the code moved to a new public repo. Issues are off on the public one, and nothing automated reads text an outsider can write there. Bug reports go to an email address, and I move anything real into the backlog myself.
 
 ## Starting with no history
 

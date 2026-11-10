@@ -10,8 +10,9 @@ series: going-public
 part: 1
 draft: true
 ---
-import Steps from '../../components/blog/Steps.astro';
 import Callout from '../../components/blog/Callout.astro';
+import CutoverTimeline from '../../components/blog/CutoverTimeline.astro';
+import BuildCounter from '../../components/blog/BuildCounter.astro';
 
 This is part 2 of [going public](/blog/going-public/), on the day RepBunny's code moved to its new public repo.
 
@@ -19,12 +20,15 @@ Most of the prep was done by agents in the days before. They removed the pieces 
 
 The day itself needed me. A lot of it was settings only my account can change, and I did those by hand with an agent walking me through each one.
 
-<Steps
-  steps={[
-    { title: 'Snapshot', text: 'One commit with the exact files of the last version, checked for anything private.' },
-    { title: 'Settings', text: 'Rules on main, scanning, bot apps, and release secrets on the new repo.' },
-    { title: 'Hosting', text: 'The website, the iPhone build service, and the agents\' cloud setup pointed at it.' },
-    { title: 'Prove it', text: 'One agent change and one store release, all the way through.' },
+<CutoverTimeline
+  date="November 9, 2026, in order"
+  events={[
+    { title: 'The snapshot', status: ['broke', 'fixed'], text: 'The first one came out of a zip-style export and lost two files\' run permissions. Rebuilt straight from the old repo\'s exact file tree.' },
+    { title: 'Settings and hosting moved over', status: ['ok'], text: 'Rules on main, scanning, bot apps, and release secrets on the new repo. Then the website, the iPhone build service, and the agents\' cloud setup pointed at it.' },
+    { title: 'The first agent run', status: ['broke', 'fixed'], text: 'It built in the old repo, which still had all the code. Fixed with one line at the top of each agent\'s instructions.' },
+    { title: 'Release 1.9.1 cut', status: ['ok'], text: 'Reached Google Play as a draft, and TestFlight on the second try. The new connection was missing a few settings.' },
+    { title: 'The wrong icon spotted on TestFlight', status: ['broke'], text: 'The classic icon, when the autumn icon was the plan. That one was me.' },
+    { title: 'Release 1.9.2 cut', status: ['fixed'], text: 'The same button, a couple of hours later, with the right icon.' },
   ]}
 />
 
@@ -37,6 +41,15 @@ The second try built the commit straight from the old repo's file tree, so it co
 ## Build numbers tried to start over
 
 Every RepBunny build gets a number, and both app stores require each upload to be higher than the last. The number came from counting commits. The old repo had 969. The new one had 1.
+
+<BuildCounter
+  states={[
+    { label: 'Old repo', build: '969', from: '969 commits, counted', store: 'Accepted', tone: 'ok' },
+    { label: 'New repo, before the fix', build: '1', from: '1 commit, counted', store: 'Rejected: must be higher than 969', tone: 'warn' },
+    { label: 'After the fix', build: '970', from: 'commit count 2 + 968', store: 'Accepted', tone: 'ok' },
+  ]}
+  caption="The number the stores see. The fix adds a frozen count from before the move to the new repo's own."
+/>
 
 The release notes leaned on history too. Each in-app "What's new" entry is matched to the build that shipped it, and the snapshot made it look like every note ever written shipped that same afternoon. The release tool also looked for the last store release in the repo's tags, found none, and offered to call the next one version 1.0.0.
 
