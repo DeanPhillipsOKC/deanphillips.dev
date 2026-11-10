@@ -26,7 +26,7 @@ The day itself needed me. A lot of it was settings only my account can change, a
     { title: 'The snapshot', status: ['broke', 'fixed'], text: 'The first one came out of a zip-style export and lost two files\' run permissions. Rebuilt straight from the old repo\'s exact file tree.' },
     { title: 'Settings and hosting moved over', status: ['ok'], text: 'Rules on main, scanning, bot apps, and release secrets on the new repo. Then the website, the iPhone build service, and the agents\' cloud setup pointed at it.' },
     { title: 'The first agent run', status: ['broke', 'fixed'], text: 'It built in the old repo, which still had all the code. Fixed with one line at the top of each agent\'s instructions.' },
-    { title: 'Release 1.9.1 cut', status: ['ok'], text: 'Reached Google Play as a draft, and TestFlight on the second try. The new connection was missing a few settings.' },
+    { title: 'Release 1.9.1 cut', status: ['ok'], text: 'Reached Google Play as a draft, and TestFlight on the third try. The new connection was missing a few settings.' },
     { title: 'The wrong icon spotted on TestFlight', status: ['broke'], text: 'The classic icon, when the autumn icon was the plan. That one was me.' },
     { title: 'Release 1.9.2 cut', status: ['fixed'], text: 'The same button, a couple of hours later, with the right icon.' },
   ]}
@@ -71,7 +71,7 @@ The next day the old repo lost its copy of the code. It went from about 1,800 fi
 
 ## The first release
 
-The release went better than I expected. One button cut it. The tests ran on GitHub's machines, Android went to Google Play as a draft, and the iPhone build went through the build service to TestFlight. It took two tries, because the new connection was missing a few settings. Each failure said exactly what was missing, which I appreciate in a failure.
+The release went better than I expected. One button cut it. The tests ran on GitHub's machines, Android went to Google Play as a draft, and the iPhone build went through the build service to TestFlight. It took three tries, because the new connection was missing a few settings. Each failure said exactly what was missing, which I appreciate in a failure.
 
 Then I looked at TestFlight and saw the app icon. I had picked the classic one when the autumn icon was the plan. So the first public release won't go to the store. It was cut again a couple of hours later as 1.9.2, with the right icon. (The pipeline did its job perfectly. I chose the wrong option in a dropdown.)
 
