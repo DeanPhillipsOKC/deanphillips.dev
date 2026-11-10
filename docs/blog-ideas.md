@@ -6,11 +6,6 @@ has results).
 
 ## Waiting for material
 
-- **Going public** (RepBunny #937, #946, #947): why RepBunny's code went public under PolyForm
-  Shield with the backlog kept private, the obstacles on the way (Actions minutes on a private
-  repo, retiring the PWA, prompt-injection risk from outside issues, what can't be published), and
-  the open source pieces it gives back (#948, #949, #950). The owner's pick for the next big story
-  (2026-11-04). Write it after the cutover (#946) ships. It can absorb the parked minutes draft below.
 - **When the agent's own safety check blocks the reviewer** (RepBunny #1020, #1022, #1024): the
   review agent passed clean PRs, then its session's permission check refused the merge call as
   "merge without review" (part 5, part 7, and PR #1007 and #1018 on 2026-11-05, which the owner
@@ -20,6 +15,15 @@ has results).
 
 ## Drafted
 
+- **Going public** (RepBunny #937, #942, #943, #944, #945, #946, #947, #949): the `going-public`
+  series, drafted 2026-11-10 with the owner as unlisted drafts. `going-public` (part 0, why the
+  code is public and the backlog isn't, the snapshot, the license), `going-public-cutover` (part 1,
+  the day of the move and what broke), and `going-public-minutes` (part 2, absorbs the parked
+  `ai-governance-bill` material, then per-PR e2e and the lanes choosing where e2e runs). Wait about
+  a week before publishing so it can say the first public releases and lane PRs held up. On
+  publish: an OG image, the homepage's "How I build" testing line and the "RepBunny is the one you
+  can try yourself" note (the code is public now), and the resume's pipeline bullets (e2e on every
+  pull request, public code). `ai-governance-bill` stays an unlisted draft.
 - **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
   2026-11-01 by the routine. The review agent caught the lost-phone overwrite on PR #870, then the
   copy went on by default the same morning. Published 2026-11-02 (PR #35). The overview's

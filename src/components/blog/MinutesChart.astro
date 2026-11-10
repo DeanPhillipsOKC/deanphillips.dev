@@ -1,0 +1,170 @@
+---
+// The Actions minutes budget as an inline SVG: the private repo's bar against its allowance and
+// the 90% line where the agents stop, and the public code repo's bar under it. One switch moves
+// the CI and release work from the private bar to the public one, where it costs nothing. The SVG
+// uses percentages and no viewBox, so its text stays the same size at every width. Without
+// JavaScript the chart hides and the table under it shows the same numbers.
+interface Props {
+  used: number;        // minutes billed to the private repo in the month
+  allowance: number;   // the monthly allowance
+  stopAt: number;      // where the dispatcher stops starting agents
+  month: string;       // the month the numbers are from
+  caption?: string;
+}
+const { used, allowance, stopAt, month, caption } = Astro.props;
+const pct = (n: number) => `${((n / allowance) * 100).toFixed(2)}%`;
+const fmt = (n: number) => n.toLocaleString('en-US');
+// The backlog automation's share is an estimate, so it's drawn hatched with a soft end and never
+// given a number. Its width here is only "a small part of the bar".
+const autoWidth = 12;
+const usedPct = (used / allowance) * 100;
+const estimate = 'a few hundred minutes a month (estimate)';
+---
+<figure class="minutes panel bleed" style={`--auto: ${autoWidth}%`}>
+  <div class="switch" role="group" aria-label="Show the minutes before or after the code went public">
+    <button type="button" data-to="before" aria-pressed="true">Before going public</button>
+    <button type="button" data-to="after" aria-pressed="false">After</button>
+  </div>
+
+  <svg class="chart" width="100%" height="156" aria-hidden="true">
+    <defs>
+      <pattern id="mc-hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+        <rect class="hatch-ink" width="3" height="7" />
+      </pattern>
+      <linearGradient id="mc-fade" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#fff" />
+        <stop offset="0.6" stop-color="#fff" />
+        <stop offset="1" stop-color="#000" />
+      </linearGradient>
+      <mask id="mc-mask" maskContentUnits="userSpaceOnUse">
+        <rect x="0" y="58" width={`${autoWidth}%`} height="26" fill="url(#mc-fade)" />
+      </mask>
+    </defs>
+
+    <text class="t muted" x="100%" y="11" text-anchor="end">{fmt(allowance)} allowance</text>
+    <text class="t warn" x={pct(stopAt)} y="27" text-anchor="end">{fmt(stopAt)}, where the agents stop</text>
+    <line class="rule" x1="100%" x2="100%" y1="34" y2="152" />
+    <line class="rule warn" x1={pct(stopAt)} x2={pct(stopAt)} y1="34" y2="152" />
+
+    <text class="t name" x="0" y="52">Private repo (the backlog)</text>
+    <rect class="track" x="0" y="58" width="100%" height="26" rx="6" />
+    <rect class="auto" x="0" y="58" width={`${autoWidth}%`} height="26" rx="6" mask="url(#mc-mask)" />
+    <rect class="ci" x={`${autoWidth}%`} y="58" width={`${(usedPct - autoWidth).toFixed(2)}%`} height="26" rx="4" />
+    <text class="t value before-only" x={pct(used)} y="76" dx="-8" text-anchor="end">{fmt(used)}</text>
+    <text class="t muted after-only" x={`${autoWidth}%`} y="76" dx="8">{estimate}</text>
+
+    <text class="t name" x="0" y="116">Public code repo</text>
+    <rect class="track" x="0" y="122" width="100%" height="26" rx="6" />
+    <text class="t muted before-only" x="8" y="140">didn't exist yet</text>
+    <text class="t zero after-only" x="8" y="140">0 billed minutes</text>
+  </svg>
+
+  <ul class="legend" aria-hidden="true">
+    <li><i class="ci"></i>CI, bot steps, and releases</li>
+    <li><i class="auto"></i>Backlog automation (estimate)</li>
+    <li class="after-only"><i class="free"></i>Runs free on the public repo</li>
+  </ul>
+
+  <p class="read" aria-live="polite">
+    <span class="before-only"><b>{month}, before the move.</b> The private repo used {fmt(used)} of its {fmt(allowance)} minutes. The agents stop at {fmt(stopAt)}, which keeps the rest for CI and a release.</span>
+    <span class="after-only"><b>After the move.</b> CI, bot steps, and releases run on the public code repo for 0 billed minutes. The private repo only runs the backlog automation, {estimate}.</span>
+  </p>
+
+  <details class="alt" open>
+    <summary>The numbers as text</summary>
+    <table>
+      <thead><tr><th scope="col">Repo</th><th scope="col">Before going public</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">Private repo (the backlog)</th>
+          <td>{fmt(used)} of {fmt(allowance)} minutes in {month}. The agents stop at {fmt(stopAt)}.</td>
+          <td>Backlog automation only, {estimate}.</td>
+        </tr>
+        <tr>
+          <th scope="row">Public code repo</th>
+          <td>Didn't exist yet.</td>
+          <td>CI, bot steps, and releases. 0 billed minutes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.minutes')) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.switch button')];
+    const set = (to: string) => {
+      root.dataset.state = to;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.to === to)));
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => set(b.dataset.to!)));
+    root.querySelector<HTMLDetailsElement>('.alt')!.open = false;
+    set('before');
+  }
+</script>
+
+<style>
+  .minutes { padding: 18px; }
+  .switch { display: inline-flex; flex-wrap: wrap; padding: 4px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 16px; }
+  .switch button { font: 600 0.88rem/1 Inter, sans-serif; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; min-height: 40px; }
+  .switch button[aria-pressed="true"] { color: var(--bg); background: var(--grad); }
+  .switch button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  .chart { display: block; overflow: visible; }
+  .t { font: 500 12px/1 Inter, sans-serif; fill: var(--text); }
+  .t.muted { fill: var(--muted); }
+  /* The estimate label can cross the dashed lines on a phone, so it gets a halo in the track color. */
+  .t.after-only { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+  .t.warn { fill: var(--warn); font-weight: 600; }
+  .t.name { font-weight: 600; }
+  .t.value { fill: var(--bg); font: 700 13px/1 "Space Grotesk", sans-serif; }
+  .t.zero { fill: var(--ok); font-weight: 600; }
+  .rule { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 4; }
+  .rule.warn { stroke: var(--warn); }
+  .track { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+  .hatch-ink { fill: var(--violet); }
+  .auto { fill: url(#mc-hatch); }
+  .chart .ci { fill: var(--teal); stroke: transparent; stroke-width: 2; }
+  /* After: the CI segment slides down to the public row and starts at its left edge (the x shift is
+     the estimate segment's width, as a share of the SVG's own width). */
+  .minutes[data-state="after"] .chart .ci { transform: translate(calc(-1 * var(--auto)), 64px); fill: color-mix(in srgb, var(--ok) 14%, transparent); stroke: var(--ok); stroke-dasharray: 5 3; }
+  .minutes[data-state="before"] .after-only, .minutes[data-state="after"] .before-only { display: none; }
+
+  .legend { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.82rem; color: var(--muted); }
+  .legend li { margin: 0; display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--line); }
+  .legend .ci { background: var(--teal); }
+  .legend .auto { background: repeating-linear-gradient(45deg, var(--violet) 0 2px, transparent 2px 5px); }
+  .legend .free { border: 2px dashed var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+
+  .read { margin: 14px 0 0; font-size: 0.9rem; line-height: 1.5; color: var(--muted); }
+  .read b { color: var(--text); }
+
+  .alt { margin-top: 14px; }
+  .alt summary { cursor: pointer; color: var(--teal); font-size: 0.88rem; }
+  .alt summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+  .alt table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 0.85rem; line-height: 1.4; }
+  .alt th, .alt td { text-align: left; vertical-align: top; padding: 8px 10px; border-top: 1px solid var(--line); color: var(--muted); }
+  .alt th { color: var(--text); font-weight: 600; }
+  .alt thead th { border-top: 0; font: 600 0.7rem/1.2 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  /* No JavaScript: no switch and no chart, just the table, already open. */
+  .minutes:not([data-state]) .switch, .minutes:not([data-state]) .chart, .minutes:not([data-state]) .legend, .minutes:not([data-state]) .read { display: none; }
+  .minutes:not([data-state]) .alt { margin-top: 0; }
+  .minutes:not([data-state]) .alt summary { pointer-events: none; color: var(--text); font: 600 1.05rem/1.3 "Space Grotesk", sans-serif; list-style: none; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chart .ci { transition: transform .6s ease-in-out, fill .6s, stroke .6s; }
+  }
+  @media (max-width: 560px) {
+    .minutes { padding: 14px; }
+    .alt table, .alt thead, .alt tbody, .alt tr, .alt th, .alt td { display: block; }
+    .alt thead { display: none; }
+    .alt tr { border-top: 1px solid var(--line); padding: 8px 0; }
+    .alt th, .alt td { border-top: 0; padding: 2px 0; }
+    .alt td::before { display: block; font: 600 0.7rem/1.4 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+    .alt td:nth-child(2)::before { content: "Before going public"; }
+    .alt td:nth-child(3)::before { content: "After"; }
+  }
+</style>

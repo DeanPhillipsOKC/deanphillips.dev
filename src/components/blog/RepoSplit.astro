@@ -1,0 +1,160 @@
+---
+// Two repos side by side: the public code repo and the private backlog, with a wall between them.
+// Each item opens to one sentence on why it lives there (a <details>, so it works without
+// JavaScript; with it, hovering opens the item too). Under the panels, two paths: an outsider who
+// reaches the public side and bounces off the wall, and the agents, who read the backlog and write
+// code on the public side. The bounce is CSS only and stops under prefers-reduced-motion.
+interface Item { label: string; why: string }
+interface Side { tag: string; name: string; sub: string; items: Item[] }
+interface Props { publicSide: Side; privateSide: Side; outsiderText: string; agentsText: string; caption?: string }
+const { publicSide, privateSide, outsiderText, agentsText, caption } = Astro.props;
+const sides: { key: 'public' | 'private'; side: Side }[] = [
+  { key: 'public', side: publicSide },
+  { key: 'private', side: privateSide },
+];
+---
+<figure class="split panel bleed">
+  <div class="repos">
+    {sides.map(({ key, side }, i) => (
+      <>
+        <section class={`repo ${key}`} aria-labelledby={`repo-${key}-name`}>
+          <p class="head"><em class="tag">{side.tag}</em><b id={`repo-${key}-name`}>{side.name}</b><span>{side.sub}</span></p>
+          <ul class="items">
+            {side.items.map((it) => (
+              <li>
+                <details>
+                  <summary>{it.label}</summary>
+                  <p>{it.why}</p>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </section>
+        {i === 0 && (
+          <div class="wall" role="img" aria-label="A wall between the two repos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <span>wall</span>
+          </div>
+        )}
+      </>
+    ))}
+  </div>
+  <ul class="paths">
+    <li class="path outsider">
+      <div class="track">
+        <em class="who">Outsider</em>
+        <span class="line" aria-hidden="true"><i class="dot"></i></span>
+        <span class="stop" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></span>
+      </div>
+      <p>{outsiderText}</p>
+    </li>
+    <li class="path agents">
+      <div class="track">
+        <span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H6M11 7l-5 5 5 5"/></svg></span>
+        <span class="line" aria-hidden="true"><i class="dot"></i></span>
+        <em class="who">Agents</em>
+      </div>
+      <p>{agentsText}</p>
+    </li>
+  </ul>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  // Mouse users get the answer on hover; the <details> still toggles on click or Enter.
+  if (window.matchMedia('(hover: hover)').matches) {
+    for (const d of document.querySelectorAll<HTMLDetailsElement>('.split details')) {
+      d.addEventListener('mouseenter', () => { if (!d.open) { d.open = true; d.dataset.hover = '1'; } });
+      d.addEventListener('mouseleave', () => { if (d.dataset.hover) { d.open = false; delete d.dataset.hover; } });
+      d.addEventListener('toggle', () => { if (!d.open) delete d.dataset.hover; });
+      // A click on an item that hover already opened pins it open instead of closing it.
+      d.querySelector('summary')!.addEventListener('click', (e) => { if (d.dataset.hover) { e.preventDefault(); delete d.dataset.hover; } });
+    }
+  }
+</script>
+
+<style>
+  .split { padding: 18px; }
+  .repos { display: grid; grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr); gap: 0 10px; align-items: stretch; }
+  .repo { --c: var(--ok); margin: 0; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 2px solid color-mix(in srgb, var(--c) 55%, var(--line)); }
+  .repo.private { --c: var(--violet); }
+  .head { margin: 0 0 12px; display: grid; gap: 4px; }
+  .tag { font: 600 0.66rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; color: var(--c); justify-self: start; padding: 4px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .head b { font: 600 1.05rem/1.2 "Space Grotesk", sans-serif; color: var(--text); margin-top: 4px; }
+  .head span { font-size: 0.82rem; color: var(--muted); }
+  .split .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .items li { margin: 0; }
+  .items details { border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+  .items details[open] { border-color: color-mix(in srgb, var(--c) 60%, var(--line)); }
+  .items summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 10px; min-height: 40px; font: 500 0.9rem/1.3 Inter, sans-serif; color: var(--text); }
+  .items summary::-webkit-details-marker { display: none; }
+  .items summary::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent); }
+  .items summary::after { content: "+"; margin-left: auto; color: var(--muted); font: 500 1rem/1 Inter, sans-serif; }
+  .items details[open] summary::after { content: "\2013"; }
+  .items summary:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; border-radius: 10px; }
+  .items details p { margin: 0; padding: 0 10px 10px 26px; font-size: 0.85rem; line-height: 1.45; color: var(--muted); }
+  .wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--warn); font: 600 0.66rem/1 Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 22%, transparent) 0 6px, transparent 6px 12px); border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent); }
+  .wall svg { width: 20px; height: 20px; }
+  .wall span { writing-mode: vertical-rl; }
+
+  .paths { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+  .path { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 8px; }
+  .path p { margin: 0; font-size: 0.88rem; line-height: 1.45; color: var(--muted); }
+  .track { display: flex; align-items: center; gap: 10px; min-height: 28px; }
+  .who { font: 600 0.72rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; color: var(--text); background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+  .outsider .who { border-color: color-mix(in srgb, var(--pink) 55%, transparent); color: var(--pink); }
+  .agents .who { border-color: color-mix(in srgb, var(--violet) 55%, transparent); color: var(--violet); }
+  .line { position: relative; flex: 1; height: 2px; background: var(--line); border-radius: 1px; }
+  .dot { position: absolute; top: -5px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 10px color-mix(in srgb, var(--pink) 70%, transparent); }
+  .agents .dot { background: var(--violet); box-shadow: 0 0 10px color-mix(in srgb, var(--violet) 70%, transparent); left: auto; right: 0; }
+  .stop { flex: none; width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: var(--warn); background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 22%, transparent) 0 4px, transparent 4px 8px); border: 1px solid color-mix(in srgb, var(--warn) 60%, transparent); }
+  .stop svg { width: 16px; height: 16px; }
+  .arrow { flex: none; width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 60%, transparent); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .arrow svg { width: 18px; height: 18px; }
+
+  /* Wide: the outsider's track runs across the public column and ends at the wall. The agents' track
+     starts at the backlog and crosses the wall to the public side. */
+  @media (min-width: 701px) {
+    .path { display: grid; grid-template-columns: minmax(0, 1fr) 52px minmax(0, 1fr); gap: 8px 10px; align-items: center; }
+    .path p { grid-column: 1 / -1; }
+    .outsider .track { grid-column: 1 / 2; }
+    .outsider .stop { margin-right: -24px; }
+    .agents .track { grid-column: 1 / -1; }
+  }
+  @media (max-width: 700px) {
+    .repos { grid-template-columns: 1fr; gap: 8px 0; }
+    .wall { flex-direction: row; min-height: 32px; }
+    .wall span { writing-mode: horizontal-tb; }
+  }
+  @media (max-width: 560px) {
+    .split { padding: 14px; }
+    .repo { padding: 12px; }
+  }
+
+  /* Static by default: the outsider's dot sits against the wall, the agents' dot at the public side. */
+  .outsider .dot { left: calc(100% - 12px); }
+  .agents .dot { right: calc(100% - 12px); }
+  @media (prefers-reduced-motion: no-preference) {
+    .outsider .dot { animation: bounce 4s ease-in-out infinite; }
+    .outsider .stop { animation: thud 4s ease-in-out infinite; }
+    .agents .dot { animation: cross 4s ease-in-out infinite; }
+    @keyframes bounce {
+      0% { left: 0; }
+      45% { left: calc(100% - 12px); }
+      55% { left: calc(100% - 20px); }
+      80% { left: calc(100% - 20px); }
+      100% { left: 0; }
+    }
+    @keyframes thud {
+      0%, 40%, 60%, 100% { transform: none; }
+      47% { transform: scale(1.18); }
+    }
+    @keyframes cross {
+      0% { right: 0; opacity: 1; }
+      70% { right: calc(100% - 12px); opacity: 1; }
+      85% { right: calc(100% - 12px); opacity: 0; }
+      90% { right: 0; opacity: 0; }
+      100% { right: 0; opacity: 1; }
+    }
+  }
+</style>

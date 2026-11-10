@@ -1,0 +1,75 @@
+---
+// A build number in three states, picked with one switch: the old repo's count, the new repo's
+// count before the fix (which the stores reject), and the count after it. Without JavaScript all
+// three show side by side.
+type Tone = 'ok' | 'warn';
+interface State { label: string; build: string; from: string; store: string; tone: Tone }
+interface Props { states: State[]; caption?: string }
+const { states, caption } = Astro.props;
+---
+<figure class="counter panel bleed">
+  <div class="switch" role="group" aria-label="Pick a repo and moment">
+    {states.map((s, i) => <button type="button" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.label}</button>)}
+  </div>
+  <ol class="states" aria-live="polite">
+    {states.map((s) => (
+      <li class={s.tone}>
+        <p class="label">{s.label}</p>
+        <p class="build"><span>Build</span><b>{s.build}</b></p>
+        <p class="from">{s.from}</p>
+        <p class="store"><em>Store</em>{s.store}</p>
+      </li>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.counter')) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.switch button')];
+    const states = [...root.querySelectorAll<HTMLElement>('.states > li')];
+    const set = (i: number) => {
+      root.dataset.state = String(i);
+      buttons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+      states.forEach((s, k) => (s.hidden = k !== i));
+    };
+    buttons.forEach((b) => b.addEventListener('click', () => set(Number(b.dataset.i))));
+    set(0);
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .counter { padding: 18px; }
+  .switch { display: inline-flex; flex-wrap: wrap; padding: 4px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); margin-bottom: 16px; }
+  .switch button { font: 600 0.85rem/1.2 Inter, sans-serif; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 9px 14px; cursor: pointer; min-height: 40px; }
+  .switch button[aria-pressed="true"] { color: var(--bg); background: var(--grad); }
+  .switch button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .counter:not([data-state]) .switch { display: none; }
+  .counter .states { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .states li { margin: 0; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 2px solid var(--line); display: grid; gap: 8px; align-content: start; }
+  .states li.ok { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+  .states li.warn { border-color: color-mix(in srgb, var(--warn) 70%, var(--line)); background: color-mix(in srgb, var(--warn) 8%, var(--bg-2)); }
+  .counter[data-state] .states li .label { display: none; }
+  .label { margin: 0; font: 600 0.75rem/1.2 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .build { margin: 0; display: flex; align-items: baseline; gap: 10px; }
+  .build span { font: 600 0.75rem/1 Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .build b { font: 700 clamp(2.4rem, 7vw, 3.2rem)/1 "Space Grotesk", sans-serif; color: var(--text); font-variant-numeric: tabular-nums; }
+  .warn .build b { color: var(--warn); }
+  .from { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .store { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.9rem; line-height: 1.4; color: var(--text); }
+  .store em { font: 600 0.66rem/1 Inter, sans-serif; font-style: normal; letter-spacing: .06em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; border: 1px solid; }
+  .ok .store em { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
+  .warn .store em { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 60%, transparent); }
+  .warn .store { color: var(--warn); }
+  @media (prefers-reduced-motion: no-preference) {
+    .counter[data-state] .states li { animation: pop .25s ease-out; }
+    @keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  }
+  /* Phones: the three labels don't fit one pill, so the switch becomes a stack of full-width rows. */
+  @media (max-width: 560px) {
+    .counter { padding: 14px; }
+    .switch { display: grid; width: 100%; border-radius: 16px; }
+    .switch button { border-radius: 12px; padding: 9px 12px; font-size: 0.85rem; }
+  }
+</style>
