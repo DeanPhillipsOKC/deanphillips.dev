@@ -58,10 +58,10 @@ const pdf = '/dean-phillips-resume.pdf';
           <p class="when">2026 - Present</p>
         </div>
         <ul>
-          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) with all data kept on the phone. Built alongside a full-time job: first commit to TestFlight in under three weeks.</li>
-          <li><b>Designed a multi-agent delivery pipeline on Claude Code:</b> a GitHub Actions dispatcher starts cloud agent lanes that each take the highest-value issue from a scored backlog, build it, and open a pull request. An adversarial review agent merges it, sends it back, or asks me. Agents run a full build and more than 600 end-to-end Playwright tests before every pull request, and a clean independent run gates each store release.</li>
-          <li><b>Moved the pipeline's rules from instructions to enforcement:</b> GitHub rulesets require pull requests with no bypass, code owners approve edits to the agents' guardrails, and Builder and Reviewer bots act under separate identities. CI runs secret scanning, static analysis, a dependency audit, and a workflow linter that found five real problems on day one.</li>
-          <li><b>Wrote a threat model for agents that read untrusted input:</b> 14 threats mapped to the OWASP LLM Top 10, each defense marked enforced or only instructed. Tracing the support email path by hand found a real gap.</li>
+          <li><b>Shipped a mobile app with an AI-first workflow:</b> a strength training log for iPhone and Android (Vue 3, TypeScript, Capacitor) with all data kept on the phone. Built alongside a full-time job: first commit to TestFlight in under three weeks, and live on Google Play since November 2026.</li>
+          <li><b>Designed a multi-agent delivery pipeline on Claude Code:</b> a GitHub Actions dispatcher starts cloud agent lanes that each take the highest-value issue from a scored backlog, build it, and open a pull request. An adversarial review agent merges it, sends it back, or asks me. CI runs more than 600 end-to-end Playwright tests on every code pull request, and the agents decide when a change is risky enough to run them first.</li>
+          <li><b>Took the code public, kept the backlog private:</b> a new <a href="https://github.com/DeanPhillipsOKC/repbunny-code">public repo</a> (PolyForm Shield license) with no history, so nothing private carried over. The backlog stays private, so no outsider can write text an agent acts on.</li>
+          <li><b>Governed the agents with enforcement, not instructions:</b> GitHub rulesets require pull requests with no bypass, code owners approve edits to the agents' guardrails, and Builder and Reviewer bots act under separate identities. CI runs secret scanning, static analysis, a dependency audit, and a workflow linter that found five real problems on day one. A threat model maps 14 threats to the OWASP LLM Top 10, each defense marked enforced or only instructed, and tracing the support email path by hand found a real gap.</li>
           <li><b>Extended agents past the code:</b> monthly product, UX, accessibility, and security reviews that file scored issues; support email triage with replies I approve; App Store screenshots; and narrated sprint review videos.</li>
           <li><b>Automated releases:</b> signed iPhone builds go to TestFlight from the cloud with no Mac involved, and Android builds ship nightly. Its reusable Claude Code plugins are public on my GitHub.</li>
         </ul>
@@ -80,6 +80,7 @@ const pdf = '/dean-phillips-resume.pdf';
         </div>
         <ul>
           <li>Modernizing legacy .NET applications and deploying them to the cloud.</li>
+          <li><b>Built an agentic task manager that runs my workday:</b> a Claude Code skill that reads my email and Teams, triages each message with me, and keeps a master task list with priorities, due dates, snoozes, and blockers by owner. It nudges me to chase requests that go quiet, summarizes projects on demand, and drafts replies for me to send. It's now how all my work comes in.</li>
         </ul>
       </div>
 
@@ -90,7 +91,7 @@ const pdf = '/dean-phillips-resume.pdf';
         </div>
         <ul>
           <li><b>Pioneered agentic development at the company:</b> first lead to adopt agentic coding, building Claude Code and Codex skills and commands that captured the company's standards and ran automatically on related tasks. Packaged and demoed them so the other two development teams could adopt them, a major reason the on-the-job training initiative shipped on time.</li>
-          <li><b>Opened a new revenue opportunity with on-the-job training:</b> led development of an on-the-job training (OJT) module for the operator qualification platform that lets mentors review and sign off on OJT activities completed by their assigned mentees. Built at the request of larger clients, it opened a new revenue opportunity for the product.</li>
+          <li><b>Opened a new revenue opportunity with on-the-job training:</b> led development of an on-the-job training (OJT) module for the operator qualification platform that lets mentors review and sign off on their mentees' OJT activities. Larger clients had asked for it.</li>
           <li><b>Led the team through BMAD adoption and expanded AI beyond engineering:</b> mentored the team once the company standardized on BMAD, extended AI-assisted workflows to product and QA, and wrote BMAD architecture documents on the architect's behalf.</li>
           <li><b>Trusted with local architecture decisions:</b> led a team of three (two of them senior developers) and owned architecture decisions within the team's scope.</li>
         </ul>
@@ -131,9 +132,8 @@ const pdf = '/dean-phillips-resume.pdf';
         </div>
         <ul>
           <li><b>Architected microservices:</b> refactored a large monolithic notification system into microservices with .NET Core and RabbitMQ, and delivered features and fixes for a public-facing ASP.NET application in two-week Scrum sprints.</li>
-          <li><b>Built CI/CD for shared libraries:</b> a build-server-agnostic Cake pipeline for in-house NuGet packages, with semantic versioning from git history and stable and pre-release channels on Nexus.</li>
-          <li><b>Raised code quality:</b> added about 4,000 test cases across six legacy applications and services in the first year, bringing in NHibernate, Cypress, Moq, Karma, and Jasmine.</li>
-          <li><b>Led a winning hackathon team:</b> led five engineers in a company-wide hackathon across three cities, building an automatic onboarding solution (two Angular apps and .NET Core APIs) in three days. Won 1st place for Best New Product or Feature, 2nd for Best Technical Solution, and 3rd for Biggest Impact.</li>
+          <li><b>Raised code quality:</b> added about 4,000 test cases across six legacy applications and services in my first year.</li>
+          <li><b>Led a winning hackathon team:</b> five engineers built an automatic onboarding solution in three days, taking 1st for Best New Product or Feature, 2nd for Best Technical Solution, and 3rd for Biggest Impact.</li>
         </ul>
       </div>
 
@@ -143,9 +143,9 @@ const pdf = '/dean-phillips-resume.pdf';
     <section>
       <h2>Earlier experience</h2>
       <ul class="earlier">
-        <li><b>Delaware Nation Industries, Tinker AFB, Senior Java Developer and Scrum Master (2016 - 2018).</b> Led the rewrite of 72 ABW SC's applications from Struts 1 to Spring Security, Spring Data JPA, Hibernate, and AngularJS, with two-factor authentication, plus unit and integration testing.</li>
-        <li><b>Sumaria Systems, then CSI (now Delaware Nation Industries), Tinker AFB (2012 - 2015).</b> .NET Developer, promoted to Senior and Scrum Master. Moved Classic ASP apps to ASP.NET and automated inventory reporting.</li>
-        <li><b>Ensco Inc. (BAE Systems), Software Engineer (2005 - 2011).</b> Led test automation teams of up to 25 engineers across sites for life-critical avionics software, with tools in C, Assembly, Ada, and JOVIAL (DO-178B).</li>
+        <li><b>Delaware Nation Industries, Tinker AFB, Senior Java Developer and Scrum Master (2016 - 2018).</b> Led the rewrite of 72 ABW SC's applications from Struts 1 to Spring, Hibernate, and AngularJS, with two-factor authentication.</li>
+        <li><b>Sumaria Systems, then CSI, Tinker AFB (2012 - 2015).</b> .NET Developer, promoted to Senior and Scrum Master. Moved Classic ASP apps to ASP.NET.</li>
+        <li><b>Ensco Inc. (BAE Systems), Software Engineer (2005 - 2011).</b> Led test automation teams of up to 25 engineers for life-critical avionics software (C, Assembly, Ada, JOVIAL; DO-178B).</li>
       </ul>
     </section>
 

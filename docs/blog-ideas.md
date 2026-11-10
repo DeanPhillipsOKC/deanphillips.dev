@@ -22,8 +22,8 @@ has results).
   `ai-governance-bill` material, then per-PR e2e and the lanes choosing where e2e runs). Wait about
   a week before publishing so it can say the first public releases and lane PRs held up. On
   publish: an OG image, the homepage's "How I build" testing line and the "RepBunny is the one you
-  can try yourself" note (the code is public now), and the resume's pipeline bullets (e2e on every
-  pull request, public code). `ai-governance-bill` stays an unlisted draft.
+  can try yourself" note (the code is public now). The resume already covers e2e on every pull
+  request and the public code (updated 2026-11-10). `ai-governance-bill` stays an unlisted draft.
 - **Backups with no servers** (RepBunny #432, #869, #871, #874, #875): `ai-delivery-team-backup`, part 7. Drafted
   2026-11-01 by the routine. The review agent caught the lost-phone overwrite on PR #870, then the
   copy went on by default the same morning. Published 2026-11-02 (PR #35). The overview's
