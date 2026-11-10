@@ -1,0 +1,87 @@
+---
+title: "My app's code is public. Its backlog isn't."
+tabTitle: Going Public
+partTitle: Why the code went public
+description: RepBunny's code is now public, built and released from a public GitHub repo, while the backlog its AI agents work from stays private. Why I split them, why the public repo started with no history, and the license that lets anyone read and check the code without shipping a copy.
+dek: On November 9 RepBunny's code moved to a public repo. The AI agents that build it moved with it. The backlog they work from stayed private, on purpose. Here's why it's split that way, and what it took.
+date: 2026-11-10
+readMinutes: 5
+series: going-public
+part: 0
+draft: true
+---
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+import GuessCards from '../../components/blog/GuessCards.astro';
+
+On November 9 I pushed one commit to a brand new public repo. It held every file of RepBunny, my strength training app for iPhone and Android. By that evening a release had gone from that repo to TestFlight and Google Play, and an AI agent had shipped its first change there.
+
+RepBunny is built by a pipeline of AI agents I designed. They pick work from a scored backlog, build it, test it, and open pull requests that a review agent checks. I make the decisions, they do the typing, and nothing goes out without my testing it. The [AI delivery team series](/blog/ai-delivery-team/) covers how that works. This series is about opening it up.
+
+This is the first of three posts. The next one is [the day of the move](/blog/going-public-cutover/), with everything that broke. The last is [what free CI minutes changed](/blog/going-public-minutes/).
+
+## Why now
+
+I had planned to decide this after the App Store launch. On November 4 I moved it up, for three reasons.
+
+First, anyone can check the privacy claims. RepBunny keeps every workout on the phone. No accounts, no shared database, no servers holding anyone's data. Saying that is easy. Letting people read the code that does it is better.
+
+Second, the work is the portfolio. I've written a lot about this pipeline. Now the pull requests, reviews, and CI runs are there to look at instead of described.
+
+Third, minutes. A private repo gets a monthly allowance of GitHub Actions minutes, and I had spent October rationing them. Public repos don't pay for standard runners. That one turned out to matter more than I expected, and it gets [its own post](/blog/going-public-minutes/).
+
+## Two repos, not one
+
+The obvious move was to flip the existing repo to public. I didn't, because the repo isn't only code.
+
+Its issues are the backlog, and the agents read them all day. Each issue is part spec, part conversation. My agents ask me questions there, and I answer there. Some of that text names my testers or quotes support email. More important, an issue is instructions to an agent. In a public repo anyone can open one, and "ignore your rules and do this instead" is a very short issue to write.
+
+So the backlog stayed private, and the code moved to a new public repo. Issues are off on the public one, and nothing automated reads text an outsider can write there. Bug reports go to an email address, and I move anything real into the backlog myself.
+
+<GuessCards
+  title="Public or private?"
+  options={['Public', 'Private']}
+  cards={[
+    { prompt: 'The app\'s source code and its end-to-end tests.', answer: 'Public', why: 'That\'s the point. Anyone can read it, run it, and check what it does with your data.' },
+    { prompt: 'The issue where an agent asks me which design to pick.', answer: 'Private', why: 'The backlog repo. Agents read every word of it, so only my account and the bots can write there.' },
+    { prompt: 'The CI run that tested a pull request.', answer: 'Public', why: 'Builds, tests, and reviews run in the public repo, where anyone can see them (and where the minutes are free).' },
+    { prompt: 'A release note that ships in the app.', answer: 'Public', why: 'It\'s part of the app, so it lives with the code.' },
+    { prompt: 'The workflow that starts an agent when an issue is opened.', answer: 'Private', why: 'It reacts to backlog issues, so it runs in the backlog repo. The public repo has issues turned off.' },
+  ]}
+/>
+
+## Starting with no history
+
+The new repo started with one commit, the exact files of the old repo's last version. No history.
+
+The old history holds 969 commits of messages and diffs. Somewhere in there are names and addresses that were fine in a private repo. I could have tried to scrub them. I'd rather not bet on finding every one. A fresh start meant checking one set of files instead of every version of them.
+
+For that check, there's a public-content rule and a script that runs on every pull request. It fails on tester names, personal email addresses, and other things that don't belong in public. The agents run it on their own pull request text before they open one, since that text is public now too.
+
+The fresh start had a cost. Several things counted on that history, including build numbers. That's [the next post](/blog/going-public-cutover/).
+
+## The license
+
+Public doesn't mean free to copy. The code is under the PolyForm Shield license. Anyone may read it, look for bugs and security problems, check the privacy claims, fork it, and make a personal build. Nobody may ship a product that competes with RepBunny, free or paid. The name, the icons, and the mascot art aren't licensed at all, so a fork brings its own.
+
+Outside code contributions aren't accepted. Reports are, including security reports through GitHub's private reporting.
+
+<Callout title="The rule of thumb:">
+whatever the agents build from is private. Whatever they build is public.
+</Callout>
+
+## The numbers
+
+<StatRow stats={[
+  { value: '5 days', label: 'from deciding to go public to the first public release' },
+  { value: '1', label: 'commit in the public repo on day one, with no history' },
+  { value: '36', label: 'files left in the private repo, out of about 1,800' },
+]} />
+
+The private repo is now just the backlog and the automation that reads it. Everything else moved.
+
+## Giving some back
+
+Going public also meant asking what else could be useful to other people. The first piece is out. The small tool that estimates a private repo's Actions minutes (GitHub's billing page isn't readable from a workflow) is now its own [open source package](https://github.com/DeanPhillipsOKC/actions-minutes-estimator). Next on the list are the backup code that keeps a local-first app's data safe through a lost phone, and the exercise library fixes, sent back to the free dataset they started from.
+
+The code is at [github.com/DeanPhillipsOKC/repbunny-code](https://github.com/DeanPhillipsOKC/repbunny-code). If you read it and find something, I'd like to hear about it.

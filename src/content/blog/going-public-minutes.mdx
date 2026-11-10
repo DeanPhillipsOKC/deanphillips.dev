@@ -1,0 +1,81 @@
+---
+title: "Free CI minutes changed my AI pipeline's rules"
+tabTitle: The Minutes
+partTitle: What free minutes changed
+description: For a month RepBunny's AI pipeline rationed GitHub Actions minutes, with a guard that slows the agents before the allowance runs out. Going public made the code repo's minutes free. The full end-to-end suite now runs on every pull request, and the agents decide whether to also run it themselves.
+dek: For a month my AI agents worked under a budget. I built a guard to stretch it, and the guard had two bugs worth telling. Then the code went public, most of the budget stopped mattering, and two rules I'd made to save minutes came out.
+date: 2026-11-10
+readMinutes: 5
+series: going-public
+part: 2
+draft: true
+---
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+import Steps from '../../components/blog/Steps.astro';
+
+This is part 3 of [going public](/blog/going-public/), on what the move did to the pipeline's CI budget.
+
+## A month on a budget
+
+A private GitHub repo on my plan gets 3,000 Actions minutes a month. I can't pay for overage. On October 22, the day the [governance rules](/blog/ai-governance/) went live, the pipeline went through about 250 minutes. I did the math, didn't like it, and switched off the automation that starts the agents.
+
+That worked, in the sense that nothing got built.
+
+When I finally measured, October came to 2,429 minutes on the billing page. The part I'd switched off cost about 20 minutes a day. The expensive part was everything around a pull request (the independent CI checks, the bot steps that open and review each one) and store releases. I had turned off the cheap part.
+
+So the agents came back on under a guard. Before it starts an agent, the dispatcher estimates the month's minutes and compares them with an even pace. Ahead of pace, it halves the number of agent runs allowed that day. At 90% of the allowance it stops starting agents, which keeps the rest for CI and a release.
+
+## The guard's two bugs
+
+A workflow can't read GitHub's billing page, so the guard estimates from the repo's own list of runs. For October it came within 2% of the bill. Getting there took two fixes, both found by the review agent.
+
+- **It quietly switched itself off.** Each run in GitHub's list carries about 14 KB the guard didn't need. Past about 70 runs, the response overflowed the default buffer, and the guard gave up for the rest of the month. My own test passed only because it was the second of the month.
+- **It stopped counting.** GitHub returns at most 1,000 runs for a date range, however many pages you ask for. October had about 2,500. In a busy month the guard would have seen only the newest 1,000 and reported everything fine, right when it mattered.
+
+The estimate is now its own small [open source package](https://github.com/DeanPhillipsOKC/actions-minutes-estimator), since every private repo with a budget has the same blind spot.
+
+## Then the code went public
+
+Public repos don't pay for standard runners. Since the move, CI, releases, and the bot steps all run in the public code repo, and they cost nothing. The private repo only runs the backlog automation now (the dispatcher and a few small workflows), a few hundred minutes a month.
+
+That reopened two rules I'd made to save minutes.
+
+**The dispatcher ignored new issues.** On October 15 I'd stopped it from running every time an issue was opened, to save minutes. New work waited for the next scheduled run, up to two hours. Now it runs when an issue is opened, and when an issue gets its score, which is the moment a refined issue becomes ready for an agent.
+
+**Pull requests didn't get the full test suite.** Each agent ran the build and the full end-to-end suite in its own cloud session before opening a pull request. GitHub ran an independent build and security checks, but not the end-to-end tests, because those were the expensive part. The one independent full run was at release time. So the evidence that a change didn't break anything came from the agent that wrote it.
+
+<Steps
+  steps={[
+    { title: 'Changes', text: 'Works out what the pull request touches.' },
+    { title: 'Checks', text: 'Build, secret scan, static analysis, dependency audit.' },
+    { title: 'End-to-end', text: 'The full suite in two halves at once, when app code changed.' },
+    { title: 'Required check', text: 'Passes only when everything above did.' },
+  ]}
+/>
+
+Now every pull request that touches app code runs the full suite on GitHub's machines, split in two halves that run at the same time. It adds about five minutes, and the pull request can't merge until it passes.
+
+## The agents decide the rest
+
+That left a question. If GitHub runs the full suite anyway, should the agents still run it themselves?
+
+I didn't want to force it either way. A copy fix with an obvious blast radius doesn't need a full local run when an independent one is coming five minutes later. A change to how workouts are saved does, because finding out early is cheaper than a failed pull request. So the agents choose. If an agent judges the change near zero risk, it runs the tests for what it touched and leaves the full suite to CI. Anything else, it runs the full suite first. Its close-out note says which it did and why. Either way the independent run has to be green before anything merges.
+
+<Callout title="And the check on the agents' judgment:">
+the monthly process review counts the changes that skipped the local run and flags any that later needed a bug fix. If "near zero risk" turns out to mean "fairly risky", I'll see it.
+</Callout>
+
+The release keeps its own full run. Two pull requests can each pass alone and break things together, and the commit that gets tagged was never itself tested. It's five free minutes a few times a week.
+
+<StatRow stats={[
+  { value: '2,429', label: "October's minutes, under a 3,000 allowance" },
+  { value: '~5 min', label: 'for the full end-to-end suite on each pull request now' },
+  { value: '$0', label: 'for the code repo\'s minutes since it went public' },
+]} />
+
+## What broke
+
+The guard's two bugs, above. And the new-issue rule, which I made to save minutes and then forgot I'd made. For almost four weeks new issues sat until the next scheduled run, and each time the explanation was "it's waiting for the two-hour run." Nobody, me included, connected that to a rule I'd made to save minutes.
+
+Next I'll find out whether the agents are any good at judging risk. I'm hoping for boring.

@@ -1,0 +1,73 @@
+---
+title: "Moving a live app to a public repo while the AI agents kept working"
+tabTitle: The Move
+partTitle: The day of the move
+description: The day RepBunny's code moved to a public repo. A snapshot with no history, build numbers that tried to start over at 1, an agent that went to work in the old repo, and a release that went out with the wrong icon.
+dek: The move was one day of work, most of it mine at a keyboard following a checklist. The surprises were the things that quietly depended on the old repo's history.
+date: 2026-11-10
+readMinutes: 5
+series: going-public
+part: 1
+draft: true
+---
+import Steps from '../../components/blog/Steps.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is part 2 of [going public](/blog/going-public/), on the day RepBunny's code moved to its new public repo.
+
+Most of the prep was done by agents in the days before. They removed the pieces that only made sense privately, wrote the public-content check, and taught every script that reads issues to read them from the backlog repo, even when it runs somewhere else. That shipped with no change in behavior, because until the move both repos were the same one.
+
+The day itself needed me. A lot of it was settings only my account can change, and I did those by hand with an agent walking me through each one.
+
+<Steps
+  steps={[
+    { title: 'Snapshot', text: 'One commit with the exact files of the last version, checked for anything private.' },
+    { title: 'Settings', text: 'Rules on main, scanning, bot apps, and release secrets on the new repo.' },
+    { title: 'Hosting', text: 'The website, the iPhone build service, and the agents\' cloud setup pointed at it.' },
+    { title: 'Prove it', text: 'One agent change and one store release, all the way through.' },
+  ]}
+/>
+
+## The snapshot lost two files' permissions
+
+The first snapshot came out of a zip-style export on Windows. It looked right. It wasn't. The build script for Android and a git hook had lost the bit that marks them as runnable, and a Windows batch file had its line endings changed.
+
+The second try built the commit straight from the old repo's file tree, so it couldn't differ by a single bit. Pushing it over the first one needed the new repo's rules switched off for a minute, which they're designed to make annoying. Good.
+
+## Build numbers tried to start over
+
+Every RepBunny build gets a number, and both app stores require each upload to be higher than the last. The number came from counting commits. The old repo had 969. The new one had 1.
+
+The release notes leaned on history too. Each in-app "What's new" entry is matched to the build that shipped it, and the snapshot made it look like every note ever written shipped that same afternoon. The release tool also looked for the last store release in the repo's tags, found none, and offered to call the next one version 1.0.0.
+
+The fix was a small file of frozen facts from before the move. It holds the commit count to add, each old note's real date and build, and each old release's build. Everything that turns history into a number reads it. Then I checked the output against the old repo. The notes in the app, the store notes, and the sprint notes all matched.
+
+<Callout title="The lesson:">
+before you drop a repo's history, search for everything that counts it. Build numbers, changelogs, and "since the last release" are all history in disguise.
+</Callout>
+
+## An agent went to work in the old repo
+
+The first agent run after the move picked an issue and started building it. In the old repo.
+
+I had added the new repo to the agents' cloud setup, but the old one was still there too, and it still had all the code. Nothing told the agent which one was home. So it did the sensible thing with what it had. The fix was one line at the top of each agent's instructions: work in the code repo, and never change files in the backlog repo.
+
+Then I made it worse for a minute. The note I pasted in to redirect that first run told it to use the wrong closing line on its pull request. It followed my note over its own process and skipped steps. It reopened properly, and that became the first agent change shipped from the public repo. The process was right. My note wasn't.
+
+The next day the old repo lost its copy of the code. It went from about 1,800 files to 36, only the backlog automation and its scripts. An agent can't wander into code that isn't there.
+
+## The first release
+
+The release went better than I expected. One button cut it. The tests ran on GitHub's machines, Android went to Google Play as a draft, and the iPhone build went through the build service to TestFlight. It took two tries, because the new connection was missing a few settings. Each failure said exactly what was missing, which I appreciate in a failure.
+
+Then I looked at TestFlight and saw the app icon. I had picked the classic one when the autumn icon was the plan. So the first public release won't go to the store. It was cut again a couple of hours later as 1.9.2, with the right icon. (The pipeline did its job perfectly. I chose the wrong option in a dropdown.)
+
+## What broke
+
+- **The first snapshot.** Lost file permissions and line endings. Rebuilt from the exact file tree.
+- **Build numbers and release notes.** Both would have reset. Fixed with a frozen record of what came before.
+- **The wrong repo.** An agent built in the old repo because nothing said not to. Fixed with one line, then by removing the old code.
+- **Issue links.** After the move, a bare `#12` in a commit means pull request 12 in the code repo, not issue 12 in the backlog. The release email would have linked the wrong ones. Commits now name the backlog repo in full.
+- **The icon.** That one was me.
+
+Next up, [what going public did to the CI bill](/blog/going-public-minutes/). It turned a rule I'd been living with for a month upside down.
