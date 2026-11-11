@@ -14,25 +14,14 @@ part: 6
 draft: false
 ---
 import AgentMind from '../../components/blog/AgentMind.astro';
-import Flipbook from '../../components/blog/Flipbook.astro';
 import Stepper from '../../components/blog/Stepper.astro';
 import StatRow from '../../components/blog/StatRow.astro';
 import BuildDiagram from '../../components/blog/BuildDiagram.astro';
 import Callout from '../../components/blog/Callout.astro';
+import LessonWalkthrough from '../../components/blog/LessonWalkthrough.astro';
+import balloonLesson from '../../data/gesso/lessons/balloon.json';
 import day2 from '../../data/gesso/day2.json';
 
-export const [w, h] = day2.size;
-export const lesson = {
-  label: 'Balloon over lavender',
-  width: w,
-  height: h,
-  lead: 2,
-  frames: [
-    { src: '/img/gesso/day2/balloon.webp', label: 'The picture' },
-    { src: day2.beginner, label: 'The beginner version it made first' },
-    ...day2.steps.map((s) => ({ src: s.image, label: s.name })),
-  ],
-};
 export const balloon = day2.diagrams.find((d) => d.id === 'balloon');
 export const tree = day2.diagrams.find((d) => d.id === 'tree');
 export const rows = day2.diagrams.find((d) => d.id === 'lavender-rows');
@@ -66,9 +55,14 @@ The lavender now goes on in three passes, the way a teacher would do it: the row
 
 ## The lesson it made
 
-Press Play, or drag the slider. It starts with the picture and the beginner version, then the 12 steps.
+Here's the lesson the way a painter sees it, one step at a time. Each step has its picture, the paints and brushes it needs, and the full instructions behind a toggle. Use the arrows, swipe, or tap a step below the picture.
 
-<Flipbook sequences={[lesson]} caption="The 12-step lesson the agent made, starting from its simpler beginner version." />
+<LessonWalkthrough
+  lesson={balloonLesson}
+  base="/img/gesso/lessons/balloon"
+  title="Hot air balloon over lavender"
+  caption="The 12-step lesson the agent made from its simpler beginner version. Each paint's recipe is under Show instructions."
+/>
 
 <StatRow stats={[
   { value: `$${day2.total_cost.toFixed(2)}`, label: 'all the images' },
