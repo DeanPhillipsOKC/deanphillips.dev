@@ -77,7 +77,14 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
 
     // The path a decision fires through: one neuron per layer, chosen per try.
     const pathFor = (d: number, k: number) => LAYERS.map((n, l) => Math.floor(hash(d + 1, k + 1, l + 1) * n));
-    const dust = Array.from({ length: 60 }, (_, i) => ({ x: hash(i, 7), y: hash(i, 8), vx: (hash(i, 9) - 0.5) * 0.012, vy: (hash(i, 10) - 0.5) * 0.012 }));
+    // A 3D space of points behind everything: one cluster per tool (a nod to the vectors AI models work in, drawn in
+    // three dimensions instead of thousands), plus loose points. The cluster of the tool being weighed lights up.
+    const gauss = (a: number, b: number) => Math.sqrt(-2 * Math.log(hash(a, b, 1) + 1e-9)) * Math.cos(2 * Math.PI * hash(a, b, 2));
+    const centers = TOOLS.map((_, c) => { const th = (c / TOOLS.length) * Math.PI * 2 + 0.4, ph = (hash(c, 3) - 0.5) * 1.6;
+      return [Math.cos(th) * Math.cos(ph), Math.sin(ph) * 0.8, Math.sin(th) * Math.cos(ph)]; });
+    const space: { p: number[]; c: number }[] = [];
+    centers.forEach((ctr, c) => { for (let i = 0; i < 80; i++) space.push({ c, p: ctr.map((v, j) => v + gauss(c * 100 + i, j) * 0.15) }); });
+    for (let i = 0; i < 160; i++) space.push({ c: -1, p: [0, 1, 2].map((j) => (hash(i, j, 9) - 0.5) * 2.6) });
 
     function frame(time: number) {
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -108,14 +115,24 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
       const ti = tr ? toolIdx(tr.tool) : -1;
       const col = ti >= 0 ? kindColor[tools[ti].kind] : C.teal;
 
-      // Background dust, joined when close.
-      const pts = dust.map((p) => [((p.x + p.vx * time) % 1 + 1) % 1 * W, ((p.y + p.vy * time) % 1 + 1) % 1 * H]);
-      const near = Math.min(W, H) * 0.14; g.lineWidth = 1 * S;
-      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
-        const dd = Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
-        if (dd < near) { g.strokeStyle = C.teal; g.globalAlpha = 0.07 * (1 - dd / near); g.beginPath(); g.moveTo(pts[i][0], pts[i][1]); g.lineTo(pts[j][0], pts[j][1]); g.stroke(); }
+      // The 3D space behind it all, turning slowly; nearer points are bigger and brighter.
+      {
+        const yaw = time * 0.11, tilt = 0.42, cx = W * 0.47, cy = H * 0.37, R = Math.min(W, H) * 0.5;
+        const lit = trying ? toolIdx(tr!.tool) : -1;
+        const proj = space.map(({ p, c }) => {
+          const x = p[0] * Math.cos(yaw) - p[2] * Math.sin(yaw), z0 = p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw);
+          const y = p[1] * Math.cos(tilt) - z0 * Math.sin(tilt), z = p[1] * Math.sin(tilt) + z0 * Math.cos(tilt);
+          return { x: cx + x * R, y: cy + y * R, z, c };
+        }).sort((a, b) => a.z - b.z);
+        for (const q of proj) {
+          const depth = (q.z + 1.6) / 3.2, on = q.c === lit && lit >= 0;
+          const colr = q.c < 0 ? C.muted : kindColor[TOOLS[q.c].kind];
+          g.fillStyle = colr; g.globalAlpha = (q.c < 0 ? 0.22 : on ? 0.95 : 0.42) * (0.3 + 0.7 * depth);
+          if (on) { g.shadowColor = colr; g.shadowBlur = 10 * S; }
+          g.beginPath(); g.arc(q.x, q.y, (on ? 3 : 2.1) * (0.55 + 0.9 * depth) * S, 0, 7); g.fill(); g.shadowBlur = 0;
+        }
+        g.globalAlpha = 1;
       }
-      g.globalAlpha = 1;
 
       // Activity: while thinking, waves sweep left to right; otherwise a low hum of random firing.
       const act = nodes.map((layer, l) => layer.map((_, i) => {
