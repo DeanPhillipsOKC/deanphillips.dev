@@ -7,10 +7,10 @@
 // counter. Everything is a function of time, so it loops cleanly and records as video.
 interface Try { tool: string; verdict: 'yes' | 'no' | 'skip'; why: string; cost?: number }
 interface Decision { label: string; img: string; out?: string; think: string; tries: Try[] }
-interface Props { decisions: Decision[]; summary?: string; caption?: string; ratio?: string; autoplay?: boolean }
-const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } = Astro.props;
+interface Props { decisions: Decision[]; summary?: string; caption?: string; ratio?: string; autoplay?: boolean; lead?: number; intro?: string }
+const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false, lead = 0, intro = '' } = Astro.props;
 ---
-<figure class="mind panel bleed" data-d={JSON.stringify(decisions)} data-summary={summary} data-autoplay={autoplay ? '1' : undefined}>
+<figure class="mind panel bleed" data-d={JSON.stringify(decisions)} data-summary={summary} data-autoplay={autoplay ? '1' : undefined} data-lead={lead || undefined} data-intro={intro || undefined}>
   <canvas class="brain" style={`aspect-ratio: ${ratio}`} role="img"
     aria-label="An animated 3D space of points: for each picture, a lit path travels through it to the tool the agent decides to try" hidden></canvas>
   <ol class="fallback">
@@ -26,7 +26,7 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
   type V3 = [number, number, number];
   interface Try { tool: string; verdict: Verdict; why: string; cost?: number }
   interface Decision { label: string; img: string; out?: string; think: string; tries: Try[] }
-  interface Seg { kind: 'in' | 'think' | 'travel' | 'verdict' | 'fly' | 'gap' | 'done'; d: number; k: number; start: number; end: number }
+  interface Seg { kind: 'intro' | 'in' | 'think' | 'travel' | 'verdict' | 'fly' | 'gap' | 'done'; d: number; k: number; start: number; end: number }
 
   const TOOLS = [
     { id: 'crop', name: 'Crop', kind: 'free', note: 'free' },
@@ -61,20 +61,25 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
     const segs: Seg[] = [];
     let t = 0;
     const add = (kind: Seg['kind'], d: number, k: number, len: number) => { segs.push({ kind, d, k, start: t, end: t + len }); t += len; };
+    // An optional opening for narrated videos: the space turning, with a caption, before the first decision.
+    if (Number(root.dataset.lead)) add('intro', 0, -1, Number(root.dataset.lead));
     decisions.forEach((dec, d) => {
-      add('in', d, -1, 0.6);
-      add('think', d, -1, 1.1);
+      // Paced for reading: about 18 characters a second, plus a beat to take in the motion.
+      add('in', d, -1, 0.9);
+      add('think', d, -1, 1.6 + dec.think.length / 18);
       dec.tries.forEach((tr, k) => {
-        add('travel', d, k, 0.9);
-        add('verdict', d, k, 1.55);
+        add('travel', d, k, 1.2);
+        add('verdict', d, k, 1.8 + tr.why.length / 18);
         if (tr.verdict === 'yes' && MAKES.has(tr.tool) && !dec.tries.slice(k + 1).some((x) => MAKES.has(x.tool) && x.verdict === 'yes'))
-          add('fly', d, k, 0.7);
+          add('fly', d, k, 1.0);
       });
-      add('gap', d, -1, 0.3);
+      add('gap', d, -1, 0.6);
     });
-    add('done', decisions.length - 1, -1, 3.6);
+    add('done', decisions.length - 1, -1, 6);
     const LOOP = t;
     root.dataset.loop = LOOP.toFixed(2);
+    // When each decision starts, and the closing summary: lets a recording line narration up with the picture.
+    root.dataset.starts = JSON.stringify([...segs.filter((s) => s.kind === 'in').map((s) => s.start), segs[segs.length - 1].start]);
     const segAt = (time: number) => segs.find((s) => time >= s.start && time < s.end) ?? segs[segs.length - 1];
 
     // The space: one cluster per tool on a sphere, plus loose points between them.
@@ -128,7 +133,7 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
       const tools = TOOLS.map((tl, i) => ({ ...tl, x: W * 0.75, y: top + (bot - top) * (i / (TOOLS.length - 1)) }));
 
       // Project the space: turning slowly, tilted toward us.
-      const yaw = time * 0.12, tilt = 0.38, cx = W * 0.475, cy = (top + bot) / 2 + 6 * S, R = Math.min((bot - top) * 0.5, W * 0.205);
+      const yaw = time * 0.07, tilt = 0.38, cx = W * 0.475, cy = (top + bot) / 2 + 6 * S, R = Math.min((bot - top) * 0.5, W * 0.205);
       const proj = (p: V3) => {
         const x = p[0] * Math.cos(yaw) - p[2] * Math.sin(yaw), z0 = p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw);
         const y = p[1] * Math.cos(tilt) - z0 * Math.sin(tilt), z = p[1] * Math.sin(tilt) + z0 * Math.cos(tilt);
@@ -196,7 +201,7 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
         else { g.fillStyle = C.line; g.fillRect(x, y, w, h); }
         g.restore();
       };
-      if (out < 1) {
+      if (out < 1 && seg.kind !== 'intro') {
         g.globalAlpha = (seg.kind === 'in' ? ease((time - seg.start) / (seg.end - seg.start)) : 1) * (1 - out);
         drawImg(dec.img, cardX, cardY, card.w, cardH, 10 * S);
         g.strokeStyle = C.teal; g.lineWidth = 2 * S; g.beginPath(); g.roundRect(cardX, cardY, card.w, cardH, 10 * S); g.stroke();
@@ -247,7 +252,8 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false } 
       else if (seg.kind === 'travel') thought = `${TOOLS[ti].name}?`;
       else if (seg.kind === 'verdict' || seg.kind === 'fly') thought = `${TOOLS[ti].name}? ${tr!.verdict === 'yes' ? 'Yes.' : tr!.verdict === 'no' ? 'No.' : 'Not needed.'} ${tr!.why}`;
       else if (seg.kind === 'done') thought = summary || 'Free tools first; paid only when nothing free will do.';
-      const typed = ['verdict', 'think', 'done'].includes(seg.kind) ? clamp((time - seg.start) / 0.8) : 1;
+      else if (seg.kind === 'intro') thought = root.dataset.intro || 'Free tools first; paid only when nothing free will do.';
+      const typed = ['verdict', 'think', 'done', 'intro'].includes(seg.kind) ? clamp((time - seg.start) / Math.min(1.6, (seg.end - seg.start) * 0.35)) : 1;
       const shown = thought.slice(0, Math.ceil(thought.length * typed));
       g.textAlign = 'left'; g.font = font(600, 19); g.fillStyle = C.text;
       const maxW = W * 0.94; let line = '', ly = H * 0.765;
