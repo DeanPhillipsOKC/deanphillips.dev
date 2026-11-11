@@ -43,12 +43,12 @@ This is part 6 of a series about Gesso, an ongoing experiment in turning any pic
 
 The agent is Claude, running inside Claude Code, following a long instruction file I wrote (Claude Code calls it a skill). Its thinking costs nothing extra on my subscription. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
 
-Here are four of its real decisions from making the lesson below. Each picture comes in on the left, the agent thinks, and a signal fires to the tool it's considering. Green tools are free, purple costs money, and the yellow one is a check. The words at the bottom are its actual reasons, from its log.
+Here are four of its real decisions from making the lesson below. Each picture sends a question into the agent's mind, drawn as a turning 3D space with a cluster of points for each tool. Its decision travels through that space to the tool it's considering, and the tool answers yes or no. Green tools are free, purple costs money, and the yellow one is a check. The words at the bottom are its actual reasons, from its log.
 
 <AgentMind
   decisions={day2.decisions}
   summary={`Four of the run's decisions. The whole lesson: 12 steps, ${day2.renders} paid pictures, ${day2.filters} free filter runs, $${day2.total_cost.toFixed(2)}.`}
-  caption="Real decisions from the balloon lesson run, replayed. Free tools are green, the image model is purple, and the review is yellow. The spinning clusters behind are a nod to the vector math underneath AI models, drawn in three dimensions instead of thousands. They're a picture of the idea, not the actual math."
+  caption="Real decisions from the balloon lesson run, replayed. Free tools are green, the image model is purple, and the review is yellow. The 3D space is a nod to the vector math underneath AI models, which works in thousands of dimensions, not three. It's a picture of the idea, not the actual math."
 />
 
 ## Too busy? Make it simpler first
