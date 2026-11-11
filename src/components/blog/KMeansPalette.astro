@@ -186,7 +186,8 @@ const { src, alt, caption, k = 6 } = Astro.props;
     new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.25 }).observe(root);
     function tick(now: number) {
       if (visible) {
-        if (!reduce) angle += 0.0035;
+        if (!next) next = now + 1500; // show the picture itself for a moment before the first round
+        if (!reduce) angle = 0.6 + now * 0.00021; // by time, not frames, so it turns at the same speed everywhere
         if (playing && now >= next) {
           if (settled) {
             if (!holdUntil) holdUntil = now + 3500;
