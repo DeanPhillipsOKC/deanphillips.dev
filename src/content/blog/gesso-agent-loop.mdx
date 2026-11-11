@@ -41,7 +41,9 @@ This is part 6 of a series about Gesso, an ongoing experiment in turning any pic
 
 ## Inside its head
 
-The agent is Claude, running inside Claude Code, following a long instruction file I wrote (Claude Code calls it a skill). Its thinking costs nothing extra on my subscription. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
+Right now the agent is Claude, running inside Claude Code and following a long instruction file I wrote. This is the exploring phase: letting Claude Code run the agent loop means I can focus on whether the lessons work, without building the loop myself or paying for every thought. When Gesso becomes an app, that loop will have to live somewhere else, and that will be its own entry in this series.
+
+The thinking is covered for now. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
 
 Below is every decision it made for the lesson further down, straight from its log: 16 pictures and 52 tool choices. The agent's mind is drawn as a turning 3D space with a cluster of points for each tool. For the picture you pick, a path travels from the middle to each tool it tried, and the tool answers yes or no. Green tools are free, purple costs money, and the yellow one is a check. Click through the pictures, or drag the space to turn it. The reasons underneath are its own words.
 
@@ -84,9 +86,9 @@ An agent that only makes things will happily make wrong things. So the instructi
 <Stepper frames={[
   { time: 'Finish', title: 'Paint the finished painting first', text: 'Every step is copied backward from this one picture, so it gets the high-quality setting. Its own check found nothing to fix this time.', chips: [{ label: 'cost', value: '7¢' }, { label: 'caught', value: '0', tone: 'ok' }] },
   { time: 'Steps', title: 'Eleven steps, all at once', text: 'Each step is the finished painting with the later parts not painted yet. All eleven render in parallel.', chips: [{ label: 'cost', value: '2 to 3¢ each' }] },
-  { time: 'Review, round 1', title: 'A fresh pair of eyes', text: 'A new Claude compared every step with its neighbors. Two steps had the sky stopping short, leaving a strip of white canvas the steps around them don\'t have.', chips: [{ label: 'caught', value: '2', tone: 'warn' }] },
+  { time: 'Review, round 1', title: 'A fresh pair of eyes', text: 'A fresh reviewer compared every step with its neighbors. Two steps had the sky stopping short, leaving a strip of white canvas the steps around them don\'t have.', chips: [{ label: 'caught', value: '2', tone: 'warn' }] },
   { time: 'Redo', title: 'Fix both', text: 'The agent checked each against its neighbors, then redid both with the sky ending at a straight edge, 62% of the way down.', chips: [{ label: 'cost', value: '6¢' }] },
-  { time: 'Review, round 2', title: 'Another fresh pair of eyes', text: 'A second new Claude found one of them still stopping short. One more redo. The rules allow two rounds; anything still wrong after that gets flagged on the lesson page instead of hidden.', chips: [{ label: 'caught', value: '1', tone: 'warn' }, { label: 'cost', value: '3¢' }] },
+  { time: 'Review, round 2', title: 'Another fresh pair of eyes', text: 'A second fresh reviewer found one of them still stopping short. One more redo. The rules allow two rounds; anything still wrong after that gets flagged on the lesson page instead of hidden.', chips: [{ label: 'caught', value: '1', tone: 'warn' }, { label: 'cost', value: '3¢' }] },
   { time: 'Its own catch', title: 'The stripes don\'t match', text: 'While writing the steps, it noticed the balloon\'s stripes change between its step and the finish. Out of review rounds, it flagged it on the page and told the painter what to do.', chips: [{ label: 'flagged', value: '1', tone: 'warn' }] },
 ]} caption="The run's checks, in order. Click Next." />
 

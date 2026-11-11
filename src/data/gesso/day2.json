@@ -358,7 +358,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
@@ -463,7 +463,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
@@ -487,7 +487,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
@@ -511,7 +511,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
@@ -535,7 +535,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     },
     {
      "tool": "diagram",
@@ -564,7 +564,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     },
     {
      "tool": "diagram",
@@ -593,7 +593,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
@@ -617,7 +617,7 @@
     {
      "tool": "review",
      "verdict": "yes",
-     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+     "why": "A fresh reviewer compared it with its neighbors: nothing to fix."
     }
    ]
   },
