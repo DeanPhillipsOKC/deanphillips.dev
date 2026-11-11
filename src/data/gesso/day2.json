@@ -1,377 +1,247 @@
 {
  "steps": [
   {
-   "id": "sky-gradient",
+   "id": "sky",
    "name": "Paint the sunset sky",
    "image": "/img/gesso/day2/steps/01.webp",
    "thumb": "/img/gesso/day2/steps/01-t.webp"
   },
   {
-   "id": "sunset-clouds",
-   "name": "Add the sunset clouds",
+   "id": "clouds",
+   "name": "Dab in the big clouds",
    "image": "/img/gesso/day2/steps/02.webp",
    "thumb": "/img/gesso/day2/steps/02-t.webp"
   },
   {
-   "id": "far-mountains",
-   "name": "Paint the far mountains",
+   "id": "sun",
+   "name": "Paint the sun",
    "image": "/img/gesso/day2/steps/03.webp",
    "thumb": "/img/gesso/day2/steps/03-t.webp"
   },
   {
-   "id": "valley-village",
-   "name": "Paint the valley and the village",
+   "id": "mountains",
+   "name": "Paint the far mountains",
    "image": "/img/gesso/day2/steps/04.webp",
    "thumb": "/img/gesso/day2/steps/04-t.webp"
   },
   {
-   "id": "golden-hill",
-   "name": "Paint the golden hillside",
+   "id": "fields",
+   "name": "Paint the golden fields and hill",
    "image": "/img/gesso/day2/steps/05.webp",
    "thumb": "/img/gesso/day2/steps/05-t.webp"
   },
   {
-   "id": "oak-tree",
-   "name": "Paint the oak tree",
+   "id": "treelines",
+   "name": "Dab the tree lines",
    "image": "/img/gesso/day2/steps/06.webp",
    "thumb": "/img/gesso/day2/steps/06-t.webp"
   },
   {
-   "id": "lavender-rows",
-   "name": "Paint the lavender rows",
+   "id": "tree",
+   "name": "Paint the lone tree",
    "image": "/img/gesso/day2/steps/07.webp",
    "thumb": "/img/gesso/day2/steps/07-t.webp"
   },
   {
-   "id": "lavender-spikes",
-   "name": "Add the lavender flowers",
+   "id": "lavender-rows",
+   "name": "Block in the lavender rows and paths",
    "image": "/img/gesso/day2/steps/08.webp",
    "thumb": "/img/gesso/day2/steps/08-t.webp"
   },
   {
-   "id": "balloon",
-   "name": "Paint the hot air balloon",
+   "id": "lavender-dabs",
+   "name": "Dab the lavender",
    "image": "/img/gesso/day2/steps/09.webp",
    "thumb": "/img/gesso/day2/steps/09-t.webp"
   },
   {
-   "id": "balloon-shading",
-   "name": "Shade the balloon and add the ropes",
+   "id": "lavender-lights",
+   "name": "Add light to the lavender",
    "image": "/img/gesso/day2/steps/10.webp",
    "thumb": "/img/gesso/day2/steps/10-t.webp"
   },
   {
-   "id": "final-highlights",
-   "name": "Final highlights",
+   "id": "balloon",
+   "name": "Paint the striped balloon",
    "image": "/img/gesso/day2/steps/11.webp",
    "thumb": "/img/gesso/day2/steps/11-t.webp"
+  },
+  {
+   "id": "highlights",
+   "name": "Final details and highlights",
+   "image": "/img/gesso/day2/steps/12.webp",
+   "thumb": "/img/gesso/day2/steps/12-t.webp"
   }
  ],
  "canvas": "/img/gesso/day2/steps/00-canvas.webp",
- "jobs": [
+ "jobs": [],
+ "decisions": [
   {
-   "label": "Reference",
-   "img": "/img/gesso/day2/steps/reference-t.webp",
+   "label": "Your picture",
+   "img": "/img/gesso/day2/balloon.webp",
+   "out": "/img/gesso/day2/steps/beginner-t.webp",
+   "think": "Is it just the picture? Could a beginner paint it in an afternoon?",
    "tries": [
     {
-     "rung": 0,
-     "ok": true,
-     "why": "four simplify settings tried; mean shift at full strength kept the balloon crisp",
-     "cost": 0
-    }
-   ]
-  },
-  {
-   "label": "Value study",
-   "img": "/img/gesso/day2/steps/values-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": true,
-     "why": "lights, middles, and darks, from a filter",
-     "cost": 0
-    }
-   ]
-  },
-  {
-   "label": "Palette",
-   "img": "/img/gesso/day2/steps/palette-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": true,
-     "why": "six paints found by k-means",
-     "cost": 0
-    }
-   ]
-  },
-  {
-   "label": "Finished painting",
-   "img": "/img/gesso/day2/steps/11-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "no filter can paint on canvas"
+     "tool": "crop",
+     "verdict": "skip",
+     "why": "No bars or captions around it. Nothing to cut."
     },
     {
-     "rung": 3,
-     "ok": false,
-     "why": "finish check: the teal stripes came out royal blue",
-     "cost": 0.0666
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "repainted with the photo's colors",
-     "cost": 0.0668
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0244,
+     "why": "A village, thousands of lavender stalks, veined clouds. Too busy. Paint a simpler version first."
     }
    ]
   },
   {
-   "label": "Step 1: Paint the sunset sky",
-   "img": "/img/gesso/day2/steps/01-t.webp",
+   "label": "Planning pictures",
+   "img": "/img/gesso/day2/steps/beginner-t.webp",
+   "out": "/img/gesso/day2/steps/palette-t.webp",
+   "think": "What does the painter need before the first brushstroke?",
    "tries": [
     {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
+     "tool": "simplify",
+     "verdict": "yes",
+     "why": "Kuwahara turned the rows into blocks. Mean shift keeps the stripes and the sun."
     },
     {
-     "rung": 3,
-     "ok": false,
-     "why": "review: the sun sat right of center",
-     "cost": 0.0192
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0194
+     "tool": "palette",
+     "verdict": "yes",
+     "why": "K-means finds the paints to mix from five tubes."
     }
    ]
   },
   {
-   "label": "Step 2: Add the sunset clouds",
+   "label": "Step 2: the clouds",
    "img": "/img/gesso/day2/steps/02-t.webp",
+   "out": "/img/gesso/day2/steps/02-t.webp",
+   "think": "This step is the finished painting with everything later taken away.",
    "tries": [
     {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The mountains will cover part of this sky. A filter can't uncover it."
     },
     {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0191
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Render it from the finished painting."
+    },
+    {
+     "tool": "review",
+     "verdict": "no",
+     "why": "The sky stops in a curve at 45% down. White canvas shows down to 62%."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0315,
+     "why": "Redo it with a straight lower edge at 62%."
     }
    ]
   },
   {
-   "label": "Step 3: Paint the far mountains",
-   "img": "/img/gesso/day2/steps/03-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0192
-    }
-   ]
-  },
-  {
-   "label": "Step 4: Paint the valley and the village",
-   "img": "/img/gesso/day2/steps/04-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0192
-    }
-   ]
-  },
-  {
-   "label": "Step 5: Paint the golden hillside",
-   "img": "/img/gesso/day2/steps/05-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0191
-    }
-   ]
-  },
-  {
-   "label": "Step 6: Paint the oak tree",
-   "img": "/img/gesso/day2/steps/06-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0191
-    }
-   ]
-  },
-  {
-   "label": "Step 7: Paint the lavender rows",
+   "label": "Step 7: the tree",
    "img": "/img/gesso/day2/steps/07-t.webp",
+   "out": "/img/gesso/day2/steps/07-t.webp",
+   "think": "Could a first-time painter start this from the picture alone?",
    "tries": [
     {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Render it from the finished painting."
     },
     {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0192
-    }
-   ]
-  },
-  {
-   "label": "Step 8: Add the lavender flowers",
-   "img": "/img/gesso/day2/steps/08-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.019
-    }
-   ]
-  },
-  {
-   "label": "Step 9: Paint the hot air balloon",
-   "img": "/img/gesso/day2/steps/09-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.0191
-    }
-   ]
-  },
-  {
-   "label": "Step 10: Shade the balloon and add the ropes",
-   "img": "/img/gesso/day2/steps/10-t.webp",
-   "tries": [
-    {
-     "rung": 0,
-     "ok": false,
-     "why": "a later layer covers part of this; no filter can uncover it"
-    },
-    {
-     "rung": 3,
-     "ok": true,
-     "why": "rendered from the finished painting",
-     "cost": 0.019
+     "tool": "diagram",
+     "verdict": "yes",
+     "why": "Beginners paint a ball on a stick. Show the Y fork and four round clusters."
     }
    ]
   }
  ],
+ "beginner": "/img/gesso/day2/steps/beginner.webp",
+ "beginner_version": {
+  "made": true,
+  "found": "Tiny separate things: yes, a village of houses with cypress trees, scattered bushes on the golden hill, and the balloon's ropes. Textures of hundreds of items: yes, thousands of lavender stalks. Detail inside big shapes: yes, veined, many-puffed clouds and a lake glint. Parts: about 12 at different distances (sky, clouds, sun, mountains, lake, village, middle fields, tree lines, golden hill, tree, lavender, balloon), more than the budget of 8.",
+  "list": "Dropped: the village and its cypresses, the lake glint, the bushes on the golden hill, the ropes. Merged: the clouds into one big upper-right mass, one upper-left group, and a few streaks; the far mountains into one smooth band; the middle distance into one gold field with a dabbed tree line. Turned into marks: the lavender into rows of loose purple dabs, darker at the base, no stalks; the tree's crown into clustered dabs; the golden hill into loose strokes.",
+  "why": "With the village gone and the lavender as dabs, every part is either a big shape or one repeated mark, and the lavender can be split into three passes."
+ },
  "diagrams": [
   {
-   "id": "valley-village",
-   "step": 4,
-   "name": "Paint the valley and the village",
-   "html": "<div class=\"build\"><p class=\"label\">Build the village from boxes and roofs</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. Boxes for the walls\"><defs><marker id=\"arrow-blog-valley-village\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"6.0\" y=\"58.0\" width=\"24.0\" height=\"14.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"36.0\" y=\"46.0\" width=\"24.0\" height=\"26.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"58.0\" y=\"55.0\" width=\"26.0\" height=\"17.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"84.0\" y=\"60.0\" width=\"12.0\" height=\"12.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>1</b> Boxes for the walls</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Low roofs and a tower\"><defs><marker id=\"arrow-blog-valley-village-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"6.0\" y=\"58.0\" width=\"24.0\" height=\"14.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"36.0\" y=\"46.0\" width=\"24.0\" height=\"26.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"58.0\" y=\"55.0\" width=\"26.0\" height=\"17.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"84.0\" y=\"60.0\" width=\"12.0\" height=\"12.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 4 58 L 18 53 L 32 58 Z\" fill=\"#bd7a39\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 34 46 L 48 41 L 62 46 Z\" fill=\"#bd7a39\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 56 55 L 71 50 L 86 55 Z\" fill=\"#bd7a39\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 83 60 L 90 56 L 97 60 Z\" fill=\"#bd7a39\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"44.0\" y=\"32.0\" width=\"8.0\" height=\"10.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 43 32 L 48 27 L 53 32 Z\" fill=\"#bd7a39\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>2</b> Low roofs and a tower</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Cypresses: press, then lift\"><defs><marker id=\"arrow-blog-valley-village-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><ellipse cx=\"24.0\" cy=\"56.0\" rx=\"2.0\" ry=\"12.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><ellipse cx=\"64.0\" cy=\"44.0\" rx=\"2.5\" ry=\"20.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"6.0\" y=\"58.0\" width=\"24.0\" height=\"14.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"36.0\" y=\"46.0\" width=\"24.0\" height=\"26.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"58.0\" y=\"55.0\" width=\"26.0\" height=\"17.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"84.0\" y=\"60.0\" width=\"12.0\" height=\"12.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 4 58 L 18 53 L 32 58 Z\" fill=\"#bd7a39\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 34 46 L 48 41 L 62 46 Z\" fill=\"#bd7a39\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 56 55 L 71 50 L 86 55 Z\" fill=\"#bd7a39\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 83 60 L 90 56 L 97 60 Z\" fill=\"#bd7a39\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"44.0\" y=\"32.0\" width=\"8.0\" height=\"10.0\" rx=\"0\" fill=\"#f2d29a\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 43 32 L 48 27 L 53 32 Z\" fill=\"#bd7a39\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"33.0\" cy=\"52.0\" rx=\"2.5\" ry=\"18.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 70 70 L 70 30\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-valley-village-2)\"/></svg><figcaption><b>3</b> Cypresses: press, then lift</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
-   "noticed": "Buildings appear whole in this step, and a beginner would try to paint windows and walls instead of the few boxes the picture really shows.",
-   "pieces": "A village is boxes with low roofs on top, so: wall boxes first, then roofs and the tower, then cypresses pulled up last with press and lift."
-  },
-  {
-   "id": "oak-tree",
-   "step": 6,
-   "name": "Paint the oak tree",
-   "html": "<div class=\"build\"><p class=\"label\">Build the oak from a Y and an oval</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. A trunk that splits in a Y\"><defs><marker id=\"arrow-blog-oak-tree\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 46 82 L 47 64 L 39 53 L 43 51 L 50 59 L 57 51 L 61 53 L 53 64 L 54 82 Z\" fill=\"#3e3428\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 50 80 L 50 60\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-oak-tree)\"/></svg><figcaption><b>1</b> A trunk that splits in a Y</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. One wide oval on top\"><defs><marker id=\"arrow-blog-oak-tree-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 46 82 L 47 64 L 39 53 L 43 51 L 50 59 L 57 51 L 61 53 L 53 64 L 54 82 Z\" fill=\"#3e3428\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"50.0\" cy=\"42.0\" rx=\"40.0\" ry=\"24.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>2</b> One wide oval on top</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Bumpy clusters on its edge\"><defs><marker id=\"arrow-blog-oak-tree-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 46 82 L 47 64 L 39 53 L 43 51 L 50 59 L 57 51 L 61 53 L 53 64 L 54 82 Z\" fill=\"#3e3428\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"50.0\" cy=\"42.0\" rx=\"40.0\" ry=\"24.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"14.0\" cy=\"46.0\" r=\"10.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"24.0\" cy=\"27.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"46.0\" cy=\"20.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"70.0\" cy=\"23.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"86.0\" cy=\"40.0\" r=\"10.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"78.0\" cy=\"58.0\" r=\"9.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"22.0\" cy=\"60.0\" r=\"9.0\" fill=\"#202b30\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>3</b> Bumpy clusters on its edge</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"4. Leaf green on the sunny left\"><defs><marker id=\"arrow-blog-oak-tree-3\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 46 82 L 47 64 L 39 53 L 43 51 L 50 59 L 57 51 L 61 53 L 53 64 L 54 82 Z\" fill=\"#3e3428\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"50.0\" cy=\"42.0\" rx=\"40.0\" ry=\"24.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"14.0\" cy=\"46.0\" r=\"10.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"24.0\" cy=\"27.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"46.0\" cy=\"20.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"70.0\" cy=\"23.0\" r=\"12.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"86.0\" cy=\"40.0\" r=\"10.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"78.0\" cy=\"58.0\" r=\"9.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"22.0\" cy=\"60.0\" r=\"9.0\" fill=\"#202b30\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"24.0\" cy=\"30.0\" rx=\"9.0\" ry=\"6.0\" fill=\"#79691a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><ellipse cx=\"44.0\" cy=\"22.0\" rx=\"9.0\" ry=\"5.0\" fill=\"#79691a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><ellipse cx=\"16.0\" cy=\"46.0\" rx=\"6.0\" ry=\"5.0\" fill=\"#79691a\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>4</b> Leaf green on the sunny left</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
-   "noticed": "A shaped object (a tree) appears whole, and where the trunk splits into the crown isn't clear in the picture.",
-   "pieces": "A tree is a trunk that splits into a Y, so the trunk comes first; the crown is one wide oval, then bumpy clusters on its edge, then the light side."
+   "id": "tree",
+   "step": 7,
+   "name": "Paint the lone tree",
+   "html": "<div class=\"build\"><p class=\"label\">Grow the tree from a trunk that forks into clusters</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. A short trunk on the hill\"><defs><marker id=\"arrow-blog-tree\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 0 92 Q 50 88 100 84 L 100 100 L 0 100 Z\" fill=\"#eba023\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 45 90 Q 49 78 48 66 L 55 66 Q 55 78 61 90 Z\" fill=\"#553a32\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 52 88 Q 51 78 51 68\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-tree)\"/></svg><figcaption><b>1</b> A short trunk on the hill</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Fork it into Y&#x27;s\"><defs><marker id=\"arrow-blog-tree-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 0 92 Q 50 88 100 84 L 100 100 L 0 100 Z\" fill=\"#eba023\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 45 90 Q 49 78 48 66 L 55 66 Q 55 78 61 90 Z\" fill=\"#553a32\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 50 68 Q 40 58 28 50\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"3.8000000000000003\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 50 68 Q 40 58 28 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 53 68 Q 64 58 74 50\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"3.8000000000000003\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 53 68 Q 64 58 74 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 51 67 L 52 46\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"3.6\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 51 67 L 52 46\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.0\" stroke-linecap=\"round\"/><path d=\"M 49 67 Q 40 58 30 51\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-tree-1)\"/><path d=\"M 54 67 Q 64 58 72 51\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-tree-1)\"/></svg><figcaption><b>2</b> Fork it into Y&#x27;s</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Three round clusters on top\"><defs><marker id=\"arrow-blog-tree-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 0 92 Q 50 88 100 84 L 100 100 L 0 100 Z\" fill=\"#eba023\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 45 90 Q 49 78 48 66 L 55 66 Q 55 78 61 90 Z\" fill=\"#553a32\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 50 68 Q 40 58 28 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 53 68 Q 64 58 74 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 51 67 L 52 46\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.0\" stroke-linecap=\"round\"/><ellipse cx=\"24.0\" cy=\"46.0\" rx=\"20.0\" ry=\"17.0\" fill=\"#374945\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><ellipse cx=\"50.0\" cy=\"32.0\" rx=\"26.0\" ry=\"18.0\" fill=\"#374945\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><ellipse cx=\"76.0\" cy=\"44.0\" rx=\"20.0\" ry=\"19.0\" fill=\"#374945\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>3</b> Three round clusters on top</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"4. One more along the bottom\"><defs><marker id=\"arrow-blog-tree-3\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 0 92 Q 50 88 100 84 L 100 100 L 0 100 Z\" fill=\"#eba023\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 45 90 Q 49 78 48 66 L 55 66 Q 55 78 61 90 Z\" fill=\"#553a32\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 50 68 Q 40 58 28 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 53 68 Q 64 58 74 50\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.2\" stroke-linecap=\"round\"/><path d=\"M 51 67 L 52 46\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"2.0\" stroke-linecap=\"round\"/><ellipse cx=\"24.0\" cy=\"46.0\" rx=\"20.0\" ry=\"17.0\" fill=\"#374945\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"50.0\" cy=\"32.0\" rx=\"26.0\" ry=\"18.0\" fill=\"#374945\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"76.0\" cy=\"44.0\" rx=\"20.0\" ry=\"19.0\" fill=\"#374945\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><ellipse cx=\"50.0\" cy=\"58.0\" rx=\"30.0\" ry=\"12.0\" fill=\"#374945\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>4</b> One more along the bottom</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
+   "noticed": "The tree appears whole in one step, and where the trunk forks and how the crown is built isn't clear from the picture; beginners paint a ball on a stick.",
+   "pieces": "A short tapering trunk on the hill, then two or three Y branches, then three round clusters on top and one along the bottom, so the crown comes out lumpy and about one and a half times as wide as tall, as in the step image."
   },
   {
    "id": "lavender-rows",
-   "step": 7,
-   "name": "Paint the lavender rows",
-   "html": "<div class=\"build\"><p class=\"label\">Line up the rows with one point</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. Mark where the rows meet\"><defs><marker id=\"arrow-blog-lavender-rows\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"0.0\" y=\"16.0\" width=\"100.0\" height=\"42.0\" rx=\"0\" fill=\"#ea8425\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"0.0\" y=\"58.0\" width=\"100.0\" height=\"25.0\" rx=\"0\" fill=\"#fb9847\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"61.0\" cy=\"58.0\" r=\"2.0\" fill=\"#ca6440\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>1</b> Mark where the rows meet</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Two paths fan out from it\"><defs><marker id=\"arrow-blog-lavender-rows-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"0.0\" y=\"16.0\" width=\"100.0\" height=\"42.0\" rx=\"0\" fill=\"#ea8425\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"0.0\" y=\"58.0\" width=\"100.0\" height=\"25.0\" rx=\"0\" fill=\"#fb9847\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"61.0\" cy=\"58.0\" r=\"2.0\" fill=\"#ca6440\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 61 58 L 36 83 L 44 83 Z\" fill=\"#ca6440\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 62 58 L 70 83 L 78 83 Z\" fill=\"#ca6440\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 58 62 L 42 78\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-1)\"/><path d=\"M 64 62 L 72 78\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-1)\"/></svg><figcaption><b>2</b> Two paths fan out from it</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Fill the rows between them\"><defs><marker id=\"arrow-blog-lavender-rows-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"0.0\" y=\"16.0\" width=\"100.0\" height=\"42.0\" rx=\"0\" fill=\"#ea8425\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"0.0\" y=\"58.0\" width=\"100.0\" height=\"25.0\" rx=\"0\" fill=\"#fb9847\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"61.0\" cy=\"58.0\" r=\"2.0\" fill=\"#ca6440\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 61 58 L 36 83 L 44 83 Z\" fill=\"#ca6440\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 62 58 L 70 83 L 78 83 Z\" fill=\"#ca6440\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 61 58 L 44 83 L 70 83 Z\" fill=\"#5e46ab\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 0 59 L 60 58 L 36 83 L 0 83 Z\" fill=\"#5e46ab\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 62 58 L 100 59 L 100 83 L 78 83 Z\" fill=\"#5e46ab\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 59 59 L 0 70\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.6\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 59 59 L 0 70\" fill=\"none\" stroke=\"#3a3278\" stroke-width=\"1.0\" stroke-linecap=\"round\"/><path d=\"M 64 59 L 100 70\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.6\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 64 59 L 100 70\" fill=\"none\" stroke=\"#3a3278\" stroke-width=\"1.0\" stroke-linecap=\"round\"/><path d=\"M 20 64 L 50 60\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-2)\"/><path d=\"M 90 66 L 70 60\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-2)\"/></svg><figcaption><b>3</b> Fill the rows between them</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
-   "noticed": "The rows' placement depends on perspective: every row and path has to point back to one spot, and the picture alone doesn't make that spot obvious.",
-   "pieces": "Perspective first: one point, then the two paths fanning out from it, then the rows filled between and beside them."
+   "step": 8,
+   "name": "Block in the lavender rows and paths",
+   "html": "<div class=\"build\"><p class=\"label\">Lay out the field from one meeting point</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. One point where the paths meet\"><defs><marker id=\"arrow-blog-lavender-rows\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><circle cx=\"60.0\" cy=\"4.0\" r=\"2.2\" fill=\"#c95c2d\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 36 98 L 58 8\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows)\"/><path d=\"M 80 98 L 62 8\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows)\"/></svg><figcaption><b>1</b> One point where the paths meet</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Two paths, wide at the bottom\"><defs><marker id=\"arrow-blog-lavender-rows-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><circle cx=\"60.0\" cy=\"4.0\" r=\"2.2\" fill=\"#c95c2d\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 58.5 4 L 60.5 4 L 42 100 L 30 100 Z\" fill=\"#c95c2d\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 60.5 4 L 62.5 4 L 85 100 L 74 100 Z\" fill=\"#c95c2d\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 36 96 L 56 12\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-1)\"/></svg><figcaption><b>2</b> Two paths, wide at the bottom</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Fill the rest with rows aimed at the point\"><defs><marker id=\"arrow-blog-lavender-rows-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><rect x=\"0.0\" y=\"0.0\" width=\"100.0\" height=\"100.0\" rx=\"0\" fill=\"#413d99\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"60.0\" cy=\"4.0\" r=\"2.2\" fill=\"#c95c2d\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 58.5 4 L 60.5 4 L 42 100 L 30 100 Z\" fill=\"#c95c2d\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 60.5 4 L 62.5 4 L 85 100 L 74 100 Z\" fill=\"#c95c2d\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 0 12 L 57 4\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 0 12 L 57 4\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 0 32 L 54 14\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 0 32 L 54 14\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 0 62 L 49 34\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 0 62 L 49 34\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 64 4 L 100 12\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 64 4 L 100 12\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 67 15 L 100 32\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 67 15 L 100 32\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 72 36 L 100 62\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.5\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 72 36 L 100 62\" fill=\"none\" stroke=\"#7557b7\" stroke-width=\"0.9\" stroke-linecap=\"round\"/><path d=\"M 4 84 L 40 62\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-lavender-rows-2)\"/></svg><figcaption><b>3</b> Fill the rest with rows aimed at the point</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
+   "noticed": "The rows and paths only look right if they all head to one point; placement depends on the perspective, and a beginner would paint parallel stripes.",
+   "pieces": "One meeting point at the top of the field about 60% across, then two wedge-shaped paths opening to the bottom edge, then the rest filled dark with the row edges aimed at the same point (a first try drew the rows as separate bands with white between them, which the step image doesn't have, so the last panel fills everything). The diagram's box is the lavender field only (the bottom 4/10 of the canvas), stretched taller so the rows are readable."
   },
   {
    "id": "balloon",
-   "step": 9,
-   "name": "Paint the hot air balloon",
-   "html": "<div class=\"build\"><p class=\"label\">Build the balloon from a circle and a taper</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. A big circle on top\"><defs><marker id=\"arrow-blog-balloon\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>1</b> A big circle on top</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Taper down to a short neck\"><defs><marker id=\"arrow-blog-balloon-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 22 50 Q 34 66 44 73 L 56 73 Q 66 66 78 50 Z\" fill=\"#fcb029\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 24 52 Q 34 66 44 72\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-1)\"/><path d=\"M 76 52 Q 66 66 56 72\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-1)\"/></svg><figcaption><b>2</b> Taper down to a short neck</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Curved stripes, widest in the middle\"><defs><marker id=\"arrow-blog-balloon-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 22 50 Q 34 66 44 73 L 56 73 Q 66 66 78 50 Z\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 7 Q 42 40 47 73 L 53 73 Q 58 40 56 7 Z\" fill=\"#2a575f\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 31 12 Q 23 40 43 73 L 46 73 Q 33 40 40 8 Z\" fill=\"#d4321e\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 69 12 Q 77 40 57 73 L 54 73 Q 67 40 60 8 Z\" fill=\"#d4321e\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 50 10 L 50 68\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-2)\"/></svg><figcaption><b>3</b> Curved stripes, widest in the middle</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"4. Neck band and basket\"><defs><marker id=\"arrow-blog-balloon-3\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 22 50 Q 34 66 44 73 L 56 73 Q 66 66 78 50 Z\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 7 Q 42 40 47 73 L 53 73 Q 58 40 56 7 Z\" fill=\"#2a575f\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 31 12 Q 23 40 43 73 L 46 73 Q 33 40 40 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 69 12 Q 77 40 57 73 L 54 73 Q 67 40 60 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"44.0\" y=\"71.0\" width=\"12.0\" height=\"4.0\" rx=\"0\" fill=\"#3e3428\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><rect x=\"45.0\" y=\"80.0\" width=\"10.0\" height=\"8.0\" rx=\"0\" fill=\"#3e3428\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/></svg><figcaption><b>4</b> Neck band and basket</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
-   "noticed": "The main subject appears whole, and its curved stripes depend on its round shape.",
-   "pieces": "A balloon is a sphere with a cone under it: a circle first, then the taper to the neck, then the stripes split like orange sections, widest in the middle, then the neck band and basket."
-  },
-  {
-   "id": "balloon-shading",
-   "step": 10,
-   "name": "Shade the balloon and add the ropes",
-   "html": "<div class=\"build\"><p class=\"label\">Shade the right side, then hang the basket</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. Dark down the right edge\"><defs><marker id=\"arrow-blog-balloon-shading\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 22 50 Q 34 66 44 73 L 56 73 Q 66 66 78 50 Z\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 7 Q 42 40 47 73 L 53 73 Q 58 40 56 7 Z\" fill=\"#2a575f\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 31 12 Q 23 40 43 73 L 46 73 Q 33 40 40 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 69 12 Q 77 40 57 73 L 54 73 Q 67 40 60 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 62 9 Q 84 22 80 44 Q 74 62 56 73 Q 70 56 72 38 Q 72 20 62 9 Z\" fill=\"#3a3278\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\" opacity=\"0.55\"/><path d=\"M 76 18 Q 84 40 70 62\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-shading)\"/></svg><figcaption><b>1</b> Dark down the right edge</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. Ropes to the basket\"><defs><marker id=\"arrow-blog-balloon-shading-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><path d=\"M 22 50 Q 34 66 44 73 L 56 73 Q 66 66 78 50 Z\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><circle cx=\"50.0\" cy=\"38.0\" r=\"31.0\" fill=\"#fcb029\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 7 Q 42 40 47 73 L 53 73 Q 58 40 56 7 Z\" fill=\"#2a575f\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 31 12 Q 23 40 43 73 L 46 73 Q 33 40 40 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 69 12 Q 77 40 57 73 L 54 73 Q 67 40 60 8 Z\" fill=\"#d4321e\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 62 9 Q 84 22 80 44 Q 74 62 56 73 Q 70 56 72 38 Q 72 20 62 9 Z\" fill=\"#3a3278\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\" opacity=\"0.55\"/><rect x=\"44.0\" y=\"71.0\" width=\"12.0\" height=\"4.0\" rx=\"0\" fill=\"#3e3428\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"45.0\" y=\"80.0\" width=\"10.0\" height=\"8.0\" rx=\"0\" fill=\"#3e3428\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 45 75 L 46 80\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.4000000000000004\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 45 75 L 46 80\" fill=\"none\" stroke=\"#3e3428\" stroke-width=\"0.8\" stroke-linecap=\"round\"/><path d=\"M 55 75 L 54 80\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.4000000000000004\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 55 75 L 54 80\" fill=\"none\" stroke=\"#3e3428\" stroke-width=\"0.8\" stroke-linecap=\"round\"/><path d=\"M 50 75 L 50 80\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.4000000000000004\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 50 75 L 50 80\" fill=\"none\" stroke=\"#3e3428\" stroke-width=\"0.8\" stroke-linecap=\"round\"/></svg><figcaption><b>2</b> Ropes to the basket</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
-   "noticed": "Shading has to follow the balloon's round shape, and where the dark goes isn't obvious from a finished-looking picture.",
-   "pieces": "Starts from the balloon's pieces (already painted), adds a crescent of dark down the right side, then the ropes to the basket."
+   "step": 11,
+   "name": "Paint the striped balloon",
+   "html": "<div class=\"build\"><p class=\"label\">Build the balloon from a circle and curved stripes</p><div class=\"panels\"><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"1. A circle, tapered to a neck\"><defs><marker id=\"arrow-blog-balloon\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><ellipse cx=\"50.0\" cy=\"34.0\" rx=\"36.0\" ry=\"30.0\" fill=\"#c93121\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 15 42 Q 30 66 44 78 L 56 78 Q 70 66 85 42 Z\" fill=\"#c93121\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 16 44 Q 30 66 44 77\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon)\"/></svg><figcaption><b>1</b> A circle, tapered to a neck</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"2. A teal stripe down the middle\"><defs><marker id=\"arrow-blog-balloon-1\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><ellipse cx=\"50.0\" cy=\"34.0\" rx=\"36.0\" ry=\"30.0\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 15 42 Q 30 66 44 78 L 56 78 Q 70 66 85 42 Z\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 5 Q 41 40 46 78 L 54 78 Q 59 40 56 5 Z\" fill=\"#2e7693\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 50 6 L 50 76\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-1)\"/></svg><figcaption><b>2</b> A teal stripe down the middle</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"3. Curved stripes like ( )\"><defs><marker id=\"arrow-blog-balloon-2\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><ellipse cx=\"50.0\" cy=\"34.0\" rx=\"36.0\" ry=\"30.0\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 15 42 Q 30 66 44 78 L 56 78 Q 70 66 85 42 Z\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 5 Q 41 40 46 78 L 54 78 Q 59 40 56 5 Z\" fill=\"#2e7693\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 5 Q 26 30 40 78 L 46 78 Q 41 40 44 5 Z\" fill=\"#fcb422\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 56 5 Q 74 30 60 78 L 54 78 Q 59 40 56 5 Z\" fill=\"#fcb422\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 42 8 Q 28 32 41 74\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-2)\"/><path d=\"M 58 8 Q 72 32 59 74\" fill=\"none\" stroke=\"var(--ink)\" stroke-width=\"1.1\" stroke-linecap=\"round\" marker-end=\"url(#arrow-blog-balloon-2)\"/></svg><figcaption><b>3</b> Curved stripes like ( )</figcaption></figure><figure class=\"panel\"><svg viewBox=\"0 0 100 100\" role=\"img\" aria-label=\"4. A basket and ropes\"><defs><marker id=\"arrow-blog-balloon-3\" viewBox=\"0 0 10 10\" refX=\"7\" refY=\"5\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto-start-reverse\"><path d=\"M0 0 L10 5 L0 10 z\" fill=\"var(--ink)\"/></marker></defs><ellipse cx=\"50.0\" cy=\"34.0\" rx=\"36.0\" ry=\"30.0\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 15 42 Q 30 66 44 78 L 56 78 Q 70 66 85 42 Z\" fill=\"#c93121\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 5 Q 41 40 46 78 L 54 78 Q 59 40 56 5 Z\" fill=\"#2e7693\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 44 5 Q 26 30 40 78 L 46 78 Q 41 40 44 5 Z\" fill=\"#fcb422\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><path d=\"M 56 5 Q 74 30 60 78 L 54 78 Q 59 40 56 5 Z\" fill=\"#fcb422\" stroke=\"var(--ink)\" stroke-opacity=\".45\" stroke-width=\".7\"/><rect x=\"44.0\" y=\"84.0\" width=\"12.0\" height=\"10.0\" rx=\"0\" fill=\"#553a32\" stroke=\"var(--ultramarine)\" stroke-width=\"1.1\" stroke-dasharray=\"2.2 1.6\"/><path d=\"M 45 78 L 45 84\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.4000000000000004\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 45 78 L 45 84\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"0.8\" stroke-linecap=\"round\"/><path d=\"M 55 78 L 55 84\" fill=\"none\" stroke=\"var(--ultramarine)\" stroke-width=\"2.4000000000000004\" stroke-linecap=\"round\" opacity=\".35\"/><path d=\"M 55 78 L 55 84\" fill=\"none\" stroke=\"#553a32\" stroke-width=\"0.8\" stroke-linecap=\"round\"/></svg><figcaption><b>4</b> A basket and ropes</figcaption></figure></div><p class=\"small\">Dashed outline: what to paint in that picture. Arrows: which way to move the brush.</p></div>",
+   "noticed": "The balloon is a shaped object that appears whole in one step, and its stripes have to curve around it; straight stripes make it look flat.",
+   "pieces": "A circle for the top tapering to a neck (an upside-down teardrop), a straight middle stripe, curved stripes hugging it like ( ), then the basket and ropes. Built the way a teacher draws a balloon, so the stripes follow the round form."
   }
  ],
  "no_diagram": {
-  "sky-gradient": "A gradient and a round sun; the words say where each color goes.",
-  "sunset-clouds": "Clouds are a texture made by repeating one dabbing mark, and the words say where the big and small ones go.",
-  "far-mountains": "Two soft ridge lines and a band below; the picture and words make the shape obvious.",
-  "golden-hill": "One sloping shape whose start and top are given in the words, plus dabbed bushes.",
-  "lavender-spikes": "A repeated mark (stem plus stacked dabs) that the words describe step by step.",
-  "final-highlights": "Small touches on parts already painted; the words say where."
+  "sky": "A gradient from blue to orange to gold; the words give where each color goes.",
+  "clouds": "Two big masses and a few streaks made by one scrubbing mark; the words give where.",
+  "sun": "A small circle; the words give where and how big.",
+  "mountains": "A soft band with two rounded ridges; the words give the ridge heights.",
+  "fields": "Two flat gold areas, the hill described by where it starts and ends.",
+  "treelines": "A row of repeated dabs, one mark.",
+  "lavender-dabs": "One repeated dab along rows already laid out.",
+  "lavender-lights": "One repeated light dab on the row tops.",
+  "highlights": "Small touches on the balloon edges and the crown's sunlit side; the words say where."
  },
- "summary": "Four steps add shaped or structured things a beginner couldn't start from the picture alone (the village, the oak, the lavender rows' perspective, the balloon), and the balloon's shading follows its round shape, so five steps got diagrams. Two instructions were corrected to match the pictures: the sun and the rows' meeting point.",
- "total_cost": 0.344,
- "renders": 13,
+ "summary": "Three steps build a shape a beginner would have to work out: the tree's forking trunk and clustered crown, the lavender field's paths meeting at one point, and the balloon's curved stripes. The rest are fills, gradients, or one repeated mark that the words cover. While checking, the balloon step showed fewer, wider stripes than the finish, so the last step's words now say to add the edge stripes.",
+ "total_cost": 0.477,
+ "renders": 16,
  "filters": 7,
  "review": [
   {
-   "step_id": "sky-gradient",
-   "problem": "The sun sits right of center (about 53 percent across); from step 2 through the finished painting it is just left of center (about 44 percent), so the sun jumps between step 1 and step 2.",
-   "fix": "Redraw the sky gradient with the round pale-yellow sun just left of center, at about 44 percent across and 40 percent down, in the same spot as in the later steps and the finished painting. Center the yellow glow on it.",
+   "step_id": "clouds",
+   "problem": "The painted sky stops in a curved edge about 44% to 48% down, so white canvas shows down to 62%, unlike the sky step, the later steps, and the finish.",
+   "fix": "Redraw with the sky from step one still covering the whole top 62% of the canvas, with a straight lower edge at 62% down and the orange-gold band below the clouds intact. Keep the clouds exactly as drawn, and leave only the bottom 38% white.",
    "round": 1,
    "action": "redone"
+  },
+  {
+   "step_id": "sun",
+   "problem": "The painted sky stops in a ragged edge about 51% to 53% down, so white canvas shows down to 62%.",
+   "fix": "Redraw with the sky gradient covering the full top 62% of the canvas, with a straight lower edge at 62% down. Keep the clouds and the sun disk as drawn, and leave only the bottom 38% white.",
+   "round": 1,
+   "action": "redone"
+  },
+  {
+   "step_id": "sun",
+   "problem": "After the first redo the sky still stopped at about 55% down, leaving a wider white band than the steps around it.",
+   "fix": "Redraw with the sky, clouds and gradient exactly as in the clouds step, reaching a straight edge at 62% down; add only the small sun disk.",
+   "round": 2,
+   "action": "redone"
+  },
+  {
+   "step_id": "balloon",
+   "problem": "Found in the beginner check, not by a review: the balloon step has six wide stripes (red, yellow, teal, red, yellow, red), while the finish has narrower stripes with teal along both outer edges. The final step's words tell the painter to add the edge stripes, so the pictures and words agree, but the stripe pattern does change between the two images.",
+   "fix": "Redraw the balloon with the finish's stripe order (teal at both outer edges, narrower stripes toward the sides), flat color, no shading.",
+   "round": 2,
+   "action": "left"
   }
  ],
- "finish_issues": [
-  "The balloon's teal stripes came out bright royal blue instead of the photo's muted teal blue-green.",
-  "The big sunlit hillside under the tree turned yellow-green instead of the photo's warm golden ochre with orange light."
- ],
+ "finish_issues": [],
  "size": [
   1536,
   1024
