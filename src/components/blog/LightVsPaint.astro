@@ -1,0 +1,141 @@
+---
+// Light versus paint: pick two tubes and how much of each, and see the same pair mixed three ways. Two spotlights
+// add up and get brighter. A plain computer average lands in between and goes muddy. Paint subtracts: each pigment
+// soaks up some light, so blue and yellow make green. The paint colors are Mixbox (Secret Weapons, CC BY-NC 4.0),
+// precomputed for every pair in 5% steps (src/data/gesso/paint-pairs.json). Without JavaScript the caption shows.
+import pairs from '../../data/gesso/paint-pairs.json';
+interface Props { caption?: string }
+const { caption } = Astro.props;
+const tubes = Object.entries(pairs.tubes);
+const presets = [
+  ['yellow', 'ultramarine', 'Blue + yellow'],
+  ['red', 'ultramarine', 'Red + blue'],
+  ['ultramarine', 'burnt sienna', 'Blue + burnt sienna'],
+  ['white', 'red', 'Red + white'],
+];
+---
+<figure class="lvp panel bleed" data-pairs={JSON.stringify(pairs)}>
+  <div class="pick" hidden>
+    <p class="lbl">Pick two tubes</p>
+    <div class="tubes" role="group" aria-label="Tubes">
+      {tubes.map(([name, hex]) => (
+        <button type="button" class="tube" data-tube={name} aria-pressed="false">
+          <span class="dab" style={`background:${hex}`}></span>{name}
+        </button>
+      ))}
+    </div>
+    <div class="presets" role="group" aria-label="Try a pair">
+      {presets.map(([a, b, label]) => <button type="button" class="preset" data-a={a} data-b={b}>{label}</button>)}
+    </div>
+    <label class="amount"><span class="a-name"></span>
+      <input type="range" min="0" max="20" step="1" value="10" aria-label="How much of each" />
+      <span class="b-name"></span></label>
+  </div>
+  <div class="results" hidden aria-live="polite">
+    <div class="res"><span class="big light"></span><b>As light</b><span class="small">Two spotlights on a wall. Light adds up, so it gets brighter.</span><span class="ramp light-r"></span></div>
+    <div class="res"><span class="big avg"></span><b>A plain average</b><span class="small">What a computer does if you just average the two colors.</span><span class="ramp avg-r"></span></div>
+    <div class="res"><span class="big paint"></span><b>As paint</b><span class="small">Each pigment soaks up some light, so the mix gets darker and can change hue.</span><span class="ramp paint-r"></span></div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type RGB = [number, number, number];
+  const rgb = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB;
+  const hex = (c: number[]) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+  const lin = (c: number) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const unlin = (c: number) => 255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+  // Two spotlights, one dimming as the other brightens: full A at 0, both full at the middle, full B at the end.
+  function asLight(a: string, b: string, t: number) {
+    const wa = Math.min(1, 2 * (1 - t)), wb = Math.min(1, 2 * t);
+    return hex(rgb(a).map((v, i) => unlin(Math.min(1, lin(v) * wa + lin(rgb(b)[i]) * wb))));
+  }
+  const average = (a: string, b: string, t: number) => hex(rgb(a).map((v, i) => v * (1 - t) + rgb(b)[i] * t));
+
+  for (const root of document.querySelectorAll<HTMLElement>('.lvp')) {
+    const data = JSON.parse(root.dataset.pairs!) as { tubes: Record<string, string>; mixes: Record<string, string[]> };
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const slider = $<HTMLInputElement>('.amount input');
+    let picked: string[] = ['yellow', 'ultramarine'];
+    let last = '';
+
+    function paint(a: string, b: string, i: number) {
+      if (a === b) return data.tubes[a];
+      const key = data.mixes[`${a}|${b}`] ? `${a}|${b}` : `${b}|${a}`;
+      const row = data.mixes[key];
+      return key.startsWith(a + '|') ? row[i] : row[20 - i];
+    }
+
+    function ramp(el: HTMLElement, f: (i: number) => string) {
+      el.style.background = `linear-gradient(90deg, ${Array.from({ length: 21 }, (_, i) => `${f(i)} ${i * 5}%`).join(', ')})`;
+    }
+
+    function draw() {
+      const [a, b] = picked;
+      const i = +slider.value, t = i / 20;
+      $<HTMLElement>('.a-name').textContent = `${20 - i === 20 ? 'all' : Math.round((1 - t) * 100) + '%'} ${a}`;
+      $<HTMLElement>('.b-name').textContent = `${i === 20 ? 'all' : Math.round(t * 100) + '%'} ${b}`;
+      $<HTMLElement>('.big.light').style.background = asLight(data.tubes[a], data.tubes[b], t);
+      $<HTMLElement>('.big.avg').style.background = average(data.tubes[a], data.tubes[b], t);
+      $<HTMLElement>('.big.paint').style.background = paint(a, b, i);
+      if (last !== a + b) {
+        ramp($('.light-r'), (k) => asLight(data.tubes[a], data.tubes[b], k / 20));
+        ramp($('.avg-r'), (k) => average(data.tubes[a], data.tubes[b], k / 20));
+        ramp($('.paint-r'), (k) => paint(a, b, k));
+        last = a + b;
+      }
+      for (const btn of root.querySelectorAll<HTMLButtonElement>('.tube')) btn.setAttribute('aria-pressed', String(picked.includes(btn.dataset.tube!)));
+      for (const btn of root.querySelectorAll<HTMLButtonElement>('.preset'))
+        btn.classList.toggle('on', [btn.dataset.a, btn.dataset.b].sort().join() === [...picked].sort().join());
+    }
+
+    for (const btn of root.querySelectorAll<HTMLButtonElement>('.tube'))
+      btn.addEventListener('click', () => {
+        const n = btn.dataset.tube!;
+        if (picked.includes(n)) return;
+        picked = [picked[1], n]; // the newest two picks
+        draw();
+      });
+    for (const btn of root.querySelectorAll<HTMLButtonElement>('.preset'))
+      btn.addEventListener('click', () => { picked = [btn.dataset.a!, btn.dataset.b!]; slider.value = '10'; draw(); });
+    slider.addEventListener('input', draw);
+    $<HTMLElement>('.pick').hidden = false;
+    $<HTMLElement>('.results').hidden = false;
+    draw();
+  }
+</script>
+
+<style>
+  .lvp { display: grid; gap: 18px; }
+  .pick { display: grid; gap: 12px; }
+  .lbl { margin: 0; font: 600 .72rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .tubes, .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tube, .preset { font: 500 .85rem/1.2 Inter, sans-serif; border-radius: 999px; padding: 6px 12px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text); display: inline-flex; align-items: center; gap: 8px; }
+  .tube:hover, .preset:hover { border-color: var(--teal); }
+  .tube[aria-pressed='true'] { border: 2px solid var(--teal); padding: 5px 11px; }
+  .preset { font-size: .8rem; color: var(--muted); }
+  .preset.on { color: var(--text); border-color: var(--teal); }
+  .dab { width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--line); }
+  .amount { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 2fr) minmax(0, 1fr); align-items: center; gap: 12px;
+    font: 500 .82rem/1.2 Inter, sans-serif; color: var(--muted); }
+  .amount .b-name { text-align: right; }
+  .amount input { accent-color: var(--teal); width: 100%; }
+  .results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .res { display: grid; gap: 6px; align-content: start; min-width: 0; }
+  .res b { color: var(--text); font: 650 1rem/1.2 Inter, sans-serif; }
+  .res .small { color: var(--muted); font: .82rem/1.4 Inter, sans-serif; }
+  .big { display: block; aspect-ratio: 1; width: min(100%, 150px); max-width: 100%; border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+    border: 1px solid var(--line); transition: background .25s; }
+  .ramp { display: block; height: 14px; border-radius: 7px; border: 1px solid var(--line); margin-top: 4px; }
+  @media (max-width: 560px) {
+    .results { grid-template-columns: 1fr; }
+    .res { grid-template-columns: 72px 1fr; column-gap: 12px; }
+    .big { grid-row: span 3; width: 72px; }
+    .ramp { grid-column: 1 / -1; }
+    .amount { grid-template-columns: 1fr 1fr; }
+    .amount input { grid-column: 1 / -1; grid-row: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) { .big { transition: none; } }
+</style>
