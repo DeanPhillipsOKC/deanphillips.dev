@@ -245,5 +245,410 @@
  "size": [
   1536,
   1024
+ ],
+ "all_decisions": [
+  {
+   "label": "Your picture",
+   "img": "/img/gesso/day2/balloon.webp",
+   "out": "/img/gesso/day2/steps/beginner-t.webp",
+   "think": "Is it just the picture, and could a beginner paint it in an afternoon?",
+   "tries": [
+    {
+     "tool": "crop",
+     "verdict": "skip",
+     "why": "Just the picture: no bars, borders, or captions around it."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0244,
+     "why": "Too busy for a beginner: a village, veined clouds, thousands of lavender stalks. It painted a loose, simpler version to work from."
+    }
+   ]
+  },
+  {
+   "label": "The reference",
+   "img": "/img/gesso/day2/steps/beginner-t.webp",
+   "out": "/img/gesso/day2/steps/reference-t.webp",
+   "think": "Flatten the beginner version into shapes the lesson can be planned from.",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "Kuwahara, strength 2: The clouds merge nicely, but the lavender breaks into blocky squares and the paths go ragged."
+    },
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "Kuwahara, strength 3: Even blockier: the lavender rows and the paths lose their shape, and the tree turns to squares."
+    },
+    {
+     "tool": "simplify",
+     "verdict": "yes",
+     "why": "Mean shift, strength 3: keeps the balloon's stripes, the small sun, and the path edges sharp."
+    }
+   ]
+  },
+  {
+   "label": "The palette",
+   "img": "/img/gesso/day2/steps/reference-t.webp",
+   "out": "/img/gesso/day2/steps/palette-t.webp",
+   "think": "Which paints does a beginner need to mix?",
+   "tries": [
+    {
+     "tool": "palette",
+     "verdict": "yes",
+     "why": "K-means finds the main colors: sunset oranges and pinks, the gold field, the lavender purples."
+    }
+   ]
+  },
+  {
+   "label": "The finished painting",
+   "img": "/img/gesso/day2/steps/reference-t.webp",
+   "out": "/img/gesso/day2/steps/12-t.webp",
+   "think": "Every step is copied backward from the finish, so paint it first.",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "No filter turns a flat reference into a painting with brushstrokes and canvas texture."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0667,
+     "why": "Painted at high quality from the beginner version."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "Checked against the beginner version: nothing changed color, moved, or went missing."
+    }
+   ]
+  },
+  {
+   "label": "Measuring",
+   "img": "/img/gesso/day2/steps/12-t.webp",
+   "think": "Where exactly is everything, so the plan doesn't guess?",
+   "tries": [
+    {
+     "tool": "grid",
+     "verdict": "yes",
+     "why": "A 10 by 10 grid over the finish: the sun is 44% across, the hill line 62% down."
+    }
+   ]
+  },
+  {
+   "label": "Step 1: Paint the sunset sky",
+   "img": "/img/gesso/day2/steps/01-t.webp",
+   "out": "/img/gesso/day2/steps/01-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The sky runs behind the clouds, sun, mountains, fields, tree, and balloon in the finish, so no filter or mask can show it bare"
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.031,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 2: Dab in the big clouds",
+   "img": "/img/gesso/day2/steps/02-t.webp",
+   "out": "/img/gesso/day2/steps/02-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The clouds sit behind the balloon and tree in the finish, and the sky under them must stay whole, so this is a render from the finish without the sun and everything below."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "no",
+     "why": "The painted sky stops in a curved edge about 44% to 48% down, so white canvas shows down to 62%, unlike the sky step, the later steps, and the finish."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0315,
+     "why": "Redone with the fix: redraw with the sky from step one still covering the whole top 62% of the canvas, with a straight lower edge at 62% down and the orange-gold band below the clouds intact."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "Checked again: fixed."
+    }
+   ]
+  },
+  {
+   "label": "Step 3: Paint the sun",
+   "img": "/img/gesso/day2/steps/03-t.webp",
+   "out": "/img/gesso/day2/steps/03-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The mountains cover the bottom of the sun in the finish, so the whole disk has to be rendered."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0308,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "no",
+     "why": "The painted sky stops in a ragged edge about 51% to 53% down, so white canvas shows down to 62%."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Redone with the fix: redraw with the sky gradient covering the full top 62% of the canvas, with a straight lower edge at 62% down."
+    },
+    {
+     "tool": "review",
+     "verdict": "no",
+     "why": "After the first redo the sky still stopped at about 55% down, leaving a wider white band than the steps around it."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Redone with the fix: redraw with the sky, clouds and gradient exactly as in the clouds step, reaching a straight edge at 62% down"
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "Checked again: fixed."
+    }
+   ]
+  },
+  {
+   "label": "Step 4: Paint the far mountains",
+   "img": "/img/gesso/day2/steps/04-t.webp",
+   "out": "/img/gesso/day2/steps/04-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The tree lines, fields, and tree cover the mountains' lower edge in the finish, so a render from the finish shows the full band."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 5: Paint the golden fields and hill",
+   "img": "/img/gesso/day2/steps/05-t.webp",
+   "out": "/img/gesso/day2/steps/05-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The tree lines, tree, and lavender all sit on top of the fields in the finish, so only a render can show the fields bare."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0311,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 6: Dab the tree lines",
+   "img": "/img/gesso/day2/steps/06-t.webp",
+   "out": "/img/gesso/day2/steps/06-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The lavender covers the bottom of the near tree line in the finish, so a render from the finish shows this step."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0311,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 7: Paint the lone tree",
+   "img": "/img/gesso/day2/steps/07-t.webp",
+   "out": "/img/gesso/day2/steps/07-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The sunlit dabs on the crown come later, so the step is the finish with those removed and everything below the hill line still white"
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0312,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    },
+    {
+     "tool": "diagram",
+     "verdict": "yes",
+     "why": "The tree appears whole in one step, and where the trunk forks and how the crown is built isn't clear from the picture; beginners paint a ball on a stick."
+    }
+   ]
+  },
+  {
+   "label": "Step 8: Block in the lavender rows and paths",
+   "img": "/img/gesso/day2/steps/08-t.webp",
+   "out": "/img/gesso/day2/steps/08-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The dark base of the rows is hidden under two layers of dabs in the finish, so only a render can show it flat."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0188,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    },
+    {
+     "tool": "diagram",
+     "verdict": "yes",
+     "why": "The rows and paths only look right if they all head to one point; placement depends on the perspective, and a beginner would paint parallel stripes."
+    }
+   ]
+  },
+  {
+   "label": "Step 9: Dab the lavender",
+   "img": "/img/gesso/day2/steps/09-t.webp",
+   "out": "/img/gesso/day2/steps/09-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The light dabs of the next step sit on top of these in the finish, so a render from the finish with those removed."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0185,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 10: Add light to the lavender",
+   "img": "/img/gesso/day2/steps/10-t.webp",
+   "out": "/img/gesso/day2/steps/10-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "This is the finish without the balloon, so it needs a render from the finish with the balloon painted out."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0184,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "yes",
+     "why": "A fresh copy of Claude compared it with its neighbors: nothing to fix."
+    }
+   ]
+  },
+  {
+   "label": "Step 11: Paint the striped balloon",
+   "img": "/img/gesso/day2/steps/11-t.webp",
+   "out": "/img/gesso/day2/steps/11-t.webp",
+   "think": "Is there a free way to show this step?",
+   "tries": [
+    {
+     "tool": "simplify",
+     "verdict": "no",
+     "why": "The balloon here is the finish's balloon before its shading and extra stripes, which only a render can make."
+    },
+    {
+     "tool": "render",
+     "verdict": "yes",
+     "cost": 0.0188,
+     "why": "Rendered from the finished painting with the later parts taken away."
+    },
+    {
+     "tool": "review",
+     "verdict": "no",
+     "why": "Found in the beginner check, not by a review: the balloon step has six wide stripes (red, yellow, teal, red, yellow, red), while the finish has narrower stripes with teal along both outer edges. Flagged on the page for the painter."
+    },
+    {
+     "tool": "diagram",
+     "verdict": "yes",
+     "why": "The balloon is a shaped object that appears whole in one step, and its stripes have to curve around it; straight stripes make it look flat."
+    }
+   ]
+  }
  ]
 }

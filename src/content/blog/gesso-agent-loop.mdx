@@ -43,12 +43,11 @@ This is part 6 of a series about Gesso, an ongoing experiment in turning any pic
 
 The agent is Claude, running inside Claude Code, following a long instruction file I wrote (Claude Code calls it a skill). Its thinking costs nothing extra on my subscription. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
 
-Here are four of its real decisions from making the lesson below. Each picture sends a question into the agent's mind, drawn as a turning 3D space with a cluster of points for each tool. Its decision travels through that space to the tool it's considering, and the tool answers yes or no. Green tools are free, purple costs money, and the yellow one is a check. The words at the bottom are its actual reasons, from its log.
+Below is every decision it made for the lesson further down, straight from its log: 16 pictures and 52 tool choices. The agent's mind is drawn as a turning 3D space with a cluster of points for each tool. For the picture you pick, a path travels from the middle to each tool it tried, and the tool answers yes or no. Green tools are free, purple costs money, and the yellow one is a check. Click through the pictures, or drag the space to turn it. The reasons underneath are its own words.
 
 <AgentMind
-  decisions={day2.decisions}
-  summary={`Four of the run's decisions. The whole lesson: 12 steps, ${day2.renders} paid pictures, ${day2.filters} free filter runs, $${day2.total_cost.toFixed(2)}.`}
-  caption="Real decisions from the balloon lesson run, replayed. Free tools are green, the image model is purple, and the review is yellow. The 3D space is a nod to the vector math underneath AI models, which works in thousands of dimensions, not three. It's a picture of the idea, not the actual math."
+  decisions={day2.all_decisions}
+  caption="Every decision from the balloon lesson run. The 3D space is a nod to the vector math underneath AI models, which works in thousands of dimensions, not three. It's a picture of the idea, not the actual math."
 />
 
 ## Too busy? Make it simpler first

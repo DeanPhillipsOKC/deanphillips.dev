@@ -1,21 +1,38 @@
 ---
-// The agent's decisions, drawn as thought moving through a space. The agent's mind is a slowly turning 3D cloud
+// An agent's decisions as thought moving through a space. The agent's mind is drawn as a slowly turning 3D cloud
 // of points with one cluster per tool (a nod to the vectors AI models work in, in three dimensions instead of
-// thousands). Each picture sends a glowing point into the middle while the agent thinks; then a lit path hops
-// from point to point through the space to the cluster of the tool it's weighing. The tool answers yes or no,
-// the agent's real reason types out below, made pictures fly into the lesson strip, and paid ones tick the
-// counter. Everything is a function of time, so it loops cleanly and records as video.
+// thousands). For each picture a lesson needs, a lit path travels from the middle through the space to the
+// cluster of each tool it weighs, and the tool answers yes or no.
+//
+//   mode="explore" (the post): step through every picture at your own pace; drag to turn the space. The paths for
+//                  the chosen picture stay drawn, and its tries, costs, and reasons are listed as readable text.
+//   mode="reel"    (social video): the whole run plays by itself with no words, fast, filling the lesson strip
+//                  and ending on the real total. A pure function of time, so it records frame by frame.
 interface Try { tool: string; verdict: 'yes' | 'no' | 'skip'; why: string; cost?: number }
 interface Decision { label: string; img: string; out?: string; think: string; tries: Try[] }
-interface Props { decisions: Decision[]; summary?: string; caption?: string; ratio?: string; autoplay?: boolean; lead?: number; intro?: string }
-const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false, lead = 0, intro = '' } = Astro.props;
+interface Props { decisions: Decision[]; mode?: 'explore' | 'reel'; caption?: string; ratio?: string; autoplay?: boolean }
+const { decisions, mode = 'explore', caption, ratio = mode === 'reel' ? '1000 / 800' : '16 / 10', autoplay = false } = Astro.props;
 ---
-<figure class="mind panel bleed" data-d={JSON.stringify(decisions)} data-summary={summary} data-autoplay={autoplay ? '1' : undefined} data-lead={lead || undefined} data-intro={intro || undefined}>
+<figure class={`mind panel bleed ${mode}`} data-d={JSON.stringify(decisions)} data-mode={mode} data-autoplay={autoplay ? '1' : undefined}>
   <canvas class="brain" style={`aspect-ratio: ${ratio}`} role="img"
-    aria-label="An animated 3D space of points: for each picture, a lit path travels through it to the tool the agent decides to try" hidden></canvas>
+    aria-label="A turning 3D space of points: for each picture, lit paths travel through it to the tools the agent tried" hidden></canvas>
+  {mode === 'explore' && (
+    <div class="ui" hidden>
+      <div class="bar">
+        <button type="button" class="prev" aria-label="Previous picture">&#8249;</button>
+        <ol class="pics" aria-label="Every picture in the lesson"></ol>
+        <button type="button" class="next" aria-label="Next picture">&#8250;</button>
+      </div>
+      <div class="detail" aria-live="polite">
+        <div class="head"><img class="thumb" alt="" /><div><p class="label"></p><p class="think"></p></div>
+          <div class="spent"><span>Spent so far</span><b></b></div></div>
+        <ol class="tries"></ol>
+      </div>
+    </div>
+  )}
   <ol class="fallback">
     {decisions.map((d) => (
-      <li><b>{d.label}.</b> {d.think} {d.tries.map((t) => `${t.tool}: ${t.verdict === 'yes' ? 'yes' : t.verdict === 'no' ? 'no' : 'not needed'}, ${t.why}`).join(' ')}</li>
+      <li><b>{d.label}.</b> {d.tries.map((t) => `${t.tool}: ${t.verdict === 'yes' ? 'yes' : t.verdict === 'no' ? 'no' : 'not needed'}, ${t.why}`).join(' ')}</li>
     ))}
   </ol>
   {caption && <figcaption>{caption}</figcaption>}
@@ -26,29 +43,32 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false, l
   type V3 = [number, number, number];
   interface Try { tool: string; verdict: Verdict; why: string; cost?: number }
   interface Decision { label: string; img: string; out?: string; think: string; tries: Try[] }
-  interface Seg { kind: 'intro' | 'in' | 'think' | 'travel' | 'verdict' | 'fly' | 'gap' | 'done'; d: number; k: number; start: number; end: number }
+  interface Seg { kind: 'in' | 'travel' | 'verdict' | 'fly' | 'done'; d: number; k: number; start: number; end: number }
 
   const TOOLS = [
     { id: 'crop', name: 'Crop', kind: 'free', note: 'free' },
     { id: 'simplify', name: 'Simplify filter', kind: 'free', note: 'free' },
     { id: 'palette', name: 'K-means palette', kind: 'free', note: 'free' },
+    { id: 'grid', name: 'Measuring grid', kind: 'free', note: 'free' },
     { id: 'throwaway', name: 'Throwaway script', kind: 'free', note: 'free' },
     { id: 'diagram', name: 'Diagram', kind: 'draw', note: 'free' },
     { id: 'review', name: 'Fresh-eyes review', kind: 'check', note: 'free check' },
     { id: 'render', name: 'Image model', kind: 'paid', note: 'paid' },
   ];
   const MAKES = new Set(['simplify', 'palette', 'render']);
+  const toolIdx = (id: string) => Math.max(0, TOOLS.findIndex((x) => x.id === id));
 
-  // Deterministic randomness, so every loop and every recording is the same.
   const hash = (a: number, b = 0, c = 0) => { let h = (a * 374761393 + b * 668265263 + c * 2246822519) ^ 0x5bd1e995; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
   const gauss = (a: number, b: number) => Math.sqrt(-2 * Math.log(hash(a, b, 1) + 1e-9)) * Math.cos(2 * Math.PI * hash(a, b, 2));
   const ease = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const d2 = (a: number[], b: number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+  const money = (x: number) => `$${x.toFixed(2)}`;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
   for (const root of document.querySelectorAll<HTMLElement>('.mind')) {
     const decisions: Decision[] = JSON.parse(root.dataset.d!);
-    const summary = root.dataset.summary || '';
+    const reel = root.dataset.mode === 'reel';
     const canvas = root.querySelector<HTMLCanvasElement>('.brain')!;
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     canvas.hidden = false;
@@ -56,55 +76,49 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false, l
 
     const imgs = new Map<string, HTMLImageElement>();
     for (const d of decisions) for (const src of [d.img, d.out]) if (src && !imgs.has(src)) { const im = new Image(); im.src = src; imgs.set(src, im); }
+    const spentBefore = decisions.map((_, i) => decisions.slice(0, i).flatMap((d) => d.tries).reduce((s, t) => s + (t.cost ?? 0), 0));
+    const total = spentBefore[decisions.length - 1] + decisions[decisions.length - 1].tries.reduce((s, t) => s + (t.cost ?? 0), 0);
 
-    // The timeline, built once (seconds).
-    const segs: Seg[] = [];
-    let t = 0;
-    const add = (kind: Seg['kind'], d: number, k: number, len: number) => { segs.push({ kind, d, k, start: t, end: t + len }); t += len; };
-    // An optional opening for narrated videos: the space turning, with a caption, before the first decision.
-    if (Number(root.dataset.lead)) add('intro', 0, -1, Number(root.dataset.lead));
-    decisions.forEach((dec, d) => {
-      // Paced for reading: about 18 characters a second, plus a beat to take in the motion.
-      add('in', d, -1, 0.9);
-      add('think', d, -1, 1.6 + dec.think.length / 18);
-      dec.tries.forEach((tr, k) => {
-        add('travel', d, k, 1.2);
-        add('verdict', d, k, 1.8 + tr.why.length / 18);
-        if (tr.verdict === 'yes' && MAKES.has(tr.tool) && !dec.tries.slice(k + 1).some((x) => MAKES.has(x.tool) && x.verdict === 'yes'))
-          add('fly', d, k, 1.0);
-      });
-      add('gap', d, -1, 0.6);
-    });
-    add('done', decisions.length - 1, -1, 6);
-    const LOOP = t;
-    root.dataset.loop = LOOP.toFixed(2);
-    // When each decision starts, and the closing summary: lets a recording line narration up with the picture.
-    root.dataset.starts = JSON.stringify([...segs.filter((s) => s.kind === 'in').map((s) => s.start), segs[segs.length - 1].start]);
-    const segAt = (time: number) => segs.find((s) => time >= s.start && time < s.end) ?? segs[segs.length - 1];
-
-    // The space: one cluster per tool on a sphere, plus loose points between them.
+    // The space: a cluster per tool on a sphere, and loose points between.
     const centers: V3[] = TOOLS.map((_, c) => { const th = (c / TOOLS.length) * Math.PI * 2 + 0.4, ph = (hash(c, 3) - 0.5) * 1.5;
       return [Math.cos(th) * Math.cos(ph), Math.sin(ph) * 0.85, Math.sin(th) * Math.cos(ph)]; });
     const space: { p: V3; c: number; tw: number }[] = [];
-    centers.forEach((ctr, c) => { for (let i = 0; i < 80; i++) space.push({ c, tw: hash(c, i, 5), p: ctr.map((v, j) => v + gauss(c * 100 + i, j) * 0.14) as V3 }); });
+    centers.forEach((ctr, c) => { for (let i = 0; i < 70; i++) space.push({ c, tw: hash(c, i, 5), p: ctr.map((v, j) => v + gauss(c * 100 + i, j) * 0.14) as V3 }); });
     for (let i = 0; i < 170; i++) space.push({ c: -1, tw: hash(i, 6), p: [0, 1, 2].map((j) => (hash(i, j, 9) - 0.5) * 2.2) as V3 });
     const loose = space.filter((q) => q.c < 0).map((q) => q.p);
-
-    // A decision's route: from the middle, hopping through real points, to the tool's cluster.
     const routes = new Map<string, V3[]>();
-    const routeFor = (d: number, k: number, tool: number) => {
+    const routeFor = (d: number, k: number) => {
       const key = `${d}.${k}`;
       if (!routes.has(key)) {
-        const end = centers[tool], pts: V3[] = [[0, 0, 0]];
-        for (let j = 1; j <= 3; j++) {
-          const f = j / 4, aim = [0, 1, 2].map((a) => end[a] * f + (hash(d, k * 10 + j, a) - 0.5) * 0.7);
-          pts.push(loose.reduce((best, p) => (d2(p, aim) < d2(best, aim) ? p : best), loose[0]));
-        }
-        pts.push(end);
-        routes.set(key, pts);
+        const end = centers[toolIdx(decisions[d].tries[k].tool)], pts: V3[] = [[0, 0, 0]];
+        for (let j = 1; j <= 3; j++) { const f = j / 4, aim = [0, 1, 2].map((a) => end[a] * f + (hash(d, k * 10 + j, a) - 0.5) * 0.7);
+          pts.push(loose.reduce((best, p) => (d2(p, aim) < d2(best, aim) ? p : best), loose[0])); }
+        pts.push(end); routes.set(key, pts);
       }
       return routes.get(key)!;
     };
+
+    // Reel timeline: every try of every picture, quick, then a hold on the total.
+    const segs: Seg[] = [];
+    let t = 0;
+    const add = (kind: Seg['kind'], d: number, k: number, len: number) => { segs.push({ kind, d, k, start: t, end: t + len }); t += len; };
+    if (reel) {
+      decisions.forEach((dec, d) => {
+        add('in', d, -1, 0.28);
+        dec.tries.forEach((tr, k) => {
+          add('travel', d, k, 0.25);
+          add('verdict', d, k, 0.32);
+          if (tr.verdict === 'yes' && MAKES.has(tr.tool) && !dec.tries.slice(k + 1).some((x) => MAKES.has(x.tool) && x.verdict === 'yes')) add('fly', d, k, 0.32);
+        });
+      });
+      add('done', decisions.length - 1, -1, 3.5);
+    }
+    const LOOP = t;
+    root.dataset.loop = LOOP.toFixed(2);
+    const segAt = (time: number) => segs.find((s) => time >= s.start && time < s.end) ?? segs[segs.length - 1];
+
+    // Explore state.
+    let cur = 0, yawDrag = 0, dragging = false, lastX = 0;
 
     function frame(time: number) {
       const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -117,171 +131,208 @@ const { decisions, summary = '', caption, ratio = '16 / 11', autoplay = false, l
       const C = { text: tok('--text', '#eef2f7'), muted: tok('--muted', '#9aa6b6'), teal: tok('--teal', '#4fd1c5'), violet: tok('--violet', '#a78bfa'),
         ok: tok('--ok', '#3ddc97'), warn: tok('--warn', '#f2b45c'), pink: tok('--pink', '#f2879c'), bg: tok('--bg-2', '#141922'), line: tok('--line', '#253041') };
       const kindColor: Record<string, string> = { free: C.ok, draw: C.pink, check: C.warn, paid: C.violet };
-      const S = Math.min(W / 740, H / 530);
+      const S = Math.min(W / 740, H / 470);
       const font = (wt: number, px: number) => `${wt} ${Math.round(px * S)}px Inter, system-ui, sans-serif`;
-      const seg = segAt(time), dec = decisions[seg.d];
-      const trying = seg.kind === 'travel' || seg.kind === 'verdict' || seg.kind === 'fly';
-      const tr = trying ? dec.tries[seg.k] : null;
-      const ti = tr ? Math.max(0, TOOLS.findIndex((x) => x.id === tr.tool)) : -1;
-      const col = ti >= 0 ? kindColor[TOOLS[ti].kind] : C.teal;
-
       g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
 
-      // Layout: picture | the space | tools. Thought and strip below.
-      const top = H * 0.07, bot = H * 0.64;
-      const card = { x: W * 0.03, w: W * 0.18 }, cardH = card.w * 0.7, cardY = (top + bot) / 2 - cardH / 2 + 10 * S;
-      const tools = TOOLS.map((tl, i) => ({ ...tl, x: W * 0.75, y: top + (bot - top) * (i / (TOOLS.length - 1)) }));
+      // What's on screen: in the reel, from the timeline; when exploring, the chosen picture with all its tries.
+      const seg = reel ? segAt(time) : null;
+      const d = reel ? seg!.d : cur, dec = decisions[d];
+      type Shown = { k: number; u: number; lit: boolean; mark: Verdict | null; ring: number };
+      const shown: Shown[] = [];
+      if (reel) {
+        const s = seg!;
+        if (s.kind === 'travel') shown.push({ k: s.k, u: ease((time - s.start) / (s.end - s.start)), lit: false, mark: null, ring: 1 });
+        else if (s.kind === 'verdict' || s.kind === 'fly') shown.push({ k: s.k, u: 1, lit: true, mark: dec.tries[s.k].verdict, ring: s.kind === 'verdict' ? clamp((time - s.start) / 0.3) : 1 });
+      } else {
+        const per = 1.4, active = Math.floor(time / per) % dec.tries.length, ph = (time % per) / per;
+        dec.tries.forEach((tr, k) => shown.push({ k, u: k === active ? ease(clamp(ph / 0.5)) : 1, lit: true, mark: tr.verdict, ring: k === active ? clamp((ph - 0.5) / 0.4) : 1 }));
+      }
+      const litTools = new Set(shown.filter((x) => x.lit).map((x) => toolIdx(dec.tries[x.k].tool)));
 
-      // Project the space: turning slowly, tilted toward us.
-      const yaw = time * 0.07, tilt = 0.38, cx = W * 0.475, cy = (top + bot) / 2 + 6 * S, R = Math.min((bot - top) * 0.5, W * 0.205);
+      // Layout.
+      const top = H * 0.07, bot = reel ? H * 0.74 : H * 0.93;
+      const toolsX = W * (reel ? 0.75 : 0.72);
+      const tools = TOOLS.map((tl, i) => ({ ...tl, x: toolsX, y: top + (bot - top) * (i / (TOOLS.length - 1)) }));
+      const card = { x: W * 0.03, w: W * 0.17 }, cardH = card.w * 0.7, cardY = (top + bot) / 2 - cardH / 2;
+      const cx = reel ? W * 0.47 : W * 0.4, cy = (top + bot) / 2, R = Math.min((bot - top) * 0.5, W * (reel ? 0.2 : 0.24));
+      const yaw = time * (reel ? 0.09 : 0.05) + yawDrag, tilt = 0.38;
       const proj = (p: V3) => {
         const x = p[0] * Math.cos(yaw) - p[2] * Math.sin(yaw), z0 = p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw);
         const y = p[1] * Math.cos(tilt) - z0 * Math.sin(tilt), z = p[1] * Math.sin(tilt) + z0 * Math.cos(tilt);
-        const k = 1 / (1 - z * 0.18); // a little perspective
+        const k = 1 / (1 - z * 0.18);
         return { x: cx + x * R * k, y: cy + y * R * k, z };
       };
-      const thinking = seg.kind === 'think' ? Math.sin(clamp((time - seg.start) / (seg.end - seg.start)) * Math.PI) : 0;
-      const lit = ti, litOn = trying && (seg.kind !== 'travel' || (time - seg.start) / (seg.end - seg.start) > 0.8);
 
-      // Three faint axes through the middle, so it reads as a space.
+      // Axes and points.
       g.strokeStyle = C.muted; g.lineWidth = 1 * S; g.setLineDash([4 * S, 6 * S]);
       for (let a = 0; a < 3; a++) { const e0: V3 = [0, 0, 0], e1: V3 = [0, 0, 0]; e0[a] = -1.25; e1[a] = 1.25;
         const p0 = proj(e0), p1 = proj(e1); g.globalAlpha = 0.22; g.beginPath(); g.moveTo(p0.x, p0.y); g.lineTo(p1.x, p1.y); g.stroke(); }
       g.setLineDash([]); g.globalAlpha = 1;
-
-      // The points, far to near.
-      const drawn = space.map((q) => ({ ...proj(q.p), c: q.c, tw: q.tw })).sort((a, b) => a.z - b.z);
-      for (const q of drawn) {
-        const depth = clamp((q.z + 1.4) / 2.8), on = q.c === lit && litOn;
-        const twinkle = thinking * (Math.sin(time * 9 + q.tw * 40) > 0.6 ? 1 : 0);
+      const busy = reel && seg!.kind === 'in' ? 1 : 0;
+      for (const q of space.map((q) => ({ ...proj(q.p), c: q.c, tw: q.tw })).sort((a, b) => a.z - b.z)) {
+        const depth = clamp((q.z + 1.4) / 2.8), on = q.c >= 0 && litTools.has(q.c);
+        const twinkle = busy * (Math.sin(time * 11 + q.tw * 40) > 0.5 ? 1 : 0);
         const colr = q.c < 0 ? (twinkle ? C.teal : C.muted) : kindColor[TOOLS[q.c].kind];
-        g.fillStyle = colr;
-        g.globalAlpha = Math.min(1, (q.c < 0 ? 0.26 + 0.6 * twinkle : on ? 0.95 : 0.4) * (0.3 + 0.7 * depth));
+        g.fillStyle = colr; g.globalAlpha = Math.min(1, (q.c < 0 ? 0.26 + 0.6 * twinkle : on ? 0.95 : 0.4) * (0.3 + 0.7 * depth));
         if (on || twinkle) { g.shadowColor = colr; g.shadowBlur = 10 * S; }
         g.beginPath(); g.arc(q.x, q.y, (on ? 3.1 : 2.1) * (0.55 + 0.9 * depth) * S, 0, 7); g.fill(); g.shadowBlur = 0;
       }
       g.globalAlpha = 1;
 
-      // The question: a glowing point from the picture into the middle of the space.
+      // The question in the middle, and every path being shown.
       const mid = proj([0, 0, 0]);
-      const cardX = card.x - (1 - (seg.kind === 'in' ? ease((time - seg.start) / (seg.end - seg.start)) : 1)) * card.w * 1.3;
-      if (seg.kind === 'think' || seg.kind === 'in' || trying) {
-        let qx = mid.x, qy = mid.y;
-        if (seg.kind !== 'think' && !trying) { qx = cardX + card.w; qy = cardY + cardH / 2; }
-        if (seg.kind === 'think') { const f = ease(clamp((time - seg.start) / 0.6)); qx = cardX + card.w + (mid.x - cardX - card.w) * f; qy = cardY + cardH / 2 + (mid.y - cardY - cardH / 2) * f; }
-        const pulse = 1 + 0.25 * Math.sin(time * 8);
-        g.fillStyle = '#fff'; g.shadowColor = C.teal; g.shadowBlur = 30 * S;
-        g.beginPath(); g.arc(qx, qy, 6 * pulse * S, 0, 7); g.fill(); g.shadowBlur = 0;
-        if (seg.kind === 'think') { g.strokeStyle = C.teal; g.globalAlpha = 0.35; g.lineWidth = 1.5 * S;
-          g.beginPath(); g.moveTo(cardX + card.w, cardY + cardH / 2); g.lineTo(qx, qy); g.stroke(); g.globalAlpha = 1; }
-      }
-
-      // The route through the space to the tool's cluster, then on to the tool.
-      if (trying) {
-        const route = routeFor(seg.d, seg.k, ti).map(proj);
-        const u = seg.kind === 'travel' ? ease((time - seg.start) / (seg.end - seg.start)) : 1;
-        const legs = route.length - 1, reach = u * legs;
-        g.strokeStyle = col; g.lineWidth = 3 * S; g.shadowColor = col; g.shadowBlur = 16 * S; g.lineJoin = 'round';
+      g.fillStyle = C.text; g.shadowColor = C.teal; g.shadowBlur = 26 * S;
+      g.beginPath(); g.arc(mid.x, mid.y, 5.5 * (1 + 0.2 * Math.sin(time * 8)) * S, 0, 7); g.fill(); g.shadowBlur = 0;
+      for (const sh of shown) {
+        const tr = dec.tries[sh.k], ti = toolIdx(tr.tool), col = kindColor[TOOLS[ti].kind];
+        const route = routeFor(d, sh.k).map(proj), legs = route.length - 1, reach = sh.u * legs;
+        const faded = !reel && sh.u >= 1 && sh.ring >= 1 && shown.length > 1 && (Math.floor(time / 1.4) % dec.tries.length) !== sh.k;
+        g.strokeStyle = col; g.lineWidth = (faded ? 1.6 : 3) * S; g.globalAlpha = faded ? 0.45 : 1; g.lineJoin = 'round';
+        if (!faded) { g.shadowColor = col; g.shadowBlur = 16 * S; }
         g.beginPath(); g.moveTo(route[0].x, route[0].y);
         for (let k = 1; k <= legs; k++) { const f = clamp(reach - (k - 1)); if (f <= 0) break; const a = route[k - 1], b = route[k]; g.lineTo(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f); }
-        g.stroke();
-        route.slice(1, Math.floor(reach) + 1).forEach((p) => { g.fillStyle = col; g.beginPath(); g.arc(p.x, p.y, 4.5 * S, 0, 7); g.fill(); });
-        if (seg.kind === 'travel') { const k = Math.min(legs - 1, Math.floor(reach)), f = reach - k, a = route[k], b = route[k + 1];
-          g.fillStyle = '#fff'; g.shadowBlur = 26 * S; g.beginPath(); g.arc(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, 5.5 * S, 0, 7); g.fill(); }
-        g.shadowBlur = 0;
-        if (litOn) { const end = route[legs], tl = tools[ti]; // the cluster answers through its tool
-          g.globalAlpha = 0.55; g.lineWidth = 1.6 * S; g.setLineDash([5 * S, 5 * S]); g.beginPath(); g.moveTo(end.x, end.y); g.lineTo(tl.x - 12 * S, tl.y); g.stroke(); g.setLineDash([]); g.globalAlpha = 1; }
+        g.stroke(); g.shadowBlur = 0;
+        if (sh.u < 1) { const k = Math.min(legs - 1, Math.floor(reach)), f = reach - k, a = route[k], b = route[k + 1];
+          g.fillStyle = C.text; g.shadowColor = col; g.shadowBlur = 24 * S; g.beginPath(); g.arc(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, 5 * S, 0, 7); g.fill(); g.shadowBlur = 0; }
+        if (sh.u >= 1) { const end = route[legs], tl = tools[ti];
+          g.globalAlpha = faded ? 0.25 : 0.55; g.lineWidth = 1.5 * S; g.setLineDash([5 * S, 5 * S]); g.beginPath(); g.moveTo(end.x, end.y); g.lineTo(tl.x - 12 * S, tl.y); g.stroke(); g.setLineDash([]); }
+        g.globalAlpha = 1;
       }
 
-      // The picture being decided.
-      const out = seg.kind === 'done' ? ease((time - seg.start) / 0.6) : 0;
+      // The tools.
+      tools.forEach((tl, i) => {
+        const c = kindColor[tl.kind], mine = shown.filter((x) => toolIdx(dec.tries[x.k].tool) === i && x.lit), on = mine.length > 0;
+        g.fillStyle = on ? c : C.bg; g.strokeStyle = c; g.lineWidth = 2.4 * S;
+        if (on) { g.shadowColor = c; g.shadowBlur = 26 * S; }
+        g.beginPath(); g.arc(tl.x, tl.y, 11 * S, 0, 7); g.fill(); g.stroke(); g.shadowBlur = 0;
+        for (const x of mine) if (x.ring < 1 && x.mark) { const mc = x.mark === 'yes' ? C.ok : x.mark === 'no' ? C.pink : C.muted;
+          g.strokeStyle = mc; g.globalAlpha = 1 - x.ring; g.lineWidth = 3 * S; g.beginPath(); g.arc(tl.x, tl.y, (11 + 34 * x.ring) * S, 0, 7); g.stroke(); g.globalAlpha = 1; }
+        g.textAlign = 'left'; g.font = font(on ? 700 : 500, 15); g.fillStyle = on ? C.text : C.muted; g.fillText(tl.name, tl.x + 20 * S, tl.y + 1 * S);
+        g.font = font(600, 11); g.fillStyle = c; g.fillText(tl.note, tl.x + 20 * S, tl.y + 16 * S);
+        const marks = mine.map((x) => x.mark).filter(Boolean) as Verdict[];
+        if (marks.length) { const m = marks[marks.length - 1]; g.font = font(800, 14); g.textAlign = 'right';
+          g.fillStyle = m === 'yes' ? C.ok : m === 'no' ? C.pink : C.muted;
+          g.fillText(marks.map((v) => (v === 'yes' ? 'YES' : v === 'no' ? 'NO' : 'SKIP')).join(' · '), tl.x - 18 * S, tl.y - 12 * S); g.textAlign = 'left'; }
+      });
+
+      if (!reel) return; // the explorer's picture, reasons, and costs are page text below the canvas
+
+      // Reel only: the picture, the lesson strip, and the counter. No words beyond labels.
       const drawImg = (src: string, x: number, y: number, w: number, h: number, r: number) => {
         const im = imgs.get(src); g.save(); g.beginPath(); g.roundRect(x, y, w, h, r); g.clip();
         if (im && im.complete && im.naturalWidth) { const s = Math.max(w / im.naturalWidth, h / im.naturalHeight); g.drawImage(im, x + (w - im.naturalWidth * s) / 2, y + (h - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s); }
         else { g.fillStyle = C.line; g.fillRect(x, y, w, h); }
         g.restore();
       };
-      if (out < 1 && seg.kind !== 'intro') {
-        g.globalAlpha = (seg.kind === 'in' ? ease((time - seg.start) / (seg.end - seg.start)) : 1) * (1 - out);
-        drawImg(dec.img, cardX, cardY, card.w, cardH, 10 * S);
-        g.strokeStyle = C.teal; g.lineWidth = 2 * S; g.beginPath(); g.roundRect(cardX, cardY, card.w, cardH, 10 * S); g.stroke();
-        g.font = font(700, 15); g.fillStyle = C.text; g.textAlign = 'left'; g.fillText(dec.label, cardX, cardY - 10 * S);
+      const s = seg!, out = s.kind === 'done' ? ease((time - s.start) / 0.5) : 0;
+      if (out < 1) {
+        const inT = s.kind === 'in' ? ease((time - s.start) / (s.end - s.start)) : 1, x = card.x - (1 - inT) * card.w * 0.5;
+        g.globalAlpha = inT * (1 - out);
+        drawImg(dec.img, x, cardY, card.w, cardH, 10 * S);
+        g.strokeStyle = C.teal; g.lineWidth = 2 * S; g.beginPath(); g.roundRect(x, cardY, card.w, cardH, 10 * S); g.stroke();
+        g.strokeStyle = C.teal; g.globalAlpha *= 0.35; g.lineWidth = 1.5 * S; g.beginPath(); g.moveTo(x + card.w, cardY + cardH / 2); g.lineTo(mid.x, mid.y); g.stroke();
         g.globalAlpha = 1;
       }
-
-      // The tools.
-      tools.forEach((tl, i) => {
-        const c = kindColor[tl.kind], on = i === ti && litOn;
-        const mark = on && seg.kind !== 'travel' ? tr!.verdict : null;
-        const ring = mark && seg.kind === 'verdict' ? clamp((time - seg.start) / 0.55) : 1;
-        g.fillStyle = on ? c : C.bg; g.strokeStyle = c; g.lineWidth = 2.4 * S;
-        if (on) { g.shadowColor = c; g.shadowBlur = 28 * S; }
-        g.beginPath(); g.arc(tl.x, tl.y, 11 * S, 0, 7); g.fill(); g.stroke(); g.shadowBlur = 0;
-        if (mark && ring < 1) { const mc = mark === 'yes' ? C.ok : mark === 'no' ? C.pink : C.muted;
-          g.strokeStyle = mc; g.globalAlpha = 1 - ring; g.lineWidth = 3 * S; g.beginPath(); g.arc(tl.x, tl.y, (11 + 36 * ring) * S, 0, 7); g.stroke(); g.globalAlpha = 1; }
-        g.textAlign = 'left'; g.font = font(on ? 700 : 500, 15); g.fillStyle = on ? C.text : C.muted; g.fillText(tl.name, tl.x + 20 * S, tl.y + 1 * S);
-        g.font = font(600, 11); g.fillStyle = c; g.fillText(tl.note, tl.x + 20 * S, tl.y + 16 * S);
-        if (mark) { g.font = font(800, 14); g.fillStyle = mark === 'yes' ? C.ok : mark === 'no' ? C.pink : C.muted; g.textAlign = 'right';
-          g.fillText(mark === 'yes' ? 'YES' : mark === 'no' ? 'NO' : 'SKIP', tl.x - 18 * S, tl.y - 12 * S); g.textAlign = 'left'; }
-      });
-
-      // The lesson strip and the counter: everything finished before now.
       const made: string[] = []; let spent = 0;
-      for (const s of segs) {
-        if (s.start > time) break;
-        const x = s.k >= 0 ? decisions[s.d].tries[s.k] : null;
-        if (s.kind === 'verdict' && x?.cost) spent += x.cost;
-        if (s.kind === 'fly' && time >= s.end) made.push(decisions[s.d].out || decisions[s.d].img);
+      for (const x of segs) {
+        if (x.start > time) break;
+        const tr = x.k >= 0 ? decisions[x.d].tries[x.k] : null;
+        if (x.kind === 'verdict' && tr?.cost) spent += tr.cost;
+        if (x.kind === 'fly' && time >= x.end) made.push(decisions[x.d].out || decisions[x.d].img);
       }
-      const stripY = H * 0.875, th = H * 0.105, tw = th * 1.45, gap = 8 * S, sx0 = W * 0.03;
-      g.font = font(700, 11); g.fillStyle = C.muted; g.textAlign = 'left'; g.fillText('THE LESSON SO FAR', sx0, stripY - 8 * S);
-      const slot = (n: number) => sx0 + n * (tw + gap);
-      made.forEach((src, n) => drawImg(src, slot(n), stripY, tw, th, 6 * S));
-      if (seg.kind === 'fly') {
-        const f = ease((time - seg.start) / (seg.end - seg.start)), tl = tools[ti], sc = 0.35 + 0.65 * f;
+      const stripY = H * 0.82, th = H * 0.13, tw = th * 1.45, gap = 6 * S, sx0 = W * 0.03;
+      const perRow = Math.max(1, Math.floor((W * 0.7 - sx0) / (tw * 0.62 + gap)));
+      const sw = Math.min(tw, (W * 0.7 - sx0) / Math.max(made.length + 1, 1) - gap), sh = sw / 1.45;
+      g.font = font(700, 12); g.fillStyle = C.muted; g.textAlign = 'left'; g.fillText('THE LESSON SO FAR', sx0, stripY - 8 * S);
+      const slot = (n: number) => sx0 + n * (sw + gap);
+      made.forEach((src, n) => drawImg(src, slot(n), stripY, sw, sh, 5 * S));
+      if (s.kind === 'fly') {
+        const f = ease((time - s.start) / (s.end - s.start)), tl = tools[toolIdx(dec.tries[s.k].tool)], sc = 0.4 + 0.6 * f;
         const x = tl.x + (slot(made.length) - tl.x) * f, y = tl.y + (stripY - tl.y) * f;
-        g.save(); g.shadowColor = col; g.shadowBlur = 24 * S; drawImg(dec.out || dec.img, x, y, tw * sc, th * sc, 6 * S); g.restore();
+        g.save(); g.shadowColor = C.teal; g.shadowBlur = 24 * S; drawImg(dec.out || dec.img, x, y, sw * sc, sh * sc, 5 * S); g.restore();
       }
-      g.textAlign = 'right'; g.font = font(700, 11); g.fillStyle = C.muted; g.fillText('SPENT ON IMAGES', W * 0.97, stripY - 8 * S);
-      const grad = g.createLinearGradient(W * 0.78, 0, W * 0.97, 0); grad.addColorStop(0, C.teal); grad.addColorStop(1, C.violet);
-      g.font = font(800, 40); g.fillStyle = grad; g.fillText(`$${spent.toFixed(2)}`, W * 0.97, stripY + th * 0.72);
-
-      // The thought: what it's weighing, typed out.
-      let thought = '';
-      if (seg.kind === 'in' || seg.kind === 'think') thought = `Thinking: ${dec.think}`;
-      else if (seg.kind === 'travel') thought = `${TOOLS[ti].name}?`;
-      else if (seg.kind === 'verdict' || seg.kind === 'fly') thought = `${TOOLS[ti].name}? ${tr!.verdict === 'yes' ? 'Yes.' : tr!.verdict === 'no' ? 'No.' : 'Not needed.'} ${tr!.why}`;
-      else if (seg.kind === 'done') thought = summary || 'Free tools first; paid only when nothing free will do.';
-      else if (seg.kind === 'intro') thought = root.dataset.intro || 'Free tools first; paid only when nothing free will do.';
-      const typed = ['verdict', 'think', 'done', 'intro'].includes(seg.kind) ? clamp((time - seg.start) / Math.min(1.6, (seg.end - seg.start) * 0.35)) : 1;
-      const shown = thought.slice(0, Math.ceil(thought.length * typed));
-      g.textAlign = 'left'; g.font = font(600, 19); g.fillStyle = C.text;
-      const maxW = W * 0.94; let line = '', ly = H * 0.765;
-      for (const w of shown.split(' ')) { const test = line ? `${line} ${w}` : w; if (g.measureText(test).width > maxW && line) { g.fillText(line, sx0, ly); line = w; ly += 25 * S; } else line = test; }
-      if (line) g.fillText(line, sx0, ly);
-      if (thought && (typed < 1 || Math.floor(time * 2) % 2)) { g.fillStyle = C.teal; g.fillRect(sx0 + g.measureText(line).width + 4 * S, ly - 16 * S, 8 * S, 20 * S); }
+      void perRow;
+      g.textAlign = 'right'; g.font = font(700, 12); g.fillStyle = C.muted; g.fillText('SPENT ON IMAGES', W * 0.97, stripY - 8 * S);
+      const grad = g.createLinearGradient(W * 0.76, 0, W * 0.97, 0); grad.addColorStop(0, C.teal); grad.addColorStop(1, C.violet);
+      g.font = font(800, s.kind === 'done' ? 52 : 44); g.fillStyle = grad; g.fillText(money(spent), W * 0.97, stripY + th * 0.62);
     }
 
-    // Time advances only while the figure is on screen, so a reader never misses the start.
+    // Explorer UI: a strip of every picture, and the chosen one's tries as text.
+    if (!reel) {
+      const ui = root.querySelector<HTMLElement>('.ui')!; ui.hidden = false;
+      const pics = ui.querySelector<HTMLOListElement>('.pics')!, triesEl = ui.querySelector<HTMLOListElement>('.tries')!;
+      pics.innerHTML = decisions.map((d, i) => `<li><button type="button" data-i="${i}" title="${esc(d.label)}"><img src="${esc(d.out || d.img)}" alt="${esc(d.label)}"><span>${i + 1}</span></button></li>`).join('');
+      const show = (i: number) => {
+        cur = (i + decisions.length) % decisions.length; const d = decisions[cur];
+        pics.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', String(j === cur)));
+        pics.querySelector(`[data-i="${cur}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center' });
+        ui.querySelector<HTMLImageElement>('.thumb')!.src = d.out || d.img;
+        ui.querySelector('.label')!.textContent = d.label;
+        ui.querySelector('.think')!.textContent = d.think;
+        ui.querySelector('.spent b')!.textContent = `${money(spentBefore[cur] + d.tries.reduce((s, t) => s + (t.cost ?? 0), 0))} of ${money(total)}`;
+        triesEl.innerHTML = d.tries.map((t) => { const tl = TOOLS[toolIdx(t.tool)];
+          return `<li class="${t.verdict}"><span class="tool k-${tl.kind}">${esc(tl.name)}</span><span class="v">${t.verdict === 'yes' ? 'Yes' : t.verdict === 'no' ? 'No' : 'Skip'}</span>${t.cost ? `<span class="c">${money(t.cost)}</span>` : '<span class="c free">free</span>'}<p>${esc(t.why)}</p></li>`; }).join('');
+      };
+      pics.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('button'); if (b) show(Number(b.dataset.i)); });
+      ui.querySelector('.prev')!.addEventListener('click', () => show(cur - 1));
+      ui.querySelector('.next')!.addEventListener('click', () => show(cur + 1));
+      canvas.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+      canvas.addEventListener('pointermove', (e) => { if (dragging) { yawDrag += (e.clientX - lastX) * 0.01; lastX = e.clientX; } });
+      canvas.addEventListener('pointerup', () => { dragging = false; });
+      canvas.style.cursor = 'grab'; canvas.style.touchAction = 'pan-y';
+      show(0);
+    }
+
+    // Time runs while the figure is on screen.
     let visible = root.dataset.autoplay === '1', clock = 0, last = 0;
-    const draw0 = () => frame(reduce ? LOOP - 0.5 : clock);
+    const draw0 = () => frame(reduce && reel ? LOOP - 0.5 : clock);
     Promise.all([...imgs.values()].map((i) => i.decode().catch(() => {}))).then(draw0);
     addEventListener('resize', draw0);
-    new IntersectionObserver(([e]) => { if (root.dataset.autoplay !== '1') visible = e.isIntersecting; }, { threshold: 0.2 }).observe(root);
-    if (reduce) continue;
+    new IntersectionObserver(([e]) => { if (root.dataset.autoplay !== '1') visible = e.isIntersecting; }, { threshold: 0.15 }).observe(root);
     const tick = (now: number) => {
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0; last = now;
-      if (visible) { clock = (clock + dt) % LOOP; frame(clock); }
+      if (visible) { clock = reel ? (clock + dt) % LOOP : clock + (reduce ? 0 : dt); frame(clock); }
       requestAnimationFrame(tick);
     };
+    if (reduce && reel) continue;
     requestAnimationFrame(tick);
   }
 </script>
 
 <style>
   [hidden] { display: none !important; }
-  .mind { padding: 14px; display: grid; gap: 10px; }
+  .mind { padding: 14px; display: grid; gap: 12px; }
   .brain { width: 100%; height: auto; display: block; border-radius: 14px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .fallback { margin: 0; padding-left: 1.2rem; font-size: .9rem; }
+  .ui { display: grid; gap: 12px; min-width: 0; }
+  .bar { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; min-width: 0; }
+  .bar > button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg-2); color: var(--text);
+    font: 700 1.2rem/1 Inter, sans-serif; cursor: pointer; }
+  .pics { list-style: none; margin: 0; padding: 2px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; min-width: 0; }
+  .pics :global(li) { margin: 0; flex: none; }
+  .pics :global(button) { position: relative; padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; display: block; }
+  .pics :global(button[aria-current="true"]) { border-color: var(--teal); }
+  .pics :global(img) { width: 58px; height: 40px; object-fit: cover; border-radius: 6px; display: block; }
+  .pics :global(span) { position: absolute; left: 3px; bottom: 2px; font: 700 .62rem/1 Inter, sans-serif; color: #fff; text-shadow: 0 1px 2px #000; }
+  .detail { display: grid; gap: 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .head { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; min-width: 0; }
+  .thumb { width: 88px; height: 60px; object-fit: cover; border-radius: 8px; }
+  .label { margin: 0; font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; }
+  .think { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+  .spent { display: grid; text-align: right; font: 500 .72rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .spent b { font: 800 1.1rem/1.2 "Space Grotesk", sans-serif; color: var(--text); }
+  .tries { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .tries :global(li) { margin: 0; display: grid; grid-template-columns: auto auto 1fr; gap: 4px 10px; align-items: baseline;
+    padding: 8px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+  .tries :global(.tool) { font: 700 .82rem/1.2 Inter, sans-serif; }
+  .tries :global(.k-free) { color: var(--ok); } .tries :global(.k-draw) { color: var(--pink); }
+  .tries :global(.k-check) { color: var(--warn); } .tries :global(.k-paid) { color: var(--violet); }
+  .tries :global(.v) { font: 800 .72rem/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+  .tries :global(li.yes .v) { color: var(--ok); } .tries :global(li.no .v) { color: var(--pink); } .tries :global(li.skip .v) { color: var(--muted); }
+  .tries :global(.c) { justify-self: end; font: 600 .8rem/1 "JetBrains Mono", ui-monospace, monospace; color: var(--text); }
+  .tries :global(.c.free) { color: var(--muted); }
+  .tries :global(p) { grid-column: 1 / -1; margin: 0; font-size: .92rem; line-height: 1.45; }
+  @media (max-width: 560px) { .head { grid-template-columns: auto 1fr; } .spent { grid-column: 1 / -1; text-align: left; } }
 </style>
