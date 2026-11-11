@@ -1,0 +1,71 @@
+---
+title: "Checking the agent's homework, with me as the other grader"
+titleAccent: "with me as the other grader"
+tabTitle: Checking the Homework
+partTitle: Checking the agent's homework, with me as the other grader
+description: "Would Gesso's step instructions actually get a beginner to the picture? I graded 22 steps blind, a fresh AI reviewer graded the same steps from a measured map of what each picture changed, and we compared. Explore every step and both verdicts."
+dek: I kept looking at Gesso's steps and thinking, would those words really get me there? So I graded every step of two lessons myself, without peeking, and had a fresh AI reviewer grade the same steps. We caught different things.
+eyebrow: Experiment
+date: 2026-11-11
+readMinutes: 6
+image: /img/og/gesso-step-review.jpg
+series: gesso
+part: 7
+draft: false
+---
+import ReviewExplorer from '../../components/blog/ReviewExplorer.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+This is part 7 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far, and [part 6](/blog/gesso-agent-loop/) shows the agent that makes each lesson.
+
+Every Gesso step is a picture plus a few lines of instructions. The pictures looked right. What bugged me was the words. One step said to blend the sky with X-shaped strokes, and I've done X strokes. They don't make a sky that smooth.
+
+So the question for this part: can a second AI read a step's instructions, look at its picture, and tell whether a beginner following them would actually end up there? Or would it just make things up?
+
+## Grading it twice
+
+I'm a beginner. I've painted maybe ten things in my life, which makes me exactly who Gesso is for, and also not an expert judge. So I didn't ask the AI to grade me. I graded first, on a private page, before seeing anything it said. For each of the 22 steps in two lessons (the balloon from part 6 and an older pumpkin patch), I looked at the before and after pictures, read the instructions, and picked one: would get me there, not enough, too much at once, picture isn't paintable, or not sure. I added a note when something felt off. I was sure about 15 of them and said "not sure" on 7.
+
+Then a fresh copy of Claude, with none of the reasoning that made the lessons, graded the same steps. The trick that keeps it honest is the third panel below. For each step, a free filter compares the before and after pictures pixel by pixel and outlines everything that changed. The reviewer has to point at an outlined change for every problem it reports, so it can't invent one. Then it matches each change to the instruction that paints it, and flags what's left.
+
+Pick a lesson and a step. The picture plays before, after, then what changed. The two dots under each step number are me (left) and the reviewer's second round (right): green means it would get you there, orange means a problem.
+
+<ReviewExplorer caption="Every step of both lessons. My grades came first and were blind; the reviewer saw only the pictures, the change map, and the instructions." />
+
+## What each of us caught
+
+<StatRow stats={[
+  { value: '8 of 15', label: 'steps we agreed on, round 1' },
+  { value: '4', label: 'problems I flagged that it missed' },
+  { value: '0', label: 'that round 2 missed' },
+  { value: '1 in 3', label: 'of its findings were the pictures, not the words' },
+]} />
+
+Eight of 15 sounds like a coin flip, but the disagreements weren't random. We were looking for different things.
+
+**The reviewer caught what the words leave out.** The pumpkin's stems step paints a big curling vine that no instruction mentions. A step about yellow highlights quietly adds grass to the whole field. The balloon's last step changes the stripes. I checked the vine myself, because that's the kind of claim I'd expect an AI to make up. It's real.
+
+**I caught how to get the look.** My notes kept saying the same thing in different ways: the clouds have several colors but the step names one, the mountains look three-dimensional but nothing says how, the field has two greens but the step lists one. And on the balloon: "Unless the paint is dry, I think painting those teal stripes on the balloon are going to blend the colors." Nobody had told the lessons to say "let it dry."
+
+The first reviewer also undersold itself. It noticed the cloud colors, wrote it down, and still graded the step fine.
+
+## Round two
+
+So I changed what the reviewer looks for, not which steps it looks at. Three new kinds of problem: **flat** (one color where the picture shows depth), **wet paint** (painting over a layer that should dry first), and **picture drift** (an area an earlier step finished changes with no instruction). Its examples are generic, a tree crown and a lake, not my notes, so it couldn't just copy me. And its grade now follows the problems it finds.
+
+Round two caught every problem I'd flagged. It also flagged seven steps I'd called fine, mostly for wet paint. Given my own note that drying is "an important distinction anywhere," I count those as agreeing with me more than I agreed with myself.
+
+## The surprise: the pictures move
+
+About a third of round two's findings weren't about the words at all. They were drift: a pumpkin repainted in a later step, grass appearing, clouds changing shape. [Part 3](/blog/gesso-drift/) was about exactly this problem, and here it is again, measured this time. Each step picture is drawn by an image model, and it doesn't hold earlier work perfectly still. A beginner comparing their canvas to the step picture sees changes nobody asked for.
+
+That's not something better instructions can fix. The fix is to build each step picture on top of the previous one, so finished areas can't change. That's next on the list.
+
+## What changed in Gesso
+
+The reviewer is now part of making every lesson. After the agent writes the steps, a fresh reviewer runs once against the change maps, and the agent fixes what it finds, sorted by kind: flat, missing, vague, and wet-paint problems become new or rewritten instructions, drift gets logged for the picture fix, and anything it changed shows up in the lesson's "How this lesson was made" section. "Let a layer dry before painting on it" became a standing rule too, so the reviewer shouldn't have to catch it anymore.
+
+The reviews cost nothing extra: they run in Claude Code on my subscription, and the change maps are free filters. Only the pictures cost money, and this part didn't need any new ones.
+
+<Callout title="Who did what.">I raised the question, graded all 22 steps blind, and decided what the results meant. Claude ran the reviews (four of them, each starting fresh), and the change maps come from a free pixel filter. Claude is still the agent loop in this exploring phase; when Gesso becomes an app, that will move. Next, in part 8: what happened when the lessons stopped relying on the AI's memory of painting technique.</Callout>

@@ -1,0 +1,90 @@
+---
+title: "Researched, then too wordy, then too vague"
+titleAccent: "then too vague"
+tabTitle: Researched Lessons
+partTitle: Researched, then too wordy, then too vague
+description: "Gesso's lessons stopped relying on the AI's memory of painting technique and started using 38 cited sources. The instructions got better, then twice as long, then too short in the wrong places. Flip through one step's four versions, and paint along with a lesson fitted to a real 11 x 14 canvas."
+dek: The lessons were running on whatever the AI remembered about painting. So I had it do the research first. The instructions got better, then twice as long, and then, when I cut them in half, quietly worse.
+eyebrow: Experiment
+date: 2026-11-11
+readMinutes: 6
+image: /img/og/gesso-research.jpg
+series: gesso
+part: 8
+draft: false
+---
+import TextVersions from '../../components/blog/TextVersions.astro';
+import LessonWalkthrough from '../../components/blog/LessonWalkthrough.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+import sailboat from '../../data/gesso/lessons/sailboat-11x14.json';
+
+This is part 8 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far, and [part 7](/blog/gesso-step-review/) is the review that set this part up.
+
+Part 7 ended with a list of things the lessons didn't know: build depth from several colors, let paint dry before layering. None of that was missing because the AI is bad at painting. It was missing because nothing told it to look. The lessons were running on whatever it remembered.
+
+## Research first
+
+So before changing any rules, I had a research agent read up on how beginner acrylic paint-alongs actually work. It came back with 38 cited sources: paint makers' technical pages, written step-by-step tutorials, art-education sites. A few things stood out:
+
+- **Acrylic dries fast.** A thin stroke stays workable for well under ten minutes, so blending only works inside one step, and every new layer goes over dry paint. Paint-and-sip classes keep a hair dryer handy for this.
+- **Depth takes three values.** A darker base, a middle tone on the side facing the light, then a small light accent on the edge, each smaller than the last. That's the 3D look I said in part 7 the instructions couldn't get me to.
+- **Good steps say everything.** Which brush, which mix, how much paint is on the brush, the stroke, its direction, and where on the canvas. Then what it should look like when you're done.
+- **Colors dry darker.** Test a dab before painting a big area.
+
+Those became Gesso's rules, and the research file sits in the project so the agent reads it before every lesson. Then I reran the balloon from part 6 from scratch.
+
+## Then it got long
+
+The rules worked. "Let it dry" went from appearing nowhere to appearing 16 times. Clouds got a dark, a middle, and a light. Every instruction said how loaded the brush should be.
+
+The lesson also nearly doubled, from 1,045 words to 1,956. Every rule added a sentence, and the agent explained each one every single time: how long drying takes, what an X stroke is, the recipe for a mix that was already printed on the page. Nobody wants to read 200 words with a wet brush in their hand.
+
+## Then it got vague
+
+So I set a word budget and had the text trimmed. It came down to 1,084 words, and on a quick read it looked great. But I'd learned my lesson from part 7, so the same kind of fresh reviewer graded it again. Its "vague" findings went from 3 to 8.
+
+What got cut wasn't the fluff. It was the measurements. "Centered 28% across, about 15% wide" became "left of center." "About six rows each side" disappeared. The sun became "thumbnail-sized," which depends entirely on how big your canvas is. Short words that looked like detail were the instruction.
+
+Flip through one step's four versions. The highlighted bits are measurements.
+
+<TextVersions caption="One balloon step, four versions. The bar is the whole lesson's length." />
+
+## Show, don't tell
+
+The fix was two rules. First, never trim a size, a position, or a count. Second, when something takes more than a sentence to explain, show it instead: a diagram for a shape or a stroke's path, and a small table for depth, one row each for dark, middle, and light with the paint and where it goes. The words just point at it.
+
+The final version is 1,138 words for the whole lesson, barely more than before the research, and the reviewer found one vague instruction instead of eight. The budget stays, but as a signal: when a step runs long, the question is whether it's repeating something, describing something that could be drawn, or genuinely doing a lot. Only the first one gets cut.
+
+## Fitted to a real canvas
+
+One more change came from looking at our actual supplies. We paint on a stack of 11 x 14 canvases, and every lesson so far has been the shape of whatever picture it started from. Now you tell Gesso your canvas size, and before planning it fits the picture to it, cheapest way first: no change if it already fits, a free crop if only plain edges get cut, or one paid picture that paints more scene if a crop would cut the subject.
+
+<figure>
+  <img src="/img/gesso/review/sailboat-fit.webp" alt="The sailboat picture with the 11 x 14 canvas outlined; the strip outside it is dimmed" width="1200" height="800" loading="lazy" style="max-width:100%;height:auto" />
+  <figcaption>The sailboat picture with the 11 x 14 canvas (hung sideways) outlined. The dimmed strip was cut: plain water and the foot of the hill, not the boat.</figcaption>
+</figure>
+
+The steps are cropped to the canvas, and the page says how many inches each 10% is, so "63% across" means about 8.8 inches on a 14-inch canvas. This one is a simple picture on purpose, to check that a simple picture gets a simple lesson: 10 steps, all under the word budget, 40 cents in pictures.
+
+<LessonWalkthrough
+  lesson={sailboat}
+  base="/img/gesso/lessons/sailboat-11x14"
+  title="Red sailboat, on an 11 x 14 canvas"
+  caption="The whole lesson, step by step. Each step's recipes are under Show instructions."
+/>
+
+<StatRow stats={[
+  { value: '38', label: 'sources behind the rules' },
+  { value: '0 → 16', label: '"let it dry" in one lesson' },
+  { value: '8 → 1', label: 'vague instructions after showing instead of telling' },
+  { value: '$0.40', label: 'for the 11 x 14 sailboat lesson' },
+]} />
+
+## Smaller things
+
+- **Brushes have pictures.** A beginner doesn't know what a "#8 round" is, so each brush in the list is drawn with the mark it makes.
+- **Paint recipes are computed,** from a pigment mixing model, not written by eye. That's in [part 5](/blog/gesso-filters/).
+- **Every lesson is stamped** with the Gesso version that made it, so I can tell which old lessons are missing what. This one says POC 0.14.
+
+<Callout title="Who did what.">I asked for the research, noticed the lessons getting long, and asked the question that started the last fix: was it wordy, or was the step just complicated? A research agent (Claude) read the 38 sources and wrote them up with citations. Claude runs the lessons and the reviews in Claude Code for now, and an image model painted every picture.</Callout>
