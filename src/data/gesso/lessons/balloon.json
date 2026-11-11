@@ -1,0 +1,522 @@
+{
+  "title": "Balloon Lavender Lesson",
+  "subject": "A striped hot air balloon floating over a lavender field at sunset, with purple hills, a golden hill, and a lone tree on the right.",
+  "technique": "Paint along, back to front",
+  "level": "beginner",
+  "tubes": [
+    "Titanium white",
+    "Cadmium yellow medium (hue)",
+    "Cadmium red medium (hue)",
+    "Ultramarine blue",
+    "Burnt sienna"
+  ],
+  "size": [
+    1200,
+    800
+  ],
+  "photo": "photo.webp",
+  "beginner": "beginner.webp",
+  "cost_usd": 0.4771,
+  "steps": [
+    {
+      "n": 1,
+      "name": "Paint the sunset sky",
+      "summary": "Blend the sunset sky from blue at the top to orange, with a gold glow.",
+      "image": "01.webp",
+      "thumb": "01-t.webp",
+      "paints": [
+        {
+          "name": "Sky blue",
+          "hex": "#7d91d3",
+          "recipe": "3 parts white, 2 parts ultramarine, a touch of burnt sienna",
+          "first_step": 1
+        },
+        {
+          "name": "Sunset orange",
+          "hex": "#f87c3a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        },
+        {
+          "name": "Sunset gold",
+          "hex": "#fba536",
+          "recipe": "3 parts yellow, 2 parts red, 2 parts white",
+          "first_step": 1
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1 inch flat",
+          "kind": "flat",
+          "use": "the whole sky gradient"
+        }
+      ],
+      "do": [
+        "Load the 1 inch flat with Sky blue and paint long side-to-side strokes across the top tenth of the canvas.",
+        "Below the blue, paint Sunset orange in long strokes, blending up into the blue while both are wet so it turns a soft violet where they meet.",
+        "Brush Sunset gold in a wide oval glow a little left of center, a bit below the middle of the sky, and blend its edges into the orange.",
+        "Keep the orange going down to about 6/10 of the way down the canvas, with a straight bottom edge. Leave the bottom 4/10 white."
+      ],
+      "watch_out": [
+        "Stopping the sky at the hill line. Run it lower; the mountains and fields cover it later.",
+        "Overworking the blend until it's muddy. A few passes are enough."
+      ]
+    },
+    {
+      "n": 2,
+      "name": "Dab in the big clouds",
+      "summary": "Scrub in the big pink cloud masses and their orange undersides.",
+      "image": "02.webp",
+      "thumb": "02-t.webp",
+      "paints": [
+        {
+          "name": "Coral pink",
+          "hex": "#e05959",
+          "recipe": "3 parts red, 2 parts white, 1 part ultramarine",
+          "first_step": 2
+        },
+        {
+          "name": "Sunset orange",
+          "hex": "#f87c3a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        },
+        {
+          "name": "Peach light",
+          "hex": "#fabc6a",
+          "recipe": "6 parts white, 3 parts yellow, 2 parts red, 1 part burnt sienna",
+          "first_step": 2
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#10 filbert",
+          "kind": "filbert",
+          "use": "scrubbing in the cloud masses and streaks"
+        }
+      ],
+      "do": [
+        "With the filbert and Coral pink, scrub in a big cloud mass over the upper right, from the middle of the canvas to the right edge and from the top down to about a third.",
+        "Scrub a smaller pink cloud group on the upper left, from the left edge to about a fifth across, and leave the blue showing in the top middle.",
+        "Drag a few long, thin pink-orange streaks across the sky below the clouds, down to just above the glow.",
+        "Dab Peach light on the tops of the cloud masses, where the sun lights them."
+      ],
+      "watch_out": [
+        "Making lots of small separate puffs. Keep the clouds as two big masses and a few streaks.",
+        "Covering the gold glow. Keep the streaks thin near the middle so the glow stays bright."
+      ]
+    },
+    {
+      "n": 3,
+      "name": "Paint the sun",
+      "summary": "Paint the small, bright sun inside the glow.",
+      "image": "03.webp",
+      "thumb": "03-t.webp",
+      "paints": [
+        {
+          "name": "Sun cream",
+          "hex": "#fbdb79",
+          "recipe": "6 parts white, 3 parts yellow, 1 part red",
+          "first_step": 3
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "filling the sun disk"
+        }
+      ],
+      "do": [
+        "Load the #6 round with Sun cream and paint a small solid circle in the brightest part of the glow, a little left of center and about 4/10 of the way down.",
+        "Make it about one-twenty-fifth of the canvas width across.",
+        "With a dry, clean brush, lightly soften the edge so it glows into the gold."
+      ],
+      "watch_out": [
+        "Making the sun too big. It's only about the width of a fingertip on a 16 x 24 inch canvas.",
+        "Thin paint. Use it thick so the orange doesn't show through."
+      ]
+    },
+    {
+      "n": 4,
+      "name": "Paint the far mountains",
+      "summary": "Lay the far purple mountains across the whole width.",
+      "image": "04.webp",
+      "thumb": "04-t.webp",
+      "paints": [
+        {
+          "name": "Mountain purple",
+          "hex": "#6364b4",
+          "recipe": "1 part ultramarine, 1 part white, a touch of red",
+          "first_step": 4
+        },
+        {
+          "name": "Sunset orange",
+          "hex": "#f87c3a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "3/4 inch flat",
+          "kind": "flat",
+          "use": "the mountain shapes"
+        }
+      ],
+      "do": [
+        "Paint the far mountains in Mountain purple across the whole width: a rounded peak on the left about 4/10 down, dipping down right over the bottom half of the sun.",
+        "Rise again to a second ridge right of center, and keep the ridge going at about the same height to the right edge.",
+        "Fill the mountains down to about half way down the canvas.",
+        "Blend a little Sunset orange into the purple near the sun, where the glow lights the slopes. The orange sky still shows below the mountains."
+      ],
+      "watch_out": [
+        "Hard, sharp ridge lines. Far mountains look softer and lighter than near ones.",
+        "Leaving the whole sun showing. The ridge dips over its lower half, so it looks like it's setting."
+      ]
+    },
+    {
+      "n": 5,
+      "name": "Paint the golden fields and hill",
+      "summary": "Add the golden fields and hill under the mountains.",
+      "image": "05.webp",
+      "thumb": "05-t.webp",
+      "paints": [
+        {
+          "name": "Field gold",
+          "hex": "#eba023",
+          "recipe": "3 parts yellow, 1 part red, a touch of ultramarine",
+          "first_step": 5
+        },
+        {
+          "name": "Sunset orange",
+          "hex": "#f87c3a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1 inch flat",
+          "kind": "flat",
+          "use": "the field band and the hill"
+        }
+      ],
+      "do": [
+        "Paint a band of Field gold across the left half, just under the mountains, about half way down the canvas.",
+        "Paint the big golden hill on the right: start low near the left third and sweep it up to the right edge, where its top is just below the mountains.",
+        "Run the gold down to a straight edge a little more than 6/10 of the way down everywhere, past where the lavender will start.",
+        "Drag a little Sunset orange along the lower slope of the hill for a warm shadow."
+      ],
+      "watch_out": [
+        "Stopping right at the lavender line. Run the gold a little lower; the lavender covers it.",
+        "Flat, even gold. Let some orange and lighter gold strokes show so the hill looks like grass."
+      ]
+    },
+    {
+      "n": 6,
+      "name": "Dab the tree lines",
+      "summary": "Dab in the dark tree lines along the foot of the mountains.",
+      "image": "06.webp",
+      "thumb": "06-t.webp",
+      "paints": [
+        {
+          "name": "Tree green",
+          "hex": "#374945",
+          "recipe": "3 parts ultramarine, 1 part yellow, a touch of red, a touch of white",
+          "first_step": 6
+        },
+        {
+          "name": "Sunlit green",
+          "hex": "#948022",
+          "recipe": "1 part yellow, 1 part burnt sienna, a touch of ultramarine",
+          "first_step": 6
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "old stiff flat",
+          "kind": "stiff",
+          "use": "dabbing the bumpy tree rows"
+        },
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "the small bumps of the far row"
+        }
+      ],
+      "do": [
+        "Dab a thin row of small Tree green bumps along the bottom of the mountains, from the left edge to past the middle, so it ends against the golden hill.",
+        "Dab a nearer, taller row of rounded bushy bumps across the left half, along the bottom of the left field.",
+        "Touch a little Sunlit green on a few of the tops. Leave the golden hill on the right bare."
+      ],
+      "watch_out": [
+        "Painting single trees. Keep it a bumpy row, not separate trees.",
+        "Making the far row as big as the near one. Farther away means smaller."
+      ]
+    },
+    {
+      "n": 7,
+      "name": "Paint the lone tree",
+      "summary": "Pull up the tree on the right and dab its leafy crown.",
+      "image": "07.webp",
+      "thumb": "07-t.webp",
+      "paints": [
+        {
+          "name": "Trunk brown",
+          "hex": "#553a32",
+          "recipe": "2 parts ultramarine, 2 parts burnt sienna, 1 part red, a touch of white",
+          "first_step": 7
+        },
+        {
+          "name": "Tree green",
+          "hex": "#374945",
+          "recipe": "3 parts ultramarine, 1 part yellow, a touch of red, a touch of white",
+          "first_step": 6
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "the trunk and branches"
+        },
+        {
+          "brush": "old stiff flat",
+          "kind": "stiff",
+          "use": "dabbing the crown clusters"
+        }
+      ],
+      "do": [
+        "Pull the trunk up from the top of the golden hill, near the right edge (about 85% across), in Trunk brown: wide at the base, then splitting into two or three branches.",
+        "Build the crown in Tree green as three or four overlapping round clusters of dabs: one on the left, a higher one in the middle, one on the right, and one along the bottom.",
+        "Make the crown about half again as wide as it is tall, reaching up to about a fifth of the way down the canvas.",
+        "Leave a gap or two at the bottom of the crown where the branches show."
+      ],
+      "watch_out": [
+        "A lollipop tree (a ball on a stick). Make the crown out of lumpy clusters, wider than tall.",
+        "A trunk as thick at the top as the bottom. Taper it as it rises."
+      ]
+    },
+    {
+      "n": 8,
+      "name": "Block in the lavender rows and paths",
+      "summary": "Paint the lavender rows and the two paths, all running to one point.",
+      "image": "08.webp",
+      "thumb": "08-t.webp",
+      "paints": [
+        {
+          "name": "Path brown",
+          "hex": "#c95c2d",
+          "recipe": "2 parts burnt sienna, 1 part red, 1 part white",
+          "first_step": 8
+        },
+        {
+          "name": "Lavender dark",
+          "hex": "#413d99",
+          "recipe": "3 parts ultramarine, 1 part white, a touch of red, a touch of burnt sienna",
+          "first_step": 8
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1 inch flat",
+          "kind": "flat",
+          "use": "filling the dark rows"
+        },
+        {
+          "brush": "#10 filbert",
+          "kind": "filbert",
+          "use": "the path edges and the narrow far rows"
+        }
+      ],
+      "do": [
+        "Find the spot where the two paths meet: at the top of the field, a little right of center (about 6/10 across).",
+        "From that spot, paint two Path brown paths down to the bottom edge: the left one landing a little left of center (about a third across), the right one landing near the right side (about 8/10 across). Each is a thin point at the top and a wide strip at the bottom.",
+        "Fill the row between the paths with Lavender dark, then the rows beside them: long dark bands that slant toward the meeting spot.",
+        "Make the rows thinner and closer together near the top of the field, and wide at the bottom. Cover all the white."
+      ],
+      "watch_out": [
+        "Paths that stay the same width. They must narrow to a point near the top of the field.",
+        "Adding texture now. This step is flat dark purple; the dabs come next."
+      ]
+    },
+    {
+      "n": 9,
+      "name": "Dab the lavender",
+      "summary": "Press short purple dabs along every row.",
+      "image": "09.webp",
+      "thumb": "09-t.webp",
+      "paints": [
+        {
+          "name": "Lavender mid",
+          "hex": "#7557b7",
+          "recipe": "3 parts ultramarine, 2 parts white, 1 part red",
+          "first_step": 9
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#10 filbert",
+          "kind": "filbert",
+          "use": "big dabs in the front rows"
+        },
+        {
+          "brush": "#6 filbert",
+          "kind": "filbert",
+          "use": "small dabs in the far rows"
+        }
+      ],
+      "do": [
+        "Load the filbert with Lavender mid and press short dabs along each row, pointing slightly upward, following the row's slant toward the meeting point.",
+        "In the front rows at the bottom of the canvas, make big dabs; in the far rows near the top of the field, make small ones.",
+        "Leave the bottom edge of each row dark so the rows look rounded.",
+        "Keep the paths brown; don't dab into them."
+      ],
+      "watch_out": [
+        "Covering the dark base. The dark shows between the dabs and makes the rows look round.",
+        "Same-size dabs everywhere. Big in front, small at the back."
+      ]
+    },
+    {
+      "n": 10,
+      "name": "Add light to the lavender",
+      "summary": "Tap light lavender on the row tops so they catch the sun.",
+      "image": "10.webp",
+      "thumb": "10-t.webp",
+      "paints": [
+        {
+          "name": "Lavender light",
+          "hex": "#ae73be",
+          "recipe": "3 parts white, 2 parts ultramarine, 1 part red",
+          "first_step": 10
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 filbert",
+          "kind": "filbert",
+          "use": "the light lilac dabs"
+        }
+      ],
+      "do": [
+        "Load the small filbert with Lavender light and tap it on the tops of the lavender rows, over the mid purple.",
+        "Put the most on the front rows at the bottom, and only a few small touches on the far rows.",
+        "Keep each row's dark bottom showing, so every row goes dark, then mid purple, then light on top."
+      ],
+      "watch_out": [
+        "Light dabs on every part of every row. Keep them to the tops so the rows stay round."
+      ]
+    },
+    {
+      "n": 11,
+      "name": "Paint the striped balloon",
+      "summary": "Sketch and block in the balloon, its stripes, and the basket.",
+      "image": "11.webp",
+      "thumb": "11-t.webp",
+      "paints": [
+        {
+          "name": "Balloon red",
+          "hex": "#c93121",
+          "recipe": "1 part red, a touch of ultramarine, a touch of white",
+          "first_step": 11
+        },
+        {
+          "name": "Balloon yellow",
+          "hex": "#fcb422",
+          "recipe": "3 parts yellow, 1 part red, 1 part white, a touch of burnt sienna",
+          "first_step": 11
+        },
+        {
+          "name": "Balloon teal",
+          "hex": "#2e7693",
+          "recipe": "3 parts ultramarine, 1 part yellow, 1 part white",
+          "first_step": 11
+        },
+        {
+          "name": "Trunk brown",
+          "hex": "#553a32",
+          "recipe": "2 parts ultramarine, 2 parts burnt sienna, 1 part red, a touch of white",
+          "first_step": 7
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "the outline and the wide stripes"
+        },
+        {
+          "brush": "#4 round",
+          "kind": "round",
+          "use": "the narrow edge stripes, basket, and ropes"
+        }
+      ],
+      "do": [
+        "In the upper left (its middle about 28% across), sketch the balloon lightly: a big circle for the top, tapering down to a short neck about a quarter of the way down the canvas. It's about as wide as it is tall.",
+        "Paint a teal stripe straight down the middle, from the top to the neck.",
+        "Paint the stripes on each side as curved bands, like ( ) around the middle one: yellow, then red at the edges. They get thinner as they curve around the sides.",
+        "Paint a small square basket in Trunk brown just below the neck, with a few thin lines up to the neck for ropes."
+      ],
+      "watch_out": [
+        "Straight, parallel stripes. The stripes bend around the balloon, so the outer ones curve the most and get thin.",
+        "A round ball. The bottom narrows to a neck, like an upside-down teardrop."
+      ]
+    },
+    {
+      "n": 12,
+      "name": "Final details and highlights",
+      "summary": "Finish the balloon's stripes and add the last highlights.",
+      "image": "12.webp",
+      "thumb": "12-t.webp",
+      "paints": [
+        {
+          "name": "Sunlit green",
+          "hex": "#948022",
+          "recipe": "1 part yellow, 1 part burnt sienna, a touch of ultramarine",
+          "first_step": 6
+        },
+        {
+          "name": "Peach light",
+          "hex": "#fabc6a",
+          "recipe": "6 parts white, 3 parts yellow, 2 parts red, 1 part burnt sienna",
+          "first_step": 2
+        },
+        {
+          "name": "Lavender dark",
+          "hex": "#413d99",
+          "recipe": "3 parts ultramarine, 1 part white, a touch of red, a touch of burnt sienna",
+          "first_step": 8
+        },
+        {
+          "name": "Balloon yellow",
+          "hex": "#fcb422",
+          "recipe": "3 parts yellow, 1 part red, 1 part white, a touch of burnt sienna",
+          "first_step": 11
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#4 round",
+          "kind": "round",
+          "use": "the edge stripes and balloon shading"
+        },
+        {
+          "brush": "old stiff flat",
+          "kind": "stiff",
+          "use": "the sunlit dabs on the crown"
+        }
+      ],
+      "do": [
+        "Add a teal stripe down each outer edge of the balloon and a thin orange-red stripe beside the right-hand yellow, so the stripes get narrower toward the sides.",
+        "Darken the balloon's left and right edges a little with Balloon teal and Lavender dark, and add a few lighter streaks down the middle of the stripes.",
+        "Tap Sunlit green on the left side and top of the tree's crown, where the sun hits it.",
+        "Step back and stop. Don't add light everywhere."
+      ],
+      "watch_out": [
+        "Adding highlights everywhere. Keep them to the sunlit sides.",
+        "Fussing with the lavender. It's done; the last touches go on the balloon and tree."
+      ]
+    }
+  ]
+}

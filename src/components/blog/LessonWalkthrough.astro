@@ -1,0 +1,186 @@
+---
+// A Gesso lesson as a walkthrough: one step per slide, with its picture, a one-line summary, the paints (with
+// recipes) and brushes it uses, and the full instructions behind a toggle. Data is Gesso's embed export
+// (publish writes <lesson>/embed/): lesson.json goes in src/data/gesso/lessons/, its WebP images in
+// public/img/gesso/lessons/<slug>/. The first slide is the picture and the finished painting side by side.
+// Arrows, swipe, the thumbnail strip, or the keyboard move between slides. Without JavaScript every slide
+// still renders, stacked, so the lesson can be read top to bottom.
+interface Paint { name: string; hex: string; recipe: string; first_step: number }
+interface Brush { brush: string; kind: string | null; use: string }
+interface Step { n: number; name: string; summary: string; image: string; thumb: string; paints: Paint[]; brushes: Brush[]; do: string[]; watch_out: string[] }
+interface Lesson { title: string; subject: string; tubes: string[]; size: [number, number]; photo?: string; beginner?: string; steps: Step[] }
+interface Props { lesson: Lesson; base: string; title?: string; caption?: string; link?: string; autoplay?: boolean }
+const { lesson, base, title = lesson.title, caption, link, autoplay = false } = Astro.props;
+const [w, h] = lesson.size;
+const src = (f: string) => `${base.replace(/\/$/, '')}/${f}`;
+const last = lesson.steps[lesson.steps.length - 1];
+const start = lesson.beginner ?? lesson.photo;
+
+// Brush heads, from Gesso's spike/brushes.py, tip at the right.
+const HEADS: Record<string, string> = {
+  flat: 'M58 13 L88 13 Q91 13 91 16 L91 24 Q91 27 88 27 L58 27 Z',
+  stiff: 'M58 13 L84 12 L90 10 L87 15 L92 17 L88 20 L93 23 L87 25 L90 30 L84 28 L58 27 Z',
+  round: 'M58 14 Q80 13 94 20 Q80 27 58 26 Z',
+  liner: 'M58 16 Q82 17 104 20 Q82 23 58 24 Z',
+  filbert: 'M58 13 L80 13 Q92 13 92 20 Q92 27 80 27 L58 27 Z',
+  fan: 'M58 18 L86 4 Q94 20 86 36 L58 22 Z',
+  angle: 'M58 13 L92 13 L84 27 L58 27 Z',
+};
+---
+<figure class="walk panel bleed" data-autoplay={autoplay ? '1' : undefined} aria-roledescription="carousel" aria-label={title}>
+  <header class="head">
+    <b class="title">{title}</b>
+    <span class="count" aria-live="polite">{lesson.steps.length} steps</span>
+  </header>
+  <div class="slides">
+    <section class="slide intro" data-i="0" aria-roledescription="slide" aria-label="The picture and where it ends up">
+      <div class="pair">
+        {start && <figure><img src={src(start)} alt="The picture the lesson starts from" width={w} height={h} decoding="async" /><figcaption>{lesson.beginner ? 'The picture, simplified for a beginner' : 'The picture'}</figcaption></figure>}
+        <figure><img src={src(last.image)} alt="The finished painting" width={w} height={h} decoding="async" /><figcaption>Where you'll end up</figcaption></figure>
+      </div>
+      <div class="text">
+        <h3>{lesson.steps.length} steps, {lesson.tubes.length} tubes of paint</h3>
+        <p class="sum">{lesson.subject}</p>
+        <p class="tubes">{lesson.tubes.join(' · ')}</p>
+      </div>
+    </section>
+    {lesson.steps.map((s) => (
+      <section class="slide" data-i={s.n} aria-roledescription="slide" aria-label={`Step ${s.n} of ${lesson.steps.length}: ${s.name}`}>
+        <div class="pic" style={`aspect-ratio:${w}/${h}`}>
+          <img src={src(s.image)} alt={`The canvas after step ${s.n}: ${s.name}`} width={w} height={h} loading="lazy" decoding="async" />
+        </div>
+        <div class="text">
+          <h3>{s.name}</h3>
+          <p class="sum">{s.summary}</p>
+          <div class="kit">
+            <ul class="paints" aria-label="Paints">
+              {s.paints.map((p) => (
+                <li title={p.recipe}><span class="dot" style={`background:${p.hex}`}></span>{p.name}{p.first_step === s.n && <span class="new">new</span>}</li>
+              ))}
+            </ul>
+            <ul class="brushes" aria-label="Brushes">
+              {s.brushes.map((b) => (
+                <li title={b.use}>
+                  {b.kind && HEADS[b.kind] && (
+                    <svg viewBox="30 2 78 36" aria-hidden="true"><rect x="2" y="17" width="40" height="6" rx="3" class="handle" /><rect x="40" y="14" width="19" height="12" rx="1.5" class="ferrule" /><path d={HEADS[b.kind]} class="hair" /></svg>
+                  )}{b.brush}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <details>
+            <summary>Show instructions</summary>
+            <ol>{s.do.map((d) => <li>{d}</li>)}</ol>
+            {s.paints.length > 0 && <p class="small"><b>Mixes:</b> {s.paints.map((p) => `${p.name}: ${p.recipe}`).join('. ')}.</p>}
+            {s.watch_out.map((x) => <p class="watch">Watch out: {x}</p>)}
+          </details>
+        </div>
+      </section>
+    ))}
+  </div>
+  <div class="nav" hidden>
+    <button type="button" class="prev" aria-label="Previous step">&#8249;</button>
+    <ol class="strip" role="group" aria-label="Go to a step">
+      <li><button type="button" data-go="0" aria-label="Start: the picture and the finish"><img src={src(last.thumb)} alt="" width="240" height={Math.round(240 * h / w)} loading="lazy" /><span>Start</span></button></li>
+      {lesson.steps.map((s) => (
+        <li><button type="button" data-go={s.n} aria-label={`Step ${s.n}: ${s.name}`}><img src={src(s.thumb)} alt="" width="240" height={Math.round(240 * h / w)} loading="lazy" /><span>{s.n}</span></button></li>
+      ))}
+    </ol>
+    <button type="button" class="next" aria-label="Next step">&#8250;</button>
+  </div>
+  {(caption || link) && <figcaption class="cap">{caption}{link && <> <a href={link}>Open the full lesson</a>.</>}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.walk')) {
+    const slides = [...root.querySelectorAll<HTMLElement>('.slide')];
+    const thumbs = [...root.querySelectorAll<HTMLButtonElement>('.strip button')];
+    const count = root.querySelector<HTMLElement>('.count')!;
+    const total = slides.length - 1;
+    let i = 0;
+    root.classList.add('js');
+    root.querySelector<HTMLElement>('.nav')!.hidden = false;
+    root.tabIndex = 0;
+
+    function show(n: number, focusThumb = false) {
+      i = Math.max(0, Math.min(total, n));
+      slides.forEach((s, k) => { s.hidden = k !== i; });
+      thumbs.forEach((t, k) => t.setAttribute('aria-current', k === i ? 'step' : 'false'));
+      count.textContent = i === 0 ? `${total} steps` : `Step ${i} of ${total}`;
+      const t = thumbs[i];
+      const strip = t.closest('.strip') as HTMLElement;
+      strip.scrollTo({ left: t.offsetLeft - strip.clientWidth / 2 + t.clientWidth / 2, behavior: 'smooth' });
+      if (focusThumb) t.focus();
+      const next = slides[i + 1]?.querySelector('img');
+      if (next) next.loading = 'eager';
+    }
+    root.querySelector('.prev')!.addEventListener('click', () => show(i - 1));
+    root.querySelector('.next')!.addEventListener('click', () => show(i + 1));
+    thumbs.forEach((t) => t.addEventListener('click', () => show(+t.dataset.go!)));
+    root.addEventListener('keydown', (e) => {
+      if ((e.target as HTMLElement).closest('summary')) return;
+      if (e.key === 'ArrowRight') { show(i + 1); e.preventDefault(); }
+      if (e.key === 'ArrowLeft') { show(i - 1); e.preventDefault(); }
+    });
+    let x0: number | null = null;
+    const area = root.querySelector<HTMLElement>('.slides')!;
+    area.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+    area.addEventListener('pointerup', (e) => {
+      if (x0 !== null && Math.abs(e.clientX - x0) > 50) show(i + (e.clientX < x0 ? 1 : -1));
+      x0 = null;
+    });
+    show(0);
+    if (root.dataset.autoplay && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setInterval(() => show(i === total ? 0 : i + 1), 2600);
+    }
+  }
+</script>
+
+<style>
+  .walk { display: grid; gap: 14px; outline: none; }
+  .walk [hidden] { display: none !important; }
+  .walk:focus-visible { box-shadow: 0 0 0 2px var(--teal); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .title { font: 650 1.05rem/1.2 Inter, sans-serif; color: var(--text); }
+  .count { font: 600 .75rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .slides { display: grid; gap: 28px; }
+  .walk.js .slides { touch-action: pan-y; }
+  .slide { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .slide img { width: 100%; height: auto; display: block; border-radius: 8px; border: 1px solid var(--line); user-select: none; -webkit-user-drag: none; }
+  .pic { width: 100%; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pair figure { margin: 0; display: grid; gap: 4px; }
+  .pair figcaption { font: .78rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .text { display: grid; gap: 10px; align-content: start; min-width: 0; }
+  .num { margin: 0; font: 600 .72rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .text h3 { margin: 0; font-size: 1.25rem; line-height: 1.2; }
+  .sum { margin: 0; color: var(--text); }
+  .tubes { margin: 0; color: var(--muted); font-size: .88rem; }
+  .kit { display: grid; gap: 8px; }
+  .paints, .brushes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font: .86rem/1.3 Inter, sans-serif; color: var(--text); }
+  .paints li, .brushes li { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
+  .new { font: 600 .62rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); border: 1px solid currentColor; border-radius: 3px; padding: 2px 4px; }
+  .brushes svg { width: 34px; height: auto; flex: none; }
+  .brushes .handle { fill: var(--muted); }
+  .brushes .ferrule { fill: var(--line); stroke: var(--muted); stroke-width: .8; }
+  .brushes .hair { fill: #b07a2a; }
+  details { border-top: 1px solid var(--line); padding-top: 8px; font-size: .92rem; }
+  summary { cursor: pointer; color: var(--teal); font: 600 .85rem/1.3 Inter, sans-serif; }
+  details ol { margin: 8px 0; padding-left: 1.2rem; display: grid; gap: 6px; }
+  details .small { color: var(--muted); font-size: .84rem; margin: 6px 0; }
+  .watch { margin: 6px 0 0; color: var(--muted); font-size: .86rem; }
+  .nav { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .nav > button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  .nav > button:hover { border-color: var(--teal); }
+  .strip { list-style: none; margin: 0; padding: 2px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+  .strip button { display: grid; gap: 2px; width: 64px; padding: 0; border: 2px solid transparent; border-radius: 6px; background: none; cursor: pointer; color: var(--muted); font: 600 .68rem/1.2 "JetBrains Mono", ui-monospace, monospace; }
+  .strip img { width: 100%; height: auto; border-radius: 4px; display: block; }
+  .strip button[aria-current='step'] { border-color: var(--teal); color: var(--text); }
+  .cap { font: .85rem/1.5 Inter, sans-serif; color: var(--muted); text-align: center; }
+  .cap a { color: var(--teal); }
+  @media (max-width: 700px) {
+    .slide { grid-template-columns: 1fr; gap: 12px; }
+    .text h3 { font-size: 1.1rem; }
+  }
+</style>
