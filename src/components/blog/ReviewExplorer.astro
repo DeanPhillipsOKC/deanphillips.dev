@@ -1,0 +1,201 @@
+---
+// Me against the reviewer, step by step. For every step of two Gesso lessons: the picture before and after, a
+// measured map of what changed (outlined), my own blind label as a beginner, and what a fresh AI reviewer said in
+// two rounds. Data from the spike for Gesso issue 24 (src/data/gesso/review.json). The image cycles before, after,
+// and what changed when a step opens, unless the reader prefers reduced motion. `mode="reel"` hides the panels'
+// long text and steps through on its own, for recording a social clip.
+import data from '../../data/gesso/review.json';
+interface Props { caption?: string; mode?: 'explore' | 'reel'; lesson?: number }
+const { caption, mode = 'explore', lesson = 0 } = Astro.props;
+const first = data.lessons[lesson];
+const [w, h] = first.size;
+---
+<figure class={`review panel bleed ${mode}`} data-review={JSON.stringify(data)} data-mode={mode} data-start={lesson}>
+  <div class="top">
+    <div class="tabs" role="group" aria-label="Lesson">
+      {data.lessons.map((l, i) => <button type="button" class="tab" data-l={i} aria-pressed={i === lesson ? 'true' : 'false'}>{l.name}</button>)}
+    </div>
+    <ol class="strip" role="group" aria-label="Step"></ol>
+  </div>
+  <div class="body">
+    <div class="stage">
+      <div class="pic" style={`aspect-ratio:${w}/${h}`}>
+        <img class="img" src={`/img/gesso/review/${first.slug}-01-diff.webp`} alt="" width={w} height={h} />
+        <span class="badge">What changed</span>
+      </div>
+      <div class="views" role="group" aria-label="Show">
+        <button type="button" data-v="before">Before</button>
+        <button type="button" data-v="after">After</button>
+        <button type="button" data-v="diff" aria-pressed="true">What changed</button>
+      </div>
+      <p class="stepname"></p>
+    </div>
+    <div class="judges" aria-live="polite">
+      <section class="judge me"><header><b>Me, blind</b><span class="chip"></span></header><p class="note"></p></section>
+      <section class="judge r1"><header><b>Reviewer, round 1</b><span class="chip"></span></header><ul></ul></section>
+      <section class="judge r2"><header><b>Reviewer, round 2</b><span class="chip"></span></header><ul></ul></section>
+    </div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type Problem = { kind: string; text: string };
+  type Judge = { verdict: string; problems?: Problem[]; note?: string };
+  type Step = { n: number; name: string; changed: number; owner: Judge; r1: Judge; r2: Judge };
+  type Lesson = { slug: string; name: string; size: [number, number]; steps: Step[] };
+
+  const LABEL: Record<string, string> = {
+    ok: 'Would get there', not_enough: 'Not enough', too_much: 'Too much at once', unpaintable: 'Not paintable', unsure: 'Not sure',
+  };
+  const KIND: Record<string, string> = {
+    missing: 'Missing', wrong_result: 'Wrong stroke', vague: 'Vague', flat: 'Flat', layering: 'Wet paint', drift: 'Picture drift',
+    too_much: 'Too much', unpaintable: 'Not paintable',
+  };
+  const tone = (v: string | null) => (!v || v === 'unsure' ? 'unsure' : v === 'ok' ? 'ok' : 'flag');
+
+  for (const root of document.querySelectorAll<HTMLElement>('.review')) {
+    const data = JSON.parse(root.dataset.review!) as { lessons: Lesson[] };
+    const reel = root.dataset.mode === 'reel';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const img = $<HTMLImageElement>('.img'), badge = $<HTMLElement>('.badge'), strip = $<HTMLOListElement>('.strip');
+    let li = +(root.dataset.start || 0), si = 0, view = 'diff', cycle = 0;
+
+    const src = (l: Lesson, n: number, v: string) =>
+      `/img/gesso/review/${l.slug}-${String(v === 'before' ? n - 1 : n).padStart(2, '0')}${v === 'diff' ? '-diff' : ''}.webp`;
+
+    function setView(v: string) {
+      view = v;
+      const l = data.lessons[li], s = l.steps[si];
+      img.src = src(l, s.n, v);
+      img.alt = `Step ${s.n}, ${v === 'diff' ? 'what changed, outlined' : v}: ${s.name}`;
+      badge.textContent = v === 'diff' ? 'What changed' : v === 'before' ? 'Before' : 'After';
+      badge.dataset.v = v;
+      root.querySelectorAll<HTMLButtonElement>('.views button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    }
+
+    function judge(sel: string, j: Judge) {
+      const box = $<HTMLElement>(sel);
+      const chip = box.querySelector<HTMLElement>('.chip')!;
+      chip.textContent = j.verdict ? LABEL[j.verdict] ?? j.verdict : 'No answer';
+      chip.dataset.tone = tone(j.verdict);
+      const note = box.querySelector('.note');
+      if (note) note.textContent = j.note || '';
+      const ul = box.querySelector('ul');
+      if (ul) {
+        ul.replaceChildren();
+        const probs = j.problems ?? [];
+        const drift = probs.filter((p) => p.kind === 'drift').length;
+        for (const p of probs.filter((p) => p.kind !== 'drift')) {
+          const li = document.createElement('li');
+          const k = document.createElement('span'); k.className = 'kind'; k.dataset.k = p.kind; k.textContent = KIND[p.kind] ?? p.kind;
+          const t = document.createElement('span'); t.textContent = p.text;
+          li.append(k, t); ul.append(li);
+        }
+        if (drift) {
+          const li = document.createElement('li'); li.className = 'driftline';
+          li.textContent = `+ ${drift} spot${drift > 1 ? 's' : ''} where the picture repainted earlier work`;
+          ul.append(li);
+        }
+        if (!probs.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = 'Nothing flagged.'; ul.append(li); }
+      }
+    }
+
+    function drawStrip() {
+      const l = data.lessons[li];
+      strip.replaceChildren(...l.steps.map((s, i) => {
+        const li2 = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = String(s.n);
+        b.setAttribute('aria-label', `Step ${s.n}: ${s.name}`);
+        b.dataset.me = tone(s.owner.verdict); b.dataset.r2 = tone(s.r2.verdict);
+        b.addEventListener('click', () => { stop(); show(i); });
+        li2.append(b); return li2;
+      }));
+    }
+
+    function show(i: number, animate = !reduce) {
+      si = i;
+      const l = data.lessons[li], s = l.steps[i];
+      strip.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+      $<HTMLElement>('.stepname').textContent = `Step ${s.n} of ${l.steps.length}: ${s.name} · ${Math.round(s.changed * 100)}% of the canvas changed`;
+      judge('.me', s.owner); judge('.r1', s.r1); judge('.r2', s.r2);
+      clearTimeout(cycle);
+      if (animate) {
+        setView('before');
+        cycle = window.setTimeout(() => { setView('after'); cycle = window.setTimeout(() => setView('diff'), 900); }, 700);
+      } else setView('diff');
+    }
+
+    let auto = 0;
+    const stop = () => { clearInterval(auto); auto = 0; };
+    root.querySelectorAll<HTMLButtonElement>('.tab').forEach((t) => t.addEventListener('click', () => {
+      stop(); li = +t.dataset.l!;
+      root.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-pressed', String(x === t)));
+      const [w2, h2] = data.lessons[li].size;
+      $<HTMLElement>('.pic').style.aspectRatio = `${w2}/${h2}`;
+      drawStrip(); show(0);
+    }));
+    root.querySelectorAll<HTMLButtonElement>('.views button').forEach((b) => b.addEventListener('click', () => { stop(); clearTimeout(cycle); setView(b.dataset.v!); }));
+    // preload this lesson's images so the cycle doesn't flash
+    for (const l of data.lessons) for (const s of l.steps) for (const v of ['after', 'diff']) { const p = new Image(); p.src = src(l, s.n, v); }
+
+    drawStrip(); show(0, false);
+    if (reel) {
+      auto = window.setInterval(() => {
+        const l = data.lessons[li];
+        if (si + 1 < l.steps.length) show(si + 1, true);
+        else { li = (li + 1) % data.lessons.length; root.querySelectorAll('.tab').forEach((x, k) => x.setAttribute('aria-pressed', String(k === li)));
+          const [w2, h2] = data.lessons[li].size; $<HTMLElement>('.pic').style.aspectRatio = `${w2}/${h2}`; drawStrip(); show(0, true); }
+      }, 3600);
+    }
+  }
+</script>
+
+<style>
+  .review { display: grid; gap: 14px; }
+  .top { display: grid; gap: 10px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tab { font: 600 .85rem/1.2 Inter, sans-serif; border-radius: 999px; padding: 6px 14px; border: 1px solid var(--line); background: var(--bg-2); color: var(--muted); cursor: pointer; }
+  .tab[aria-pressed='true'] { color: var(--text); border-color: var(--teal); }
+  .strip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .strip :global(button) { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text);
+    font: 700 .8rem/1 "JetBrains Mono", ui-monospace, monospace; cursor: pointer; position: relative; }
+  /* two dots under each number: me (left) and the round-2 reviewer (right) */
+  .strip :global(button)::before, .strip :global(button)::after { content: ''; position: absolute; bottom: 3px; width: 6px; height: 6px; border-radius: 50%; }
+  .strip :global(button)::before { left: 9px; background: var(--dot-me); }
+  .strip :global(button)::after { right: 9px; background: var(--dot-r2); }
+  .strip :global(button[data-me='ok']) { --dot-me: var(--ok); } .strip :global(button[data-me='flag']) { --dot-me: var(--warn); } .strip :global(button[data-me='unsure']) { --dot-me: var(--line); }
+  .strip :global(button[data-r2='ok']) { --dot-r2: var(--ok); } .strip :global(button[data-r2='flag']) { --dot-r2: var(--warn); } .strip :global(button[data-r2='unsure']) { --dot-r2: var(--line); }
+  .strip :global(button[aria-current='true']) { border: 2px solid var(--teal); }
+  .body { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .stage { display: grid; gap: 8px; min-width: 0; }
+  .pic { position: relative; width: 100%; max-width: 100%; }
+  .pic img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 10px; border: 1px solid var(--line); }
+  .badge { position: absolute; left: 10px; top: 10px; font: 700 .7rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+    padding: 6px 8px; border-radius: 6px; background: rgba(15, 18, 24, .72); color: #fff; }
+  .badge[data-v='diff'] { background: #c8243c; }
+  .views { display: flex; gap: 6px; flex-wrap: wrap; }
+  .views button { font: 500 .82rem/1.2 Inter, sans-serif; border-radius: 999px; padding: 5px 12px; border: 1px solid var(--line); background: var(--bg-2); color: var(--muted); cursor: pointer; }
+  .views button[aria-pressed='true'] { color: var(--text); border-color: var(--teal); }
+  .stepname { margin: 0; font: .85rem/1.4 Inter, sans-serif; color: var(--muted); }
+  .judges { display: grid; gap: 10px; min-width: 0; }
+  .judge { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg-2); display: grid; gap: 6px; }
+  .judge header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .judge b { font: 650 .9rem/1.2 Inter, sans-serif; color: var(--text); }
+  .chip { font: 600 .72rem/1 "JetBrains Mono", ui-monospace, monospace; padding: 4px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  .chip[data-tone='ok'] { color: var(--ok); } .chip[data-tone='flag'] { color: var(--warn); } .chip[data-tone='unsure'] { color: var(--muted); }
+  .note { margin: 0; font: .86rem/1.45 Inter, sans-serif; color: var(--text); font-style: italic; }
+  .note:empty { display: none; }
+  .judge ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: .84rem/1.4 Inter, sans-serif; color: var(--text); }
+  .judge :global(li) { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: baseline; }
+  .judge :global(li.driftline), .judge :global(li.none) { display: block; color: var(--muted); }
+  .judge :global(.kind) { font: 700 .62rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; padding: 3px 5px; border-radius: 4px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--violet); white-space: nowrap; }
+  .judge :global(.kind[data-k='missing']), .judge :global(.kind[data-k='flat']) { color: var(--warn); }
+  .judge :global(.kind[data-k='layering']) { color: var(--teal); }
+  figcaption { font: .85rem/1.5 Inter, sans-serif; color: var(--muted); text-align: center; }
+  .reel .judge :global(li:not(:first-child)) { display: none; }
+  @media (max-width: 760px) { .body { grid-template-columns: 1fr; } }
+</style>

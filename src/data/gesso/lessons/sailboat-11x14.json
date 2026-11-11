@@ -1,0 +1,467 @@
+{
+  "title": "Red Sailboat Lesson",
+  "subject": "A small red sailboat with a white sail on a calm turquoise sea at sunset, with the low sun, its golden path on the water, and a purple mountain on the far shore.",
+  "technique": "Paint along, back to front",
+  "level": "beginner",
+  "tubes": [
+    "Titanium white",
+    "Cadmium yellow medium (hue)",
+    "Cadmium red medium (hue)",
+    "Ultramarine blue",
+    "Burnt sienna"
+  ],
+  "size": [
+    1200,
+    943
+  ],
+  "photo": "photo.webp",
+  "cost_usd": 0.4038,
+  "gesso": {
+    "version": "POC 0.14.0",
+    "commit": "f0e8126",
+    "dirty": false,
+    "published": "2026-11-11"
+  },
+  "steps": [
+    {
+      "n": 1,
+      "name": "Blend the sunset sky",
+      "summary": "Blend the sunset sky from violet at the top through pink to orange.",
+      "image": "01.webp",
+      "thumb": "01-t.webp",
+      "paints": [
+        {
+          "name": "Twilight violet",
+          "hex": "#7967c1",
+          "recipe": "1 part ultramarine, 1 part white, a touch of red",
+          "first_step": 1
+        },
+        {
+          "name": "Sunset pink",
+          "hex": "#d86b8e",
+          "recipe": "3 parts white, 2 parts red, 1 part ultramarine",
+          "first_step": 1
+        },
+        {
+          "name": "Sunset orange",
+          "hex": "#fc813a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        },
+        {
+          "name": "Glow gold",
+          "hex": "#fba33a",
+          "recipe": "3 parts yellow, 2 parts red, 2 parts white",
+          "first_step": 1
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1 inch flat",
+          "kind": "flat",
+          "use": "covering and blending the whole sky"
+        }
+      ],
+      "do": [
+        "The light comes from the setting sun, low and a little left of center; every highlight faces left.",
+        "With the 1 inch flat and creamy Twilight violet, long side-to-side strokes across the top 10%.",
+        "Sunset pink to 22% down, Sunset orange to 45%, then orange with a little pink down to a straight edge at 62% (6.8 in). X-stroke each join while wet.",
+        "X-stroke Glow gold in a soft patch 39% across, 40% down. Done: a smooth gradient, white below 62%."
+      ],
+      "watch_out": [
+        "Run the orange below the horizon line (54%) to 62% down; the mountain and water go over it.",
+        "Stop blending once the paint drags. Streaks are fine."
+      ],
+      "values": []
+    },
+    {
+      "n": 2,
+      "name": "Paint the sun",
+      "summary": "Paint the round cream sun in the glow.",
+      "image": "02.webp",
+      "thumb": "02-t.webp",
+      "paints": [
+        {
+          "name": "Sun cream",
+          "hex": "#fce17f",
+          "recipe": "2 parts white, 1 part yellow, a touch of red",
+          "first_step": 2
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#8 round",
+          "kind": "round",
+          "use": "dabbing the sun disc"
+        }
+      ],
+      "do": [
+        "Let the sky dry.",
+        "With the #8 round and creamy Sun cream, dab a circle about 0.8 in wide, centered 39% across and 42.5% down, working from the center out.",
+        "Let it dry and add a second coat so no orange shows through. Done: a clean, bright round sun."
+      ],
+      "watch_out": [
+        "Light over orange needs 2 coats; wait between them.",
+        "Trace a coin or bottle cap lightly in pencil first if a freehand circle is hard."
+      ],
+      "values": []
+    },
+    {
+      "n": 3,
+      "name": "Paint the mountain and the far shore",
+      "summary": "Paint the purple mountain and the dark shoreline along the horizon.",
+      "image": "03.webp",
+      "thumb": "03-t.webp",
+      "paints": [
+        {
+          "name": "Mountain purple",
+          "hex": "#4c4b96",
+          "recipe": "2 parts ultramarine, 1 part white, a touch of red, a touch of burnt sienna",
+          "first_step": 3
+        },
+        {
+          "name": "Shore navy",
+          "hex": "#23437a",
+          "recipe": "1 part ultramarine, a touch of yellow, a touch of white",
+          "first_step": 3
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1/2 inch flat",
+          "kind": "flat",
+          "use": "the mountain's edge and fill, and the shoreline strip"
+        }
+      ],
+      "do": [
+        "Let the sky dry. Mark the horizon with a ruler: a light pencil line 54% down (5.9 in).",
+        "With the 1/2 inch flat and creamy Mountain purple, pull the mountain's top edge: from the left edge 40% down, over a low peak near the edge, sloping down to 40% across. Fill below with side-to-side strokes.",
+        "Lay the values in the table on the mountain while wet.",
+        "With Shore navy and the flat's edge, pull a straight strip across the whole width, from 50% down to the pencil line. Done: orange sky still shows from 54% to 62%."
+      ],
+      "watch_out": [
+        "Keep the strip level; a tilted horizon makes the sea look like it's draining."
+      ],
+      "values": [
+        {
+          "value": "dark",
+          "paint": "Shore navy",
+          "where": "the strip along the horizon and the mountain's base"
+        },
+        {
+          "value": "mid",
+          "paint": "Mountain purple",
+          "where": "the whole mountain"
+        },
+        {
+          "value": "light",
+          "paint": "Mountain purple with a little white",
+          "where": "a few strokes along the sunlit right-hand slope"
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "name": "Lay in the water",
+      "summary": "Lay in the water, turquoise at the horizon and deeper teal below.",
+      "image": "04.webp",
+      "thumb": "04-t.webp",
+      "paints": [
+        {
+          "name": "Turquoise water",
+          "hex": "#3694a8",
+          "recipe": "3 parts ultramarine, 2 parts white, 1 part yellow",
+          "first_step": 4
+        },
+        {
+          "name": "Deep teal",
+          "hex": "#0f7192",
+          "recipe": "3 parts ultramarine, 1 part yellow, 1 part white",
+          "first_step": 4
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1 inch flat",
+          "kind": "flat",
+          "use": "covering and blending the water"
+        }
+      ],
+      "do": [
+        "With the 1 inch flat and creamy Turquoise water, paint long level strokes from the navy strip down to about 70% down.",
+        "Paint Deep teal from the bottom edge up, and blend it into the turquoise while wet with long horizontal strokes.",
+        "Done: water covers everything below the strip, no white canvas anywhere."
+      ],
+      "watch_out": [
+        "Keep every stroke level.",
+        "It may look flat and plain right now. That's the ugly stage, and it's normal."
+      ],
+      "values": []
+    },
+    {
+      "n": 5,
+      "name": "Add ripples to the water",
+      "summary": "Add short dark and light ripple dashes across the water.",
+      "image": "05.webp",
+      "thumb": "05-t.webp",
+      "paints": [
+        {
+          "name": "Turquoise water",
+          "hex": "#3694a8",
+          "recipe": "3 parts ultramarine, 2 parts white, 1 part yellow",
+          "first_step": 4
+        },
+        {
+          "name": "Deep teal",
+          "hex": "#0f7192",
+          "recipe": "3 parts ultramarine, 1 part yellow, 1 part white",
+          "first_step": 4
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1/2 inch flat",
+          "kind": "flat",
+          "use": "short ripple dashes"
+        }
+      ],
+      "do": [
+        "Let the water dry.",
+        "With the 1/2 inch flat and nearly dry Deep teal, make short horizontal dashes across the water: small and close near the horizon, longer (up to 1.5 in) toward the bottom.",
+        "Then add Turquoise water dashes with a little white between them. Done: the base still shows between the dashes."
+      ],
+      "watch_out": [
+        "Don't cover the base completely; ripples are broken marks.",
+        "Try a few dashes on scrap paper first."
+      ],
+      "values": []
+    },
+    {
+      "n": 6,
+      "name": "Paint the sun's path on the water",
+      "summary": "Paint the glowing orange path of the sun on the water.",
+      "image": "06.webp",
+      "thumb": "06-t.webp",
+      "paints": [
+        {
+          "name": "Sunset orange",
+          "hex": "#fc813a",
+          "recipe": "2 parts red, 1 part yellow, 1 part white",
+          "first_step": 1
+        },
+        {
+          "name": "Glow gold",
+          "hex": "#fba33a",
+          "recipe": "3 parts yellow, 2 parts red, 2 parts white",
+          "first_step": 1
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1/2 inch flat",
+          "kind": "flat",
+          "use": "the sun path dashes"
+        }
+      ],
+      "do": [
+        "Let the ripples dry.",
+        "With the 1/2 inch flat and creamy Sunset orange, make short horizontal dashes in a column under the sun, shaped as in the diagram: 34% to 47% across at the horizon, widest (15% to 55%) at 70-80% down, narrowing below.",
+        "Add Glow gold dashes over the middle of the column, and a few stray orange dashes out on the left water. Done: teal shows between the dashes."
+      ],
+      "watch_out": [
+        "Leave gaps between the dashes; a solid stripe looks like a road, not light on water."
+      ],
+      "values": []
+    },
+    {
+      "n": 7,
+      "name": "Paint the red hull",
+      "summary": "Paint the red hull of the boat on the water.",
+      "image": "07.webp",
+      "thumb": "07-t.webp",
+      "paints": [
+        {
+          "name": "Boat red",
+          "hex": "#be140e",
+          "recipe": "1 part red, a touch of ultramarine",
+          "first_step": 7
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "outlining and filling the hull"
+        }
+      ],
+      "do": [
+        "Let the water dry.",
+        "Build the hull as in the diagram: about 2.9 in long, from 63% to 84% across. Its pointed left end rises to 57% down; the top edge slopes to about 60% at the blunt right end.",
+        "Outline it with the #6 round and creamy Boat red, then fill it in.",
+        "Let it dry and add a second coat. Done: a solid red hull on the water."
+      ],
+      "watch_out": [
+        "Keep the waterline along the bottom level with the horizon; only the top edge slopes."
+      ],
+      "values": []
+    },
+    {
+      "n": 8,
+      "name": "Paint the sails and the mast",
+      "summary": "Paint the two white sails, the mast, and the boom.",
+      "image": "08.webp",
+      "thumb": "08-t.webp",
+      "paints": [
+        {
+          "name": "Sail white",
+          "hex": "#efddc6",
+          "recipe": "6 parts white, 1 part burnt sienna, a touch of yellow",
+          "first_step": 8
+        },
+        {
+          "name": "Sail shadow",
+          "hex": "#c2c3c6",
+          "recipe": "6 parts white, 1 part ultramarine, 1 part burnt sienna, a touch of yellow",
+          "first_step": 8
+        },
+        {
+          "name": "Mast brown",
+          "hex": "#6e4942",
+          "recipe": "3 parts burnt sienna, 2 parts ultramarine, 1 part red, 1 part white",
+          "first_step": 8
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#6 round",
+          "kind": "round",
+          "use": "filling the sails"
+        },
+        {
+          "brush": "Liner (#1)",
+          "kind": "liner",
+          "use": "the mast and boom"
+        }
+      ],
+      "do": [
+        "Let the hull dry.",
+        "Build the sails as in the diagram: the mast's line rises from the hull at 72% across to 26% down (about 3.4 in tall).",
+        "With the #6 round and creamy Sail white, fill the left triangle (lower corner 64% across) and the right one (down to 57% down, out to 81% across). Two coats.",
+        "While wet, lay the values in the table.",
+        "Let it dry. With the liner and inky Mast brown, pull the mast, then the boom along the right sail's bottom edge."
+      ],
+      "watch_out": [
+        "Rest your wrist on a dry part of the canvas for a straight mast.",
+        "Try a liner line on scrap paper first."
+      ],
+      "values": [
+        {
+          "value": "dark",
+          "paint": "Mast brown",
+          "where": "the mast and boom lines"
+        },
+        {
+          "value": "mid",
+          "paint": "Sail shadow",
+          "where": "down the right side of each sail, away from the sun"
+        },
+        {
+          "value": "light",
+          "paint": "Sail white",
+          "where": "the rest of the sails, brightest on the left, facing the sun"
+        }
+      ]
+    },
+    {
+      "n": 9,
+      "name": "Paint the boat's reflection",
+      "summary": "Paint the boat's red and white reflection in the water.",
+      "image": "09.webp",
+      "thumb": "09-t.webp",
+      "paints": [
+        {
+          "name": "Boat red",
+          "hex": "#be140e",
+          "recipe": "1 part red, a touch of ultramarine",
+          "first_step": 7
+        },
+        {
+          "name": "Sail white",
+          "hex": "#efddc6",
+          "recipe": "6 parts white, 1 part burnt sienna, a touch of yellow",
+          "first_step": 8
+        },
+        {
+          "name": "Mast brown",
+          "hex": "#6e4942",
+          "recipe": "3 parts burnt sienna, 2 parts ultramarine, 1 part red, 1 part white",
+          "first_step": 8
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "1/2 inch flat",
+          "kind": "flat",
+          "use": "the reflection dashes"
+        },
+        {
+          "brush": "Liner (#1)",
+          "kind": "liner",
+          "use": "the wavy mast line"
+        }
+      ],
+      "do": [
+        "Let the water dry.",
+        "With the 1/2 inch flat and creamy Boat red, make short horizontal dashes just under the hull, from 63% to 67% down, as wide as the hull.",
+        "With Sail white, make broken horizontal dashes from 68% down to about 94% down, getting narrower toward the bottom.",
+        "With the liner and inky Mast brown, pull a wavy line down the middle at 72% across. Done: teal shows between the dashes."
+      ],
+      "watch_out": [
+        "Keep it broken: a solid reflection looks like a second boat."
+      ],
+      "values": []
+    },
+    {
+      "n": 10,
+      "name": "Add the brightest highlights",
+      "summary": "Add the brightest sparkles on the water and the trim on the hull.",
+      "image": "10.webp",
+      "thumb": "10-t.webp",
+      "paints": [
+        {
+          "name": "Sun cream",
+          "hex": "#fce17f",
+          "recipe": "2 parts white, 1 part yellow, a touch of red",
+          "first_step": 2
+        },
+        {
+          "name": "Sail white",
+          "hex": "#efddc6",
+          "recipe": "6 parts white, 1 part burnt sienna, a touch of yellow",
+          "first_step": 8
+        }
+      ],
+      "brushes": [
+        {
+          "brush": "#4 round",
+          "kind": "round",
+          "use": "the sparkle dashes"
+        },
+        {
+          "brush": "Liner (#1)",
+          "kind": "liner",
+          "use": "the hull trim"
+        }
+      ],
+      "do": [
+        "Let everything dry.",
+        "With the #4 round and creamy Sun cream, add short dashes in the middle of the sun path, most near the horizon.",
+        "With the liner and Sail white, pull a thin line along the hull's top edge. Done: the finished painting."
+      ],
+      "watch_out": [
+        "Fewer highlights look brighter; stop before you think you're done."
+      ],
+      "values": []
+    }
+  ]
+}

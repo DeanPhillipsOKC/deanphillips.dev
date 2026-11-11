@@ -1,0 +1,78 @@
+{
+ "step": "Light the clouds and paint the sun",
+ "image": "/img/gesso/review/clouds-final.webp",
+ "versions": [
+  {
+   "label": "Before research",
+   "version": "POC 0.10",
+   "do": [
+    "With the filbert and Coral pink, scrub in a big cloud mass over the upper right, from the middle of the canvas to the right edge and from the top down to about a third.",
+    "Scrub a smaller pink cloud group on the upper left, from the left edge to about a fifth across, and leave the blue showing in the top middle.",
+    "Drag a few long, thin pink-orange streaks across the sky below the clouds, down to just above the glow.",
+    "Dab Peach light on the tops of the cloud masses, where the sun lights them."
+   ],
+   "lesson_words": 1045,
+   "note": "From memory. Two lines on clouds, no values, no drying."
+  },
+  {
+   "label": "With research",
+   "version": "POC 0.11",
+   "do": [
+    "Let the clouds dry first, until they're dry to the touch: lighter layers go on a dry layer.",
+    "Dark first: add a touch of ultramarine to a little Cloud coral for a cloud shadow. With the #8 round, wiped nearly dry, scrub small circles of it on the tops and far sides of the big clouds, away from the sun.",
+    "Mid: with the #8 round and creamy Sunset orange, paint small circles along the lower half of each cloud, on the side facing the sun, and widen the low streaks into two or three long, thin bands on each side. Leave coral showing in the middle. Let it dry.",
+    "Light: load a little Glow gold, wipe most of it off, and dry brush it only on the very bottom edges nearest the sun, smaller than the orange.",
+    "With the #6 round and Sun cream, dab a small round sun a little left of center, about 40% down, in the brightest part of the gold glow, about as wide as your thumbnail; give it a second coat once dry. Done: clouds with dark tops, coral middles, glowing orange and gold undersides, and a pale sun."
+   ],
+   "lesson_words": 1956,
+   "note": "Every rule followed. Every rule explained, every time."
+  },
+  {
+   "label": "Trimmed in half",
+   "version": "POC 0.12",
+   "do": [
+    "Let the clouds dry.",
+    "Dark: with the #8 round, nearly dry, scrub small circles of Cloud shadow on the cloud tops and far sides, away from the sun.",
+    "Mid: with creamy Sunset orange, scrub circles on each cloud's sun-facing lower half, leaving coral in the middle. Widen the low streaks into thin bands. Let it dry.",
+    "Light: dry brush a little Glow gold on the very bottom edges nearest the sun, smaller than the orange.",
+    "With the #6 round, dab a thumbnail-sized Sun cream sun a little left of center, 40% down, in the brightest glow. Second coat once dry."
+   ],
+   "lesson_words": 1084,
+   "note": "Half the words. The reviewer's vague findings went from 3 to 8."
+  },
+  {
+   "label": "Show, don't tell",
+   "version": "POC 0.13",
+   "do": [
+    "Let the clouds dry.",
+    "With the #8 round nearly dry, paint the table's values on each cloud, dark first: circles for dark and mid, dry brush for light.",
+    "Widen the low streaks into thin Sunset orange bands, 30% to 45% down.",
+    "With Sunset orange circles, grow a new cloud into the blue gap from 35% to 55% across, top edge down to 15%. Leave a few blue holes.",
+    "Grow the left cloud up the same way, to near the top edge, out to 15% across.",
+    "With the #6 round, dab a Sun cream sun half a grid square wide, centered 43% across, 42% down. Second coat once dry."
+   ],
+   "values": [
+    {
+     "value": "dark",
+     "paint": "Cloud shadow",
+     "where": "cloud tops and far sides, away from the sun",
+     "hex": "#c14b65"
+    },
+    {
+     "value": "mid",
+     "paint": "Sunset orange",
+     "where": "each cloud's lower, sun-facing half; leave coral showing in the middle",
+     "hex": "#fb892d"
+    },
+    {
+     "value": "light",
+     "paint": "Glow gold",
+     "where": "the very bottom edges nearest the sun, thinner than the orange",
+     "hex": "#fba725"
+    }
+   ],
+   "lesson_words": 1138,
+   "note": "Measurements back, depth in a table. Vague findings: 1."
+  }
+ ]
+}

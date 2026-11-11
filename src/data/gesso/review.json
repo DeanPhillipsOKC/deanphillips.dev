@@ -1,0 +1,722 @@
+{
+ "lessons": [
+  {
+   "slug": "balloon",
+   "name": "Hot air balloon over lavender",
+   "size": [
+    1536,
+    1024
+   ],
+   "steps": [
+    {
+     "n": 1,
+     "id": "sky",
+     "name": "Paint the sunset sky",
+     "changed": 0.62,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "wrong_result",
+        "text": "The glow fades smoothly into the orange with fine horizontal streaks, no criss-cross marks; the step only gives X strokes around the glow, which per…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "ok",
+      "problems": []
+     }
+    },
+    {
+     "n": 2,
+     "id": "clouds",
+     "name": "Dab in the big clouds",
+     "changed": 0.4,
+     "owner": {
+      "verdict": "not_enough",
+      "note": "Instructions don't mention anything about the multiple colors that are in the clouds other than the highlighting"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The clouds show two clear values, deep red-magenta undersides and lighter coral bodies; the text names only Coral pink for the masses, and…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The clouds show at least three values, dark rose-crimson undersides, coral middles, and orange-peach tops; the text gives one Coral pink scrub plus…"
+       },
+       {
+        "kind": "layering",
+        "text": "Crisp-edged pink clouds sit over the blue and orange blend from step 1; the text never says to let the sky dry first, and pink scrubbed into wet…"
+       },
+       {
+        "kind": "missing",
+        "text": "Pink cloud pieces fill the area between the two masses, below the blue gap, where the text only says to leave blue showing."
+       }
+      ]
+     }
+    },
+    {
+     "n": 3,
+     "id": "sun",
+     "name": "Paint the sun",
+     "changed": 0.11,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "Darker red-orange horizontal streaks appear low across the sky; the step only talks about the sun"
+       },
+       {
+        "kind": "missing",
+        "text": "The small clouds over the top middle change to a grey-violet tone; nothing in the step mentions clouds"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "drift",
+        "text": "Cloud shapes and sky streaks from step 2 change in a step about only the sun."
+       }
+      ]
+     }
+    },
+    {
+     "n": 4,
+     "id": "mountains",
+     "name": "Paint the far mountains",
+     "changed": 0.18,
+     "owner": {
+      "verdict": "not_enough",
+      "note": "The reference picture has almost three-dimensional quality to it following the steps. Literally I think would end up with something shaped like that but patchy there's no instructions on how to get that 3D effect"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "The band of sky under the mountains gets lighter and more yellow; text says the orange sky 'still shows' as is. Step 5 covers most of it, so it…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The ridges are lighter lavender at the top and darker blue-violet toward y 50; the text gives one Mountain purple, so a beginner gets a flat purple…"
+       },
+       {
+        "kind": "layering",
+        "text": "The ridge cuts across the lower half of the thick cream sun painted in the step before; the text doesn't say to let the sun dry, and purple dragged…"
+       },
+       {
+        "kind": "drift",
+        "text": "The sky below the mountains turns a brighter yellow-orange with no instruction."
+       }
+      ]
+     }
+    },
+    {
+     "n": 5,
+     "id": "fields",
+     "name": "Paint the golden fields and hill",
+     "changed": 0.18,
+     "owner": {
+      "verdict": "unsure",
+      "note": "I don't know how the two separate hills wouldn't show up as a single blob the reference picture. There's a distinction between them. I don't know if it would require a liner brush or a subtle gradient change or maybe it would be fine and following the slopes would give a different in brush strokes which would give…"
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "At the right edge the hill top is at about 42, cutting over the mountains so only a thin purple sliver shows above it; 'its top is just below the…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The hill and field show dark ochre-brown streaks, mid gold, and light yellow tops; the text gives Field gold and a little orange only, and the…"
+       },
+       {
+        "kind": "layering",
+        "text": "The hill's top edge is painted over the purple mountains from step 4; the text doesn't say to let them dry, and gold over wet purple turns a…"
+       },
+       {
+        "kind": "drift",
+        "text": "Bits of the clouds change in a fields step."
+       }
+      ]
+     }
+    },
+    {
+     "n": 6,
+     "id": "treelines",
+     "name": "Dab the tree lines",
+     "changed": 0.09,
+     "owner": {
+      "verdict": "unsure",
+      "note": "Seems like it might work but seems like it would be easier to have put the trees before the second Hill got added because they're behind the hill"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The far row is much finer than the near row; the step lists both the old stiff flat and the #6 round but never says which brush makes which row"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "Dark green bumps are dabbed onto the gold field painted in the step just before; the text doesn't say to let the field dry, and green tapped into…"
+       },
+       {
+        "kind": "drift",
+        "text": "Small patches on the hill and in the sky change with no instruction."
+       }
+      ]
+     }
+    },
+    {
+     "n": 7,
+     "id": "tree",
+     "name": "Paint the lone tree",
+     "changed": 0.06,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "The ground at the base of the tree and out to the right edge darkens to a warmer gold-brown, like a shadow; no instruction covers it"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The crown has dark blue-green shadow clusters and lighter teal-green tops; the text gives Tree green only, so a beginner gets a uniform dark ball."
+       },
+       {
+        "kind": "drift",
+        "text": "The hill to the right of the trunk changes with no instruction."
+       }
+      ]
+     }
+    },
+    {
+     "n": 8,
+     "id": "lavender-rows",
+     "name": "Block in the lavender rows and paths",
+     "changed": 0.47,
+     "owner": {
+      "verdict": "unsure",
+      "note": "The instructions seem fine but when I look at the picture there's a lot of three-dimensionality to it. It's not just brush strokes like the there's a texture to it that vaguely resembles the lavender flowers. I don't feel like the instructions would give me that. I feel like they would just give me purple paths with…"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "Separate rows read because each is split from the next by a darker line; filling everything with one Lavender dark would give one flat purple mass…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "Each row already shows a lighter blue-violet top over a darker purple band, and the paths show orange edges with darker brown; the text and…"
+       },
+       {
+        "kind": "drift",
+        "text": "X 0-85, y 50-62, x 76-84, y 22-42, and x 23-35, y 13-23: the lower fields, the tree's left side, and a cloud change in a step about the lavender…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 9,
+     "id": "lavender-dabs",
+     "name": "Dab the lavender",
+     "changed": 0.32,
+     "owner": {
+      "verdict": "unsure",
+      "note": "Instructions make sense? I'm just not sure that I could pull it off, but I wouldn't know what to suggest as far as extra instruction except possibly taking one tiny block or maybe two tiny blocks within a row and using SVG graphics to kind of show what the brush strokes might look like"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": []
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "Lavender mid tufts go over the dark rows from step 8 with the dark still showing between them; the text doesn't say to let the dark base dry, and…"
+       },
+       {
+        "kind": "drift",
+        "text": "The bottom of the golden hill changes, and spots in the tree crown at x 75-82, y 25-42 change too."
+       }
+      ]
+     }
+    },
+    {
+     "n": 10,
+     "id": "lavender-lights",
+     "name": "Add light to the lavender",
+     "changed": 0.26,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": []
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "Light lilac tips sit on the mid-purple tufts from step 9; the text doesn't say to let them dry, and light tapped into wet mid purple vanishes into it."
+       },
+       {
+        "kind": "drift",
+        "text": "The tree's left side and a cloud change in a lavender step."
+       }
+      ]
+     }
+    },
+    {
+     "n": 11,
+     "id": "balloon",
+     "name": "Paint the striped balloon",
+     "changed": 0.05,
+     "owner": {
+      "verdict": "unsure",
+      "note": "This might be a lack of experience on my part, but the reference picture has sharp lines and I feel like if you've got wet paint as you do each row, they're going to feather a bit so there might be need to be instructions on drying or how to keep straight lines to prevent the feathering might be a bit nitpicky…"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": []
+     },
+     "r2": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "drift",
+        "text": "A few lavender tufts change in the balloon step."
+       }
+      ]
+     }
+    },
+    {
+     "n": 12,
+     "id": "highlights",
+     "name": "Final details and highlights",
+     "changed": 0.09,
+     "owner": {
+      "verdict": "not_enough",
+      "note": "Unless the paint is dry, I think painting those teal strips on the balloon are going to blend the colors with what's underneath. I think that's an important distinction anywhere. You're layering color on top of another color and you don't want blending to happen. I think it needs to be explicit that you need to dry…"
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The left half of the balloon also gains orange and red stripes, but the text only adds an orange-red stripe beside the right-hand yellow, so a…"
+       },
+       {
+        "kind": "missing",
+        "text": "Scattered dabs in the front lavender rows change, while the watch-out says the lavender is done"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "New teal edge stripes and dark edges go over the red stripes from step 11; the text doesn't say to let the balloon dry, and teal over wet red turns…"
+       },
+       {
+        "kind": "vague",
+        "text": "The 'lighter streaks' and the 'thin orange-red stripe' have no paint named, and Balloon teal and Balloon red aren't in this step's paint list, so a…"
+       },
+       {
+        "kind": "drift",
+        "text": "Scattered lavender tufts change though the watch-out says the lavender is done."
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "slug": "pumpkin",
+   "name": "Pumpkin patch at night",
+   "size": [
+    1024,
+    1536
+   ],
+   "steps": [
+    {
+     "n": 1,
+     "id": "night-sky",
+     "name": "Paint the swirling night sky",
+     "changed": 1.0,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The light swirl streaks run along the outer rings across the whole canvas, but instruction 4 only puts them around the moon's spot (the swirl center…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The sky alternates near-black navy rings with mid-blue and purple rings (dark band x 20-60, y 35-42; dark ring x 75-85, y 20-60), but the text gives…"
+       },
+       {
+        "kind": "layering",
+        "text": "The pale Swirl blue lines stay crisp and light on the dark rings. Pulled into the still-wet sky, as the step has the painter do, they blend into…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 2,
+     "id": "moon",
+     "name": "Paint the full moon",
+     "changed": 0.24,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The moon is a fairly large disc, about a fifth of the canvas wide, but the text gives no size"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "The moon is clean, nearly white paint sitting on the blue sky. Step 1 ends with the sky wet and step 2 never says to wait; white brushed into wet…"
+       },
+       {
+        "kind": "drift",
+        "text": "The lower sky's dark and light bands are repainted in different places though no instruction touches them; also small streak changes at x 65-82, y…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 3,
+     "id": "hill-field",
+     "name": "Paint the green hill and field",
+     "changed": 0.35,
+     "owner": {
+      "verdict": "not_enough",
+      "note": "The step lists one color, but there's at least two shades of green in the reference picture. I don't know if you would make the forest green and add a little bit of white to it and alternate brush strokes between the lighter and darker colors, but I feel like I would just get something that's fairly uniform looking.…"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": []
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The field is two-tone, dark blue-green streaks with lighter, yellower green streaks running across (clear at x 0-40, y 80-95). The text gives only…"
+       },
+       {
+        "kind": "drift",
+        "text": "The sky rings right above the hill line change shape though the step only paints below the hill."
+       }
+      ]
+     }
+    },
+    {
+     "n": 4,
+     "id": "small-pumpkins",
+     "name": "Block in the small pumpkins",
+     "changed": 0.17,
+     "owner": {
+      "verdict": "not_enough",
+      "note": "Previous tutorials had the SVG things that were helpful. I don't know if they're omitted from this exercise for a reason, but if that's not intentional we should consider adding them back"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The two front pumpkins together are about a third of the canvas wide, but the text gives no sizes, and the third far one (x 36-43) is left of the…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "layering",
+        "text": "The pumpkins are clean, bright orange on top of the dark green field painted in the step before. Orange brushed onto wet green turns brown, and the…"
+       },
+       {
+        "kind": "drift",
+        "text": "The field's light and dark streaks are rearranged across the whole field, and the sky at x 50-90, y 60-70 changes, with no instruction for either."
+       }
+      ]
+     }
+    },
+    {
+     "n": 5,
+     "id": "big-pumpkin",
+     "name": "Block in the big pumpkin",
+     "changed": 0.21,
+     "owner": {
+      "verdict": "unsure",
+      "note": "In the original tutorial that the artist did, she made the pumpkins white and then filled it in with orange after the white was completely dry. I don't know if white has a hard time showing up on the green and the blue sky or if that was just unnecessary step. I'm a newbie so I don't know"
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "vague",
+        "text": "The pumpkin fills more than half the canvas width and runs off the right edge; the text says 'lower right' but gives no size, so a beginner could…"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "drift",
+        "text": "The small pumpkins painted in step 4 change outline (the lower-left blob splits into two pumpkins), and the field streaks at x 0-60, y 85-100…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 6,
+     "id": "pumpkin-shading",
+     "name": "Add rib lines and shading",
+     "changed": 0.17,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "wrong_result",
+        "text": "The bottom of the big pumpkin is an even, solid darker red-orange; dry brushing leaves a broken scratchy layer and never a solid area"
+       },
+       {
+        "kind": "missing",
+        "text": "Each section is darker next to its rib lines and lighter in its middle; no instruction shades along the ribs"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "Every section shades smoothly from deep red-orange along its edges to bright orange in its middle, plus brown ribs. The text gives one shadow color,…"
+       },
+       {
+        "kind": "wrong_result",
+        "text": "X 45-55 and x 90-100, y 65-90, and along the bottom x 50-95, y 82-90: the shadow is a solid, smooth darker band. Dry brushing leaves a broken,…"
+       },
+       {
+        "kind": "layering",
+        "text": "The rib lines are sharp, dark lines on the orange. Pulled across orange that's still wet from step 5 (which may need two coats), they feather and go…"
+       },
+       {
+        "kind": "vague",
+        "text": "Instruction 1 says to follow the seams between the sections, but step 5 filled every gap with solid orange, so there are no seams to see; brushes…"
+       },
+       {
+        "kind": "drift",
+        "text": "The small pumpkins change outline again, beyond what rib lines and shading would make."
+       }
+      ]
+     }
+    },
+    {
+     "n": 7,
+     "id": "pumpkin-highlights",
+     "name": "Add yellow highlights on the pumpkins",
+     "changed": 0.22,
+     "owner": {
+      "verdict": "unsure",
+      "note": "I don't know enough about blending or what paints do to know if I would get that effect or if I would just end up with yellow blobs inside of the orange"
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "The flat green field gains upward grass-blade texture in a step about pumpkin highlights"
+       },
+       {
+        "kind": "vague",
+        "text": "Every section of the left small pumpkins gets a gold streak on its upper half, more than 'a few small gold streaks'"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "The smooth green field gets grass texture, with darker blades and lighter yellow-green tufts, in a step about pumpkin highlights."
+       },
+       {
+        "kind": "flat",
+        "text": "Each highlight runs from pale cream-yellow at the top through gold to the orange below. The text gives one color, Pumpkin gold, so a beginner gets a…"
+       },
+       {
+        "kind": "layering",
+        "text": "The gold streaks sit cleanly between the dark brown ribs. Dragged over shading and ribs that are still wet, the gold mixes with the brown into a…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 8,
+     "id": "stems-vines",
+     "name": "Paint the white stems and curling vines",
+     "changed": 0.25,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "A large vine arcs left out of the stem over the sky and drops down past the small pumpkins to the field; no instruction makes it"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "A thick vine leaves the big stem, arcs left over the sky and down past the small pumpkins to the field. Instruction 2 only sends vines up, right,…"
+       },
+       {
+        "kind": "drift",
+        "text": "The big pumpkin's highlights from step 7 change, and the grass at x 0-100, y 78-100 is re-textured, with no instruction."
+       }
+      ]
+     }
+    },
+    {
+     "n": 9,
+     "id": "autumn-leaves",
+     "name": "Dab in the autumn leaves",
+     "changed": 0.21,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": []
+     },
+     "r2": {
+      "verdict": "not_enough",
+      "problems": [
+       {
+        "kind": "flat",
+        "text": "The leaf bed reads as a deep, solid mass with dark maroon and brown leaves underneath the bright ones. The text gives only bright red, gold, and…"
+       }
+      ]
+     }
+    },
+    {
+     "n": 10,
+     "id": "stars-finish",
+     "name": "Add stars and final highlights",
+     "changed": 0.28,
+     "owner": {
+      "verdict": "ok",
+      "note": ""
+     },
+     "r1": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "missing",
+        "text": "The big pumpkin's left side and bottom get darker shadow, but the step only adds gold"
+       }
+      ]
+     },
+     "r2": {
+      "verdict": "ok",
+      "problems": [
+       {
+        "kind": "drift",
+        "text": "The big pumpkin's shadow sides and bottom change, beyond the gold touches on its upper sections; the sky at x 25-70, y 37-58, the small pumpkins at…"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,119 @@
+---
+// One lesson step through four versions of its instructions: from memory, with cited research, trimmed in half,
+// and show-don't-tell. Measurements (percentages, inches, counts) are highlighted, so the trimmed version visibly
+// loses them. Data: src/data/gesso/text-versions.json. Without JavaScript the last version shows.
+import data from '../../data/gesso/text-versions.json';
+interface Props { caption?: string }
+const { caption } = Astro.props;
+const last = data.versions.length - 1;
+---
+<figure class="tv panel bleed" data-tv={JSON.stringify(data)}>
+  <div class="tabs" role="group" aria-label="Version">
+    {data.versions.map((v, i) => (
+      <button type="button" data-i={i} aria-pressed={i === last ? 'true' : 'false'}><b>{v.label}</b><span>{v.version}</span></button>
+    ))}
+  </div>
+  <div class="body">
+    <img src={data.image} alt={`The canvas after this step: ${data.step}`} width="900" height="600" loading="lazy" />
+    <div class="text" aria-live="polite">
+      <p class="lbl">{data.step}</p>
+      <ol class="do">{data.versions[last].do.map((d) => <li>{d}</li>)}</ol>
+      <div class="values"></div>
+      <div class="meters">
+        <div><span class="k">This step</span><b class="sw"></b></div>
+        <div><span class="k">Whole lesson</span><b class="lw"></b><span class="bar"><span></span></span></div>
+        <div><span class="k">Measurements</span><b class="mm"></b></div>
+      </div>
+      <p class="vnote"></p>
+    </div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type V = { label: string; version: string; do: string[]; lesson_words: number; note: string;
+    values?: { value: string; paint: string; where: string; hex?: string }[] };
+  const MEASURE = /(\d+(?:\.\d+)?\s?%(?:\s?(?:across|down))?|\d+(?:\.\d+)?\s?(?:in|inch(?:es)?)\b|half a grid square|a grid square|\b(?:two|three|four|five|six)\b(?=\s+(?:rows|bands|clouds|coats)))/gi;
+
+  for (const root of document.querySelectorAll<HTMLElement>('.tv')) {
+    const data = JSON.parse(root.dataset.tv!) as { versions: V[] };
+    const max = Math.max(...data.versions.map((v) => v.lesson_words));
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+
+    function mark(text: string): [Node[], number] {
+      const out: Node[] = []; let last = 0, n = 0;
+      for (const m of text.matchAll(MEASURE)) {
+        out.push(document.createTextNode(text.slice(last, m.index)));
+        const b = document.createElement('mark'); b.textContent = m[0]; out.push(b); n++;
+        last = m.index! + m[0].length;
+      }
+      out.push(document.createTextNode(text.slice(last)));
+      return [out, n];
+    }
+
+    function show(i: number) {
+      const v = data.versions[i];
+      root.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.i! === i)));
+      let measures = 0;
+      $<HTMLOListElement>('.do').replaceChildren(...v.do.map((d) => {
+        const li = document.createElement('li'); const [nodes, n] = mark(d); measures += n; li.append(...nodes); return li;
+      }));
+      const vals = $<HTMLElement>('.values');
+      vals.replaceChildren();
+      if (v.values?.length) {
+        const t = document.createElement('table');
+        t.innerHTML = '<caption>Build the depth, dark first</caption><thead><tr><th>Value</th><th>Paint</th><th>Where</th></tr></thead>';
+        const tb = document.createElement('tbody');
+        for (const r of v.values) {
+          const tr = document.createElement('tr');
+          const th = document.createElement('th'); th.scope = 'row'; th.textContent = r.value;
+          const p = document.createElement('td');
+          if (r.hex) { const d = document.createElement('span'); d.className = 'dot'; d.style.background = r.hex; p.append(d); }
+          p.append(r.paint);
+          const w = document.createElement('td'); const [nodes, n] = mark(r.where); measures += n; w.append(...nodes);
+          tr.append(th, p, w); tb.append(tr);
+        }
+        t.append(tb); vals.append(t);
+      }
+      const words = v.do.join(' ').split(/\s+/).filter(Boolean).length;
+      $<HTMLElement>('.sw').textContent = `${words} words`;
+      $<HTMLElement>('.lw').textContent = `${v.lesson_words.toLocaleString()} words`;
+      $<HTMLElement>('.bar span').style.width = `${(v.lesson_words / max) * 100}%`;
+      $<HTMLElement>('.mm').textContent = String(measures);
+      $<HTMLElement>('.vnote').textContent = v.note;
+    }
+    root.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => b.addEventListener('click', () => show(+b.dataset.i!)));
+    show(data.versions.length - 1);
+  }
+</script>
+
+<style>
+  .tv { display: grid; gap: 14px; }
+  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .tabs button { display: grid; gap: 2px; text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-2); color: var(--muted); cursor: pointer; }
+  .tabs button b { font: 650 .86rem/1.2 Inter, sans-serif; color: inherit; }
+  .tabs button span { font: 600 .68rem/1 "JetBrains Mono", ui-monospace, monospace; }
+  .tabs button[aria-pressed='true'] { border: 2px solid var(--teal); color: var(--text); padding: 7px 9px; }
+  .body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
+  .body img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); display: block; }
+  .text { display: grid; gap: 10px; min-width: 0; }
+  .lbl { margin: 0; font: 600 .72rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); }
+  .do { margin: 0; padding-left: 1.2rem; display: grid; gap: 6px; font: .9rem/1.5 Inter, sans-serif; color: var(--text); }
+  .do :global(mark), .values :global(mark) { background: color-mix(in srgb, var(--teal) 22%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+  .values :global(table) { border-collapse: collapse; width: 100%; font: .84rem/1.4 Inter, sans-serif; color: var(--text); }
+  .values :global(caption) { text-align: left; font: 600 .68rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-bottom: 6px; }
+  .values :global(th), .values :global(td) { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .values :global(thead th) { font: 600 .68rem/1.2 "JetBrains Mono", ui-monospace, monospace; color: var(--muted); }
+  .values :global(tbody th) { text-transform: capitalize; white-space: nowrap; }
+  .values :global(.dot) { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); margin-right: 6px; vertical-align: -1px; }
+  .meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .meters div { border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: grid; gap: 4px; background: var(--bg-2); }
+  .meters .k { font: 600 .66rem/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .meters b { font: 700 1.05rem/1.1 Inter, sans-serif; color: var(--text); }
+  .bar { height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--teal); transition: width .4s; }
+  .vnote { margin: 0; font: .86rem/1.45 Inter, sans-serif; color: var(--muted); font-style: italic; }
+  figcaption { font: .85rem/1.5 Inter, sans-serif; color: var(--muted); text-align: center; }
+  @media (max-width: 760px) { .body { grid-template-columns: 1fr; } .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
