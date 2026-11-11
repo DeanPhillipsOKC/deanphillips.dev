@@ -41,7 +41,9 @@ This is part 6 of a series about Gesso, an ongoing experiment in turning any pic
 
 ## Inside its head
 
-The agent is an AI model following a long instruction file I wrote. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
+Right now the agent is Claude, running inside Claude Code and following a long instruction file I wrote. This is the exploring phase: letting Claude Code run the agent loop means I can focus on whether the lessons work, without building the loop myself or paying for every thought. When Gesso becomes an app, that loop will have to live somewhere else, and that will be its own entry in this series.
+
+The thinking is covered for now. Pictures cost real money, a couple of cents each from an image model, so the most important rule in the file is: **free tools first, and pay only when nothing free will do, with a written reason every time.**
 
 Below is every decision it made for the lesson further down, straight from its log: 16 pictures and 52 tool choices. The agent's mind is drawn as a turning 3D space with a cluster of points for each tool. For the picture you pick, a path travels from the middle to each tool it tried, and the tool answers yes or no. Green tools are free, purple costs money, and the yellow one is a check. Click through the pictures, or drag the space to turn it. The reasons underneath are its own words.
 
@@ -79,7 +81,7 @@ Every lesson step went to the paid image model, and the reason it wrote down is 
 
 ## The checks
 
-An agent that only makes things will happily make wrong things. So the instruction file makes it check its own work, and the second check is done by a fresh copy of the agent that never saw the reasoning.
+An agent that only makes things will happily make wrong things. So the instruction file makes it check its own work, and the second check is done by a fresh copy of Claude that never saw the reasoning.
 
 <Stepper frames={[
   { time: 'Finish', title: 'Paint the finished painting first', text: 'Every step is copied backward from this one picture, so it gets the high-quality setting. Its own check found nothing to fix this time.', chips: [{ label: 'cost', value: '7¢' }, { label: 'caught', value: '0', tone: 'ok' }] },
@@ -104,4 +106,4 @@ Instead of fixing the pumpkin, I asked for the general version: look at every st
 
 It also wrote down why the other nine steps didn't need one. That record matters as much as the drawings. It's how I can tell it actually looked at every step, instead of drawing a balloon because balloons are obvious.
 
-<Callout title="Who did what.">I wrote the instruction file and its rules, and I asked for the beginner version and the diagrams after spotting the problems they fix. The agent ran this whole lesson alone, from a fresh start: the beginner version, the checks, and the three diagrams. An image model painted every picture. Every reason and number in this post came from the run's log.</Callout>
+<Callout title="Who did what.">I wrote the instruction file and its rules, and I asked for the beginner version and the diagrams after spotting the problems they fix. Claude ran this whole lesson alone, from a fresh start: the beginner version, the checks, and the three diagrams. An image model painted every picture. Every reason and number in this post came from the run's log.</Callout>
