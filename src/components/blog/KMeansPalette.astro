@@ -1,0 +1,242 @@
+---
+// K-means finding a picture's palette, live. The picture's pixels float as a slowly turning cloud in color
+// space (lightness up, hue and colorfulness around); K centers start on random pixels, then each round every
+// pixel joins its nearest center and each center moves to the middle of its group. The picture repaints itself
+// with the centers' colors every round, and the swatches below become the palette. Real k-means, in the
+// browser, on the real picture. Without JavaScript the picture and caption still show.
+interface Props { src: string; alt: string; caption?: string; k?: number }
+const { src, alt, caption, k = 6 } = Astro.props;
+---
+<figure class="kmeans panel bleed" data-src={src} data-k={k}>
+  <div class="stage">
+    <div class="pic">
+      <img src={src} alt={alt} class="fallback" />
+      <canvas class="paint" role="img" aria-label={`${alt}, repainted with the palette k-means finds`} hidden></canvas>
+      <p class="tag" hidden><span class="tag-text">Your picture</span></p>
+    </div>
+    <canvas class="cloud" role="img" aria-label="Every pixel's color as a dot in a turning 3D color space, with the palette's centers moving through it" hidden></canvas>
+  </div>
+  <ol class="swatches" aria-live="polite" hidden></ol>
+  <div class="controls" hidden>
+    <label class="kpick">Colors <input type="range" min="3" max="8" step="1" value={k} /><output>{k}</output></label>
+    <button type="button" class="play">Pause</button>
+    <button type="button" class="again">Start over</button>
+    <span class="round" aria-live="polite"></span>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type V3 = [number, number, number];
+
+  // sRGB 0-255 to CIE Lab (D65): distances in Lab match how different two colors look.
+  const lin = (c: number) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const f = (t: number) => (t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116);
+  function lab(r: number, g: number, b: number): V3 {
+    const R = lin(r), G = lin(g), B = lin(b);
+    const x = (0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047;
+    const y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    const z = (0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883;
+    return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+  }
+  const hex = (c: V3) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+  const d2 = (p: V3, q: V3) => (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2;
+  const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+
+  for (const root of document.querySelectorAll<HTMLElement>('.kmeans')) {
+    const img = new Image();
+    img.src = root.dataset.src!;
+    img.decode().then(() => start(root, img)).catch(() => {});
+  }
+
+  function start(root: HTMLElement, img: HTMLImageElement) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const paint = $<HTMLCanvasElement>('.paint'), cloud = $<HTMLCanvasElement>('.cloud');
+    const swatches = $<HTMLOListElement>('.swatches'), tag = $<HTMLElement>('.tag'), tagText = $<HTMLElement>('.tag-text');
+    const kInput = $<HTMLInputElement>('.kpick input'), kOut = $<HTMLOutputElement>('.kpick output');
+    const playBtn = $<HTMLButtonElement>('.play'), againBtn = $<HTMLButtonElement>('.again'), roundEl = $<HTMLElement>('.round');
+    $('.fallback').remove();
+    for (const el of [paint, cloud, swatches, tag, $('.controls')]) (el as HTMLElement).hidden = false;
+
+    // The picture's pixels, small: every one takes part in k-means; a share of them is drawn in the cloud.
+    const W = img.naturalWidth, H = img.naturalHeight;
+    paint.width = W; paint.height = H;
+    const ctx = paint.getContext('2d', { willReadFrequently: true })!;
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, W, H).data;
+    const N = W * H;
+    const rgb: V3[] = [], pts: V3[] = [];
+    for (let i = 0; i < N; i++) {
+      const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+      rgb.push([r, g, b]); pts.push(lab(r, g, b));
+    }
+    const shown = Array.from({ length: Math.min(N, 3200) }, (_, i) => Math.floor((i * N) / Math.min(N, 3200)));
+    const owner = new Int32Array(N);
+
+    let K = +kInput.value, centers: V3[] = [], colors: V3[] = [], shares: number[] = [];
+    let from: V3[] = [], trails: V3[][] = [], round = 0, settled = false, tweenStart = 0;
+    let seed = 7;
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+    function reset() {
+      K = +kInput.value; kOut.value = String(K);
+      // Start from K random pixels: a bad guess on purpose, so you can watch it get better.
+      centers = Array.from({ length: K }, () => [...pts[Math.floor(rand() * N)]] as V3);
+      from = centers.map((c) => [...c] as V3);
+      trails = centers.map((c) => [[...c] as V3]);
+      colors = centers.map(() => [128, 128, 128]); shares = centers.map(() => 1 / K);
+      round = 0; settled = false; tweenStart = performance.now();
+      ctx.drawImage(img, 0, 0); tagText.textContent = 'Your picture';
+      roundEl.textContent = `${K} random starting colors`;
+      drawSwatches();
+    }
+
+    // One round of k-means: assign every pixel to its nearest center, then move each center to its group's middle.
+    function step() {
+      const sum = centers.map(() => [0, 0, 0]), sumRgb = centers.map(() => [0, 0, 0]), count = new Array(K).fill(0);
+      for (let i = 0; i < N; i++) {
+        let best = 0, bd = Infinity;
+        for (let c = 0; c < K; c++) { const d = d2(pts[i], centers[c]); if (d < bd) { bd = d; best = c; } }
+        owner[i] = best; count[best]++;
+        for (let j = 0; j < 3; j++) { sum[best][j] += pts[i][j]; sumRgb[best][j] += rgb[i][j]; }
+      }
+      from = centers.map((c) => [...c] as V3);
+      let moved = 0;
+      centers = centers.map((c, k) => {
+        if (!count[k]) return [...pts[Math.floor(rand() * N)]] as V3; // an empty group restarts somewhere new
+        const n: V3 = [sum[k][0] / count[k], sum[k][1] / count[k], sum[k][2] / count[k]];
+        moved = Math.max(moved, Math.sqrt(d2(n, c)));
+        return n;
+      });
+      colors = sumRgb.map((s, k) => (count[k] ? [s[0] / count[k], s[1] / count[k], s[2] / count[k]] : [128, 128, 128]) as V3);
+      shares = count.map((n) => n / N);
+      centers.forEach((c, k) => trails[k].push([...c] as V3));
+      round += 1; tweenStart = performance.now();
+      settled = moved < 0.6 || round >= 25;
+      repaint(); drawSwatches();
+      roundEl.textContent = settled ? `Settled after ${round} rounds` : `Round ${round}: biggest move ${moved.toFixed(1)}`;
+    }
+
+    function repaint() {
+      const out = ctx.createImageData(W, H);
+      for (let i = 0; i < N; i++) {
+        const c = colors[owner[i]];
+        out.data[i * 4] = c[0]; out.data[i * 4 + 1] = c[1]; out.data[i * 4 + 2] = c[2]; out.data[i * 4 + 3] = 255;
+      }
+      ctx.putImageData(out, 0, 0);
+      tagText.textContent = `Painted with ${K} colors`;
+    }
+
+    function drawSwatches() {
+      const order = shares.map((s, k) => k).sort((a, b) => shares[b] - shares[a]);
+      swatches.innerHTML = order.map((k) => round
+        ? `<li><span style="background:${hex(colors[k])};flex-grow:${Math.max(shares[k], 0.04)}"></span><b>${hex(colors[k])}</b><em>${Math.round(shares[k] * 100)}%</em></li>`
+        : `<li><span class="blank" style="flex-grow:1"></span><b>?</b><em></em></li>`).join('');
+    }
+
+    // The cloud: Lab space seen from a slowly turning, slightly raised camera. Lightness is up.
+    let angle = 0.6;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    // Frame the cloud on its own spread, so a picture with a narrow range of colors still fills the box.
+    const mid: V3 = [0, 1, 2].map((j) => pts.reduce((s, p) => s + p[j], 0) / N) as V3;
+    const radii = pts.map((p) => Math.hypot(p[1] - mid[1], p[2] - mid[2])).sort((a, b) => a - b);
+    const spreadAB = Math.max(12, radii[Math.floor(N * 0.97)]);
+    const Ls = pts.map((p) => Math.abs(p[0] - mid[0])).sort((a, b) => a - b);
+    const spreadL = Math.max(12, Ls[Math.floor(N * 0.97)]);
+    function project(p: V3, w: number, h: number): [number, number] {
+      const s = Math.min((w * 0.6) / spreadAB, (h * 0.52) / (spreadL + spreadAB * 0.35));
+      const a = p[1] - mid[1], b = p[2] - mid[2];
+      const x = a * Math.cos(angle) - b * Math.sin(angle);
+      const z = a * Math.sin(angle) + b * Math.cos(angle);
+      return [w / 2 + x * s, h / 2 - (p[0] - mid[0]) * s + z * s * 0.35];
+    }
+    function drawCloud(now: number) {
+      const w = cloud.clientWidth * dpr, h = cloud.clientHeight * dpr;
+      if (cloud.width !== w || cloud.height !== h) { cloud.width = w; cloud.height = h; }
+      const g = cloud.getContext('2d')!;
+      g.clearRect(0, 0, w, h);
+      const ink = getComputedStyle(root).getPropertyValue('--text').trim() || '#fff';
+      const dot = 2.2 * dpr;
+      g.globalAlpha = 0.85;
+      for (const i of shown) {
+        const [x, y] = project(pts[i], w, h);
+        g.fillStyle = `rgb(${rgb[i][0]},${rgb[i][1]},${rgb[i][2]})`;
+        g.fillRect(x - dot / 2, y - dot / 2, dot, dot);
+      }
+      g.globalAlpha = 1;
+      const t = reduce ? 1 : ease(Math.min(1, (now - tweenStart) / 650));
+      centers.forEach((c, k) => {
+        const p: V3 = [0, 1, 2].map((j) => from[k][j] + (c[j] - from[k][j]) * t) as V3;
+        const trail = trails[k];
+        g.strokeStyle = ink; g.globalAlpha = 0.45; g.lineWidth = 1.2 * dpr; g.beginPath();
+        trail.slice(0, -1).forEach((q, j) => { const [x, y] = project(q, w, h); j ? g.lineTo(x, y) : g.moveTo(x, y); });
+        const [px, py] = project(p, w, h);
+        if (trail.length > 1) g.lineTo(px, py);
+        g.stroke(); g.globalAlpha = 1;
+        const r = (5 + 20 * Math.sqrt(round ? shares[k] : 1 / K)) * dpr;
+        g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2);
+        g.fillStyle = round ? hex(colors[k]) : 'rgba(127,127,127,.35)'; g.fill();
+        g.lineWidth = 2.5 * dpr; g.strokeStyle = ink; g.stroke();
+      });
+    }
+
+    // Timing: a round every 1.1 s while the figure is on screen; when it settles, hold, then start over.
+    let playing = !reduce, visible = false, next = 0, holdUntil = 0;
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.25 }).observe(root);
+    function tick(now: number) {
+      if (visible) {
+        if (!reduce) angle += 0.0035;
+        if (playing && now >= next) {
+          if (settled) {
+            if (!holdUntil) holdUntil = now + 3500;
+            else if (now >= holdUntil) { holdUntil = 0; seed += 101; reset(); next = now + 1200; }
+          } else { step(); next = now + 1100; }
+        }
+        drawCloud(now);
+      }
+      requestAnimationFrame(tick);
+    }
+    playBtn.textContent = playing ? 'Pause' : 'Play';
+    playBtn.addEventListener('click', () => {
+      if (reduce) { if (settled) reset(); else step(); return; }
+      playing = !playing; playBtn.textContent = playing ? 'Pause' : 'Play';
+    });
+    if (reduce) playBtn.textContent = 'Next round';
+    againBtn.addEventListener('click', () => { seed += 101; holdUntil = 0; reset(); next = performance.now() + 900; });
+    kInput.addEventListener('input', () => { holdUntil = 0; reset(); next = performance.now() + 900; });
+    reset();
+    requestAnimationFrame(tick);
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .kmeans { padding: 18px; display: grid; gap: 14px; }
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
+  .pic { position: relative; min-width: 0; }
+  .pic img, .pic canvas { width: 100%; height: auto; display: block; border-radius: 12px; image-rendering: auto; }
+  .tag { position: absolute; left: 10px; bottom: 10px; margin: 0; padding: 5px 10px; border-radius: 999px;
+    background: rgba(10, 12, 18, .72); color: #fff; font: 600 .75rem/1 Inter, sans-serif; letter-spacing: .02em; }
+  .cloud { width: 100%; min-height: 220px; height: 100%; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); }
+  .swatches { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; min-height: 64px; }
+  .swatches :global(li) { margin: 0; flex: 1 1 0; min-width: 0; display: grid; grid-template-rows: 38px auto auto; gap: 3px;
+    font: 500 .7rem/1.2 Inter, sans-serif; color: var(--muted); }
+  .swatches :global(span) { display: block; border-radius: 8px; border: 1px solid var(--line); transition: background .6s; }
+  .swatches :global(.blank) { background: repeating-linear-gradient(45deg, var(--bg-2) 0 6px, var(--line) 6px 8px); }
+  .swatches :global(b) { color: var(--text); font: 600 .72rem/1.2 "JetBrains Mono", ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; }
+  .swatches :global(em) { font-style: normal; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; font: 500 .85rem/1.2 Inter, sans-serif; color: var(--muted); }
+  .kpick { display: inline-flex; align-items: center; gap: 8px; }
+  .kpick input { accent-color: var(--teal); width: 120px; }
+  .kpick output { color: var(--text); font-weight: 700; min-width: 1ch; }
+  .controls button { font: 600 .85rem/1 Inter, sans-serif; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text); }
+  .controls button:hover { border-color: var(--teal); }
+  .round { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) {
+    .stage { grid-template-columns: 1fr; }
+    .cloud { height: 260px; }
+    .round { margin-left: 0; width: 100%; }
+  }
+</style>
