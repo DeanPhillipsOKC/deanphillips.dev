@@ -1,0 +1,99 @@
+---
+title: "Watching an AI agent decide what's worth paying for"
+titleAccent: "worth paying for"
+tabTitle: The Agent Loop
+partTitle: Watching an AI agent decide what's worth paying for
+description: "Gesso's agent makes a painting lesson by climbing down a ladder of tools, free ones first, and keeps a receipt. Watch a real run picture by picture, see what its checks caught, and see the diagrams it decided a beginner needed."
+dek: I handed a fresh AI agent one picture and one instruction file, then got out of the way. Twelve minutes and 34 cents later it had an 11-step painting lesson, a receipt for every cent, and five drawings it decided a beginner would need.
+eyebrow: Experiment
+date: 2026-11-11
+readMinutes: 5
+image: /img/og/gesso-agent-loop.jpg
+series: gesso
+part: 6
+draft: true
+---
+import ToolLadder from '../../components/blog/ToolLadder.astro';
+import Flipbook from '../../components/blog/Flipbook.astro';
+import Stepper from '../../components/blog/Stepper.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import BuildDiagram from '../../components/blog/BuildDiagram.astro';
+import Callout from '../../components/blog/Callout.astro';
+import day2 from '../../data/gesso/day2.json';
+
+export const [w, h] = day2.size;
+export const lesson = {
+  label: 'Balloon over lavender',
+  width: w,
+  height: h,
+  lead: 1,
+  frames: [
+    { src: '/img/gesso/day2/balloon.webp', label: 'The picture' },
+    ...day2.steps.map((s) => ({ src: s.image, label: s.name })),
+  ],
+};
+export const balloon = day2.diagrams.find((d) => d.id === 'balloon');
+export const oak = day2.diagrams.find((d) => d.id === 'oak-tree');
+
+This is part 6 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far, and [part 5](/blog/gesso-filters/) covers the free filters this part leans on.
+
+## The lesson it made
+
+First, the result. This is the balloon picture from part 5, turned into a lesson by an AI agent with nobody steering it. Press Play, or drag the slider.
+
+<Flipbook sequences={[lesson]} caption="The 11-step lesson the agent made from the balloon picture. Every step is the canvas after that step." />
+
+## The ladder
+
+The agent is Claude, running inside Claude Code, following a long instruction file I wrote (Claude Code calls it a skill). The thinking it does costs nothing extra on my subscription. The pictures cost real money, a couple of cents each from an image model.
+
+So the most important rule in the file is a ladder. For every picture the lesson needs, try the tools in this order, and only go down a rung when the one above can't do it:
+
+1. **A filter.** Free and instant, like the ones in part 5.
+2. **A throwaway script.** Claude writes a small one-off program for this picture, two tries at most.
+3. **A seeded render.** The image model, starting from the best free attempt.
+4. **A plain render.** The image model, from scratch, with a written reason why nothing above worked.
+
+Here's the real run, replayed from its log. Every picture drops in at the top and falls until something can make it.
+
+<ToolLadder jobs={day2.jobs} caption="The balloon lesson's real run, picture by picture. Free rungs are green, paid rungs are purple. The counter is what the images cost." />
+
+The planning pictures all stopped on the first rung for free: the simplified reference, the value study, and the palette. Every lesson step fell to the bottom. That's not the agent being lazy, and the reason it wrote down is a good one: each step has to show something a later layer covers. The sky runs behind the hills. The lavender rows sit under the flowers. No filter can show what's hiding under paint that's already there. Building that tool is next on my list, and it should move most of those steps up the ladder.
+
+<StatRow stats={[
+  { value: `$${day2.total_cost.toFixed(2)}`, label: 'all the images' },
+  { value: String(day2.renders), label: 'paid renders' },
+  { value: String(day2.filters), label: 'free filter runs' },
+  { value: '12 min', label: 'start to finish' },
+]} />
+
+## The checks
+
+An agent that only makes things will happily make wrong things. So the instruction file makes it check its own work, twice, and the second check is done by a fresh copy of Claude that never saw the reasoning.
+
+<Stepper frames={[
+  { time: 'Finish', title: 'Paint the finished painting first', text: 'Everything else is copied backward from this one picture, so it gets the high-quality setting.', chips: [{ label: 'cost', value: '7¢' }] },
+  { time: 'Finish check', title: '"The stripes are the wrong blue"', text: `It compared its painting to the photo and caught two things: ${day2.finish_issues.join(' ')} One repaint fixed both.`, chips: [{ label: 'caught', value: '2', tone: 'warn' }, { label: 'cost', value: '7¢' }] },
+  { time: 'Steps', title: 'Ten steps, all at once', text: 'Each step is the finished painting with the later parts not painted yet. All ten render in parallel.', chips: [{ label: 'cost', value: '2¢ each' }] },
+  { time: 'Review, round 1', title: 'A fresh pair of eyes', text: `A new Claude compared every step with its neighbors. It found one problem: ${day2.review[0]?.problem ?? ''}`, chips: [{ label: 'caught', value: '1', tone: 'warn' }] },
+  { time: 'Redo', title: 'Fix the plan, then the picture', text: 'The agent traced it back to its own plan, which said "right of center". It corrected the words first, then redid the step.', chips: [{ label: 'cost', value: '2¢' }] },
+  { time: 'Review, round 2', title: 'Another fresh pair of eyes', text: 'A second new Claude looked again. Nothing left to fix. The rules allow two rounds, then anything still wrong gets flagged on the page instead of hidden.', chips: [{ label: 'caught', value: '0', tone: 'ok' }] },
+]} caption="The run's checks, in order. Click Next." />
+
+## The part I didn't tell it to do
+
+A finished step picture shows the shape, not how to get there. When I tried an earlier lesson, a pumpkin patch, I noticed every pumpkin appeared fully formed, with no hint of how to start one. The real tutorial I'd learned it from starts with an oval and adds curved pieces on each side, and that's what made it click for me.
+
+I could have fixed the pumpkin and moved on. Instead I asked for the general version: look at every step like someone who has never painted, decide where the picture isn't enough, and draw a diagram of how to build the shape from simple pieces. The diagrams are drawn as code, not as AI images, so they're free.
+
+On the balloon lesson, nobody told it where to look. It drew diagrams for five of the eleven steps on its own. Here's the balloon:
+
+<BuildDiagram html={balloon.html} caption={`Step ${balloon.step}. Why it drew one: "${balloon.noticed}"`} />
+
+And the oak tree, where it noticed something I'd have missed: you can't tell from the picture where the trunk splits into the crown.
+
+<BuildDiagram html={oak.html} caption={`Step ${oak.step}. Why it drew one: "${oak.noticed}"`} />
+
+It also wrote down why the other six steps didn't need one. The clouds, for example: "a texture made by repeating one dabbing mark." That record matters as much as the drawings. It's how I can tell it actually looked at every step instead of drawing a balloon because balloons are obvious.
+
+<Callout title="Who did what.">I wrote the instruction file, the rules, and the ladder, and I caught the pumpkin problem that led to the diagrams. Claude ran the whole balloon lesson alone, from a fresh start, including the checks and the five diagrams. An image model painted every picture. The receipt and every reason in this post came straight from the run's log.</Callout>

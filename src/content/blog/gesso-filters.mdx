@@ -1,0 +1,107 @@
+---
+title: "How a computer picks your paint colors"
+titleAccent: "your paint colors"
+tabTitle: Picking the Paint Colors
+partTitle: How a computer picks your paint colors
+description: "Gesso's restart rule is free filters before paid AI images. Watch k-means clustering find a picture's palette live, then the value study, notan, and two ways to simplify a picture into something a beginner can paint."
+dek: AI image models are good painters, but every picture costs money and half a minute. Plenty of what a painting lesson needs isn't painting at all. It's math that's been around for decades, runs in under a second, and costs nothing.
+eyebrow: Experiment
+date: 2026-11-11
+readMinutes: 5
+image: /img/og/gesso-filters.jpg
+series: gesso
+part: 5
+draft: true
+---
+import KMeansPalette from '../../components/blog/KMeansPalette.astro';
+import Flipbook from '../../components/blog/Flipbook.astro';
+import CompareSlider from '../../components/blog/CompareSlider.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+
+export const img = (n) => `/img/gesso/day2/balloon-${n}.webp`;
+export const values = {
+  label: 'Value study',
+  width: 1200,
+  height: 800,
+  frames: [
+    { src: '/img/gesso/day2/balloon.webp', label: 'The picture' },
+    { src: img('v2'), label: '2 values' },
+    { src: img('v3'), label: '3 values' },
+    { src: img('v4'), label: '4 values' },
+    { src: img('v5'), label: '5 values' },
+  ],
+};
+
+This is part 5 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far. Part 5 picks the experiment back up three weeks later, with a new rule: **free filters first, paid AI images only when nothing free will do.**
+
+The picture for this part is one I made for it: a hot air balloon over lavender at sunset, painted by an AI image model from a one-line description. Lots of color, a few clear shapes, and a balloon that's secretly hard to paint.
+
+## Finding the palette
+
+The first thing a painting lesson needs is the paints to mix. A picture has hundreds of thousands of colors, and you want six. Here's the method Gesso uses, running live on the balloon picture. Every dot on the right is one pixel, placed by its color: lighter is higher, and the hue goes around. The big circles are the paint colors it's looking for.
+
+<KMeansPalette
+  src="/img/gesso/day2/balloon-kmeans-src.webp"
+  alt="A hot air balloon over a lavender field at sunset"
+  caption="K-means finding six paint colors in the balloon picture. Drag the slider to ask for more or fewer, or start over from new random guesses."
+/>
+
+It's called **k-means clustering**, and the whole thing is four moves:
+
+1. **Guess.** Drop six centers on random pixels. They're bad guesses, on purpose.
+2. **Join.** Every pixel joins the center closest to its color.
+3. **Move.** Each center moves to the average color of the pixels that joined it.
+4. **Repeat** until the centers stop moving.
+
+That's it. Watch the left side: every round, the picture repaints itself using only the centers' colors, and it gets a little more right. It usually settles in under ten rounds.
+
+One detail matters a lot. "Closest color" is measured in a color space called **Lab**, built so that equal distances look equally different to a human eye. Measure in plain red, green, and blue instead, and two dark purples can count as further apart than a purple and a gray that look nothing alike.
+
+Each center becomes a paint on the lesson's shopping list, with a mixing recipe from five tubes. Different random guesses can land on slightly different palettes, so the real tool cheats a little: it spreads its first guesses out on purpose (a variant called k-means++), tries four starts, and keeps the tightest result.
+
+## Squinting, with math
+
+Painters squint at their subject to see **values**: how light or dark things are, with the color taken away. It's the most important thing in a painting and the easiest to get wrong.
+
+A value study is the same k-means trick, run on lightness alone. Slide through it:
+
+<Flipbook sequences={[values]} caption="The balloon picture split into 2, 3, 4, and 5 values. Each value is one shade of gray." />
+
+Look at the sky. At three values, that whole blazing sunset is **one value**, the lightest. Every orange, pink, and gold in it is about the same lightness. That tells a beginner something useful: paint the sky light and keep it light, and save your darks for the lavender rows and the tree.
+
+## Two values: the notan
+
+Squeeze it down to just black and white and you get a **notan**, a Japanese design idea about the balance of dark and light. A picture that reads well as a notan reads well from across the room.
+
+<img src={img('notan')} alt="The balloon picture as pure black and white" width="1200" height="800" loading="lazy" />
+
+The hard part is where to draw the line between dark and light. Gesso uses **Otsu's method**, from 1979. It tries every possible cut and keeps the one where the dark group and the light group are each as tight as they can be. No guessing, no slider.
+
+## Simplifying without smearing
+
+A beginner can't paint every lavender stalk. The reference has to merge small details into shapes you could paint in an afternoon. Here are two filters that do that, and they fail in different ways. Drag the divider:
+
+<CompareSlider
+  before={{ src: img('kuwahara'), label: 'Kuwahara' }}
+  after={{ src: img('meanshift'), label: 'Mean shift' }}
+  width={1200}
+  height={800}
+  caption="The same picture simplified two ways. Kuwahara makes soft paint-like patches. Mean shift keeps hard edges."
+/>
+
+- **Kuwahara** looks at four little boxes around each pixel and leans on the average of whichever box is calmest. That turns texture into flat, brushy patches, which is lovely for skies and fields. It also breaks thin lines apart. On a cartoon cat, it erased the cat's face.
+- **Mean shift** lets every pixel drift toward the crowd of similar colors near it. Flat areas flatten, but a dark line stays a dark line. Gesso now tries it first on anything with outlines.
+
+## What free buys
+
+<StatRow stats={[
+  { value: '$0', label: 'every filter here' },
+  { value: '< 1 s', label: 'to run one' },
+  { value: '2 to 7¢', label: 'one AI picture' },
+  { value: '20 to 35 s', label: 'to wait for it' },
+]} />
+
+A few cents doesn't sound like much until a lesson needs a dozen pictures and you're making lessons over and over to test changes. The filters do the planning pictures (the reference, the palette, the values) for free. AI rendering is saved for the part only it can do: painting.
+
+<Callout title="Who did what.">I set the rule (free first) and picked the picture. Claude (an AI model) wrote the filters with me and runs them, and an image model painted the balloon. Next, in part 6: the agent that decides, picture by picture, which tool to use, and keeps a receipt.</Callout>

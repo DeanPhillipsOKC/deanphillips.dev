@@ -1,0 +1,49 @@
+---
+// A Gesso construction diagram (drawn by gesso's spike/construct.py), assembling itself panel by panel when it
+// scrolls into view: each panel pops in after the last, and the dashed outline on its new pieces marches.
+// Tap "Build it again" to replay. Without JavaScript or with reduced motion, every panel simply shows.
+interface Props { html: string; caption?: string }
+const { html, caption } = Astro.props;
+---
+<figure class="build-anim panel bleed">
+  <div class="gesso" set:html={html} />
+  <button type="button" class="again" hidden>Build it again</button>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  for (const root of document.querySelectorAll<HTMLElement>('.build-anim')) {
+    if (reduce) continue;
+    const again = root.querySelector<HTMLButtonElement>('.again')!;
+    const panels = [...root.querySelectorAll<HTMLElement>('.panel')];
+    panels.forEach((p, i) => p.style.setProperty('--i', String(i)));
+    const play = () => { root.classList.remove('go'); void root.offsetWidth; root.classList.add('go'); };
+    root.classList.add('ready');
+    again.hidden = false;
+    again.addEventListener('click', play);
+    new IntersectionObserver(([e], io) => { if (e.isIntersecting) { play(); io.disconnect(); } }, { threshold: 0.4 }).observe(root);
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .build-anim { padding: 18px; display: grid; gap: 10px;
+    --ultramarine: var(--teal); --ink: var(--text); --gesso: var(--bg); --panel: var(--bg-2); --rule: var(--line); }
+  .gesso :global(.build) { display: grid; gap: 10px; }
+  .gesso :global(.label) { margin: 0; font: 600 .72rem/1 Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .gesso :global(.panels) { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+  .gesso :global(.panel) { margin: 0; display: grid; gap: 6px; align-content: start; padding: 0; border: 0; background: none; box-shadow: none; border-radius: 0; width: auto; max-width: none; }
+  .gesso :global(svg) { width: 100%; height: auto; aspect-ratio: 1; display: block; border-radius: 12px;
+    background: #fbfbf8; border: 1px solid var(--line); --ink: #1d2430; }
+  .gesso :global(figcaption) { margin: 0; font: 500 .85rem/1.35 Inter, sans-serif; color: var(--text); }
+  .gesso :global(figcaption b) { color: var(--teal); margin-right: 4px; }
+  .gesso :global(.small) { margin: 0; font-size: .8rem; color: var(--muted); }
+  .ready .gesso :global(.panel) { opacity: 0; transform: translateY(12px) scale(.94); }
+  .go .gesso :global(.panel) { animation: pop .5s cubic-bezier(.3, .7, .4, 1.2) forwards; animation-delay: calc(var(--i) * .75s); }
+  .go .gesso :global([stroke-dasharray]) { animation: march 1.2s linear infinite; }
+  @keyframes pop { to { opacity: 1; transform: none; } }
+  @keyframes march { to { stroke-dashoffset: -7.6; } }
+  .again { justify-self: start; font: 600 .85rem/1 Inter, sans-serif; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg-2); color: var(--text); }
+</style>
