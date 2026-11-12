@@ -1,0 +1,94 @@
+---
+title: "The tool has to stand on its own"
+titleAccent: "stand on its own"
+tabTitle: Hands-Off Lessons
+partTitle: The tool has to stand on its own
+description: "I'd been fixing Gesso's lessons by hand, which made the tool look better than it is. Now every run is kept and traced to the version that made it, only lessons the tool finished alone go on the site, and the instructions the agent follows got split up so it stops forgetting them."
+dek: I'd been quietly fixing lessons after the tool made them. That made the tool look better than it is, and once Gesso is an app, nobody will be there to fix anything. So the lessons had to start standing on their own.
+eyebrow: Experiment
+date: 2026-11-12
+readMinutes: 7
+image: /img/og/gesso-hands-off.jpg
+series: gesso
+part: 9
+draft: false
+---
+import RunHistory from '../../components/blog/RunHistory.astro';
+import CompareSlider from '../../components/blog/CompareSlider.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+import runs from '../../data/gesso/runs.json';
+
+This is part 9 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far, and [part 8](/blog/gesso-research/) is the research that made the lessons worth painting.
+
+My partner and I wanted to paint the lessons together, so I put them on a small website we can both open at the easel. Picking which lessons to put there made me look hard at how each one was made, and I didn't love the answer.
+
+## The lessons were getting help
+
+The chickadee lesson on the site looked great. It also wasn't what the tool made. In its last steps the bird changed shape, so I had the agent rebuild the finished painting from the step before it and paste the head back on by hand. The sailboat had been relocked by hand with newer code. Another lesson had its text trimmed in a chat.
+
+None of that was cheating, exactly. Each fix taught the tool something, and the next version learned it. But a lesson I fixed by hand tells me nothing about what the tool can do, and when Gesso is an app on someone's phone, nobody is going to be there to paste a bird's head back on.
+
+So now a lesson is **sealed** when the run ends. The agent's last step marks it finished, and if anything changes after that, even one word, it's marked edited. Only sealed, untouched lessons go on the site. The tool's own fixes count: when its reviewer flags a step and it redraws it, that's the tool working. A fix from outside the run doesn't.
+
+The chickadee and the sailboat came off the site. Then I had fresh agents, with no memory of the earlier runs and no help, make both again from the photo. The new chickadee kept its shape the whole way through without anyone touching it, because the fix I'd made by hand had become a rule the tool follows.
+
+## Every run, kept and traced
+
+The other thing that bothered me: I kept changing the tool, and lessons kept getting better or worse, and I couldn't say when. Most of what makes a lesson good is a judgment call. There's no test that fails when the lavender gets blocky.
+
+So nothing gets overwritten anymore. Every run is kept with the version of Gesso that made it, its cost, and a strip of every step. Between runs, the history lists what changed in Gesso. When a run looks worse than the one before, that list is where to look. Hand-fixed runs and experiments stay in the history too, but with a band across them, so I can't mistake them for what the tool does on its own.
+
+Pick a picture, then a run.
+
+<RunHistory pictures={runs} caption="Every kept run of three pictures, newest first. Only the hands-off runs are on the lessons site; the rest are in the history with a band." />
+
+The site works the same way. Each lesson's tile has a version picker, so we can open any hands-off run of it, and each lesson ends with a list of its known problems: what the tool noticed and couldn't fix, with a link to the bug if there is one.
+
+## Fewer pictures from the image model
+
+Part of what made lessons wobble from run to run was that every step's picture was drawn separately by the image model, and it never draws quite the same thing twice. Clouds move. The lavender sometimes went down as flat rows and sometimes didn't.
+
+So I tried something that uses no image model at all: start from the finished painting and cut the steps out of it. Each part of the picture belongs to the step that paints it, earlier steps paint straight through where later ones go, and a field of lavender goes on as a flat coat, then the darkest dabs, then lighter ones. A tool does it the same way every time, in about 13 seconds, for free.
+
+<figure>
+  <img src="/img/gesso/hands-off/lavender-three-ways.webp" alt="Four steps of the lavender lesson three ways: rendered, all cut from the finished painting, and the hybrid" width="1188" height="1356" loading="lazy" style="max-width:100%;height:auto" />
+  <figcaption>The same four steps three ways. Cut from the finish, the lavender is better: truly flat rows, then dark, then mid. The sky is worse: the tool couldn't tell the sky's gold from the field's, so the sky ran down into the fields. The hybrid cuts only the lavender.</figcaption>
+</figure>
+
+It worked for the lavender and failed for the sky. The plan marks each step's area with rough boxes, and a box can't tell the sky's gold from the field's gold. So the tool now does both: the image model draws the steps with clear edges, and anything built up in passes gets cut from the finish. Getting rid of the image model for the rest needs real outlines instead of boxes. That's next.
+
+## Long instructions fade
+
+The agent (Claude, running in Claude Code for now) follows a written skill: the steps, the rules, the reasons. Every lesson I didn't like added a rule, and by now the skill was 8,000 words. Making one lesson takes about 250,000 tokens of reading, looking, and writing, so by the time the agent wrote the last steps, the rules for them were 150,000 tokens back. That's where the hands-off runs slipped. Never badly, but always late in the run.
+
+Two changes. The skill is now a short spine, about 700 words: the rules that hold the whole way through, and a list of steps. Each step's details live in their own file, and the agent reads it when it starts that step, so the rules are right there when it uses them. The stories behind the rules moved to a separate history the agent doesn't need.
+
+And anything the agent had to remember became a check. The seal now refuses until the reviews have run, the notes are complete, every step has its brushes and strokes, and the measurements pass. A rule the tool enforces can't be forgotten.
+
+<figure>
+  <img src="/img/gesso/hands-off/sailboat-0.25-vs-0.26.webp" alt="Two hands-off runs of the sailboat lesson, before and after the skill was split up" width="1220" height="716" loading="lazy" style="max-width:100%;height:auto" />
+  <figcaption>The same sailboat, hands-off both times. Top: the old skill. Bottom: the split skill, which sealed on its first try. Its sky runs past the shoreline, which the first run couldn't manage, and it left two known problems instead of three.</figcaption>
+</figure>
+
+Both runs had one problem in common: faint bands in the water. The tool that keeps finished areas from changing between steps was matching the water's color to the finished painting, which has the sun's warm reflection in it, so it pulled the plain water warm. Drag across to see the fix (the contrast is turned up so the bands show).
+
+<CompareSlider
+  before={{ src: '/img/gesso/hands-off/water-bands.webp', label: 'Before' }}
+  after={{ src: '/img/gesso/hands-off/water-fixed.webp', label: 'After' }}
+  width={1200}
+  height={384}
+  caption="The water step before the sun path is painted. Before: warm bands where the reflection goes later. After: plain water."
+/>
+
+<StatRow stats={[
+  { value: '8,000 → 700', label: 'words the agent reads up front' },
+  { value: '3', label: 'lessons on the site, all hands-off' },
+  { value: '1st try', label: 'the sailboat sealed on the split skill' },
+]} />
+
+## What this is really about
+
+None of this is about painting. It's version control, regression tracking, and not shipping what you hand-patched in production, applied to work that's mostly judgment calls. The practices are the same ones every app needs. The difference is that here the thing being tested is a lesson, and the tester is mostly me and my partner with a brush.
+
+<Callout title="What's next.">The image model still draws most steps. Giving the plan real outlines instead of boxes would let the tool cut the sky steps from the finish too, and that would take out most of what still varies between runs.</Callout>
