@@ -14,7 +14,6 @@ part: 9
 draft: false
 ---
 import RunHistory from '../../components/blog/RunHistory.astro';
-import CompareSlider from '../../components/blog/CompareSlider.astro';
 import StatRow from '../../components/blog/StatRow.astro';
 import Callout from '../../components/blog/Callout.astro';
 import runs from '../../data/gesso/runs.json';
@@ -71,15 +70,7 @@ And anything the agent had to remember became a check. The seal now refuses unti
   <figcaption>The same sailboat, hands-off both times. Top: the old skill. Bottom: the split skill, which sealed on its first try. Its sky runs past the shoreline, which the first run couldn't manage, and it left two known problems instead of three.</figcaption>
 </figure>
 
-Both runs had one problem in common: faint bands in the water. The tool that keeps finished areas from changing between steps was matching the water's color to the finished painting, which has the sun's warm reflection in it, so it pulled the plain water warm. Drag across to see the fix (the contrast is turned up so the bands show).
-
-<CompareSlider
-  before={{ src: '/img/gesso/hands-off/water-bands.webp', label: 'Before' }}
-  after={{ src: '/img/gesso/hands-off/water-fixed.webp', label: 'After' }}
-  width={1200}
-  height={384}
-  caption="The water step before the sun path is painted. Before: warm bands where the reflection goes later. After: plain water."
-/>
+Both runs also had faint warm bands in the plain water, where the sun's reflection gets painted later. The tool that keeps finished areas from changing between steps was matching the water's color to the finished painting, reflection and all. It now matches the overall shade without copying in what later steps paint, so new runs don't get the bands.
 
 <StatRow stats={[
   { value: '8,000 → 700', label: 'words the agent reads up front' },
