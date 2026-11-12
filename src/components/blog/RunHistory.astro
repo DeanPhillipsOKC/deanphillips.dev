@@ -1,0 +1,126 @@
+---
+// Every run of one picture, as Gesso's lesson history keeps it: pick a run to see its steps, the version that
+// made it, whether it's hands-off, a recut, or edited, and what changed in Gesso since the run before.
+// Without JavaScript every run shows, stacked.
+interface Change { version: string; items: string[] }
+interface Run {
+  run: string; version: string; when: string; kind: string; note?: string; from?: string;
+  img: string; w: number; h: number; steps: number; cost: number; changes: Change[];
+}
+interface Picture { picture: string; title: string; runs: Run[] }
+interface Props { pictures: Picture[]; caption?: string }
+const { pictures, caption } = Astro.props;
+const label: Record<string, string> = { 'hands-off': 'Hands-off', recut: 'Recut', edited: 'Edited', unsealed: 'Before seals' };
+const say: Record<string, (r: Run) => string> = {
+  'hands-off': () => 'Made by the tool on its own and sealed. Nothing touched since.',
+  recut: (r) => `Rebuilt from another run${r.from ? ` (${r.from.split('_skill_')[1]})` : ''}, not a run of the tool. History only.`,
+  edited: (r) => `Changed by hand after the run${r.note ? `: ${r.note.replace(/^After the skill finished, /, '').replace(/\.$/, '')}` : ''}. History only.`,
+  unsealed: () => 'From before seals existed, so nobody recorded whether it was touched. History only.',
+};
+const when = (s: string) => {
+  const [d, t] = s.split(' ');
+  const [, m, day] = d.split('-');
+  const [hh, mm] = t.split(':').map(Number);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${months[Number(m) - 1]} ${Number(day)}, ${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'}`;
+};
+---
+<figure class="runs panel bleed">
+  <div class="pics" role="tablist" aria-label="Picture" hidden>
+    {pictures.map((p, i) => <button type="button" role="tab" data-p={i}>{p.title}</button>)}
+  </div>
+  {pictures.map((p, pi) => (
+    <section class="picture" data-p={pi}>
+      <ol class="picks" aria-label={`Runs of ${p.title}`}>
+        {[...p.runs].reverse().map((r, ri) => (
+          <li><button type="button" class={`pick ${r.kind}`} data-r={ri} aria-pressed="false">
+            <b>{r.version}</b><span>{when(r.when)}</span><i>{label[r.kind]}</i>
+          </button></li>
+        ))}
+      </ol>
+      <ol class="views">
+        {[...p.runs].reverse().map((r, ri) => (
+          <li class="view" data-r={ri}>
+            <div class="strip">
+              <img src={r.img} alt={`Every step of the ${r.version} run, numbered`} width={r.w} height={r.h} loading="lazy" decoding="async" />
+              {r.kind !== 'hands-off' && <span class={`band ${r.kind}`} aria-hidden="true">{label[r.kind]}</span>}
+            </div>
+            <p class="what"><span class={`tag ${r.kind}`}>{label[r.kind]}</span> {say[r.kind](r)}</p>
+            <p class="facts">{r.steps} steps · ${r.cost.toFixed(2)} in pictures · Gesso {r.version}</p>
+            {r.changes.length > 0 && (
+              <details>
+                <summary>What changed in Gesso since the run before ({r.changes.length} version{r.changes.length > 1 ? 's' : ''})</summary>
+                <ul>{r.changes.map((c) => c.items.map((it) => <li><b>{c.version}:</b> {it.replace(/`/g, '')}</li>))}</ul>
+              </details>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.runs')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.pics button')];
+    const pics = [...root.querySelectorAll<HTMLElement>('.picture')];
+    const showPic = (i: number) => {
+      pics.forEach((p, k) => (p.hidden = k !== i));
+      tabs.forEach((t, k) => t.setAttribute('aria-selected', String(k === i)));
+    };
+    for (const pic of pics) {
+      const picks = [...pic.querySelectorAll<HTMLButtonElement>('.pick')];
+      const views = [...pic.querySelectorAll<HTMLElement>('.view')];
+      const show = (i: number) => {
+        views.forEach((v, k) => (v.hidden = k !== i));
+        picks.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+      };
+      picks.forEach((b, k) => b.addEventListener('click', () => show(k)));
+      show(0);
+    }
+    tabs.forEach((t, k) => t.addEventListener('click', () => showPic(k)));
+    if (tabs.length > 1) root.querySelector<HTMLElement>('.pics')!.hidden = false;
+    showPic(0);
+  }
+</script>
+
+<style>
+  [hidden] { display: none !important; }
+  .runs { padding: 18px; display: grid; gap: 14px; }
+  .pics { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pics button { font: 600 0.85rem/1.2 Inter, sans-serif; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+  .pics button[aria-selected="true"] { color: var(--bg); background: var(--grad); border-color: transparent; }
+  .picture { display: grid; gap: 14px; }
+  .picks { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .picks li { margin: 0; flex: 0 0 auto; }
+  .pick { display: grid; gap: 2px; text-align: left; font: 0.78rem/1.25 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; min-height: 44px; cursor: pointer; }
+  .pick b { font: 600 0.9rem/1.2 "Space Grotesk", sans-serif; }
+  .pick span { color: var(--muted); }
+  .pick i { font-style: normal; font-weight: 700; font-size: 0.7rem; letter-spacing: .06em; text-transform: uppercase; }
+  .pick.hands-off i { color: var(--ok); }
+  .pick.recut i { color: #e07a2f; }
+  .pick.edited i { color: #c0559a; }
+  .pick.unsealed i { color: var(--muted); }
+  .pick[aria-pressed="true"] { border-color: var(--teal); box-shadow: 0 0 0 2px var(--teal); }
+  .pick:focus-visible, .pics button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .views { list-style: none; margin: 0; padding: 0; }
+  .view { margin: 0; display: grid; gap: 10px; }
+  .strip { position: relative; overflow: hidden; border-radius: 10px; background: var(--bg-2); }
+  .strip img { display: block; width: 100%; height: auto; }
+  .band { position: absolute; left: -10%; right: -10%; top: 50%; transform: translateY(-50%) rotate(-8deg); text-align: center; padding: 8px 0; font: 700 clamp(1rem, 4vw, 1.7rem)/1 "Space Grotesk", sans-serif; letter-spacing: .3em; text-transform: uppercase; color: #fff; opacity: .92; box-shadow: 0 3px 10px rgb(0 0 0 / .35); }
+  .band.recut { background: #c2611a; }
+  .band.edited { background: #a8417f; }
+  .band.unsealed { background: #5b6474; }
+  .what, .facts { margin: 0; font-size: 0.95rem; line-height: 1.5; }
+  .facts { color: var(--muted); font-size: 0.85rem; }
+  .tag { display: inline-block; font: 700 0.7rem/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 8px; color: #fff; vertical-align: 1px; }
+  .tag.hands-off { background: var(--ok); color: var(--bg); }
+  .tag.recut { background: #c2611a; }
+  .tag.edited { background: #a8417f; }
+  .tag.unsealed { background: #5b6474; }
+  details { font-size: 0.9rem; }
+  summary { cursor: pointer; color: var(--teal); min-height: 32px; }
+  details ul { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 6px; color: var(--muted); }
+  @media (max-width: 560px) { .runs { padding: 12px; } }
+</style>

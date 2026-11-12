@@ -1,0 +1,322 @@
+[
+  {
+    "picture": "red-sailboat",
+    "title": "A small red sailboat",
+    "runs": [
+      {
+        "run": "red-sailboat_skill_20261111-090906",
+        "version": "POC 0.12.0",
+        "when": "2026-11-11 09:09",
+        "kind": "unsealed",
+        "note": "not finished by the skill, or from before seals",
+        "from": "",
+        "img": "/img/gesso/history/red-sailboat-20261111-090906.webp",
+        "w": 1220,
+        "h": 270,
+        "steps": 8,
+        "cost": 0.302,
+        "changes": []
+      },
+      {
+        "run": "red-sailboat_skill_20261111-095458",
+        "version": "POC 0.14.0",
+        "when": "2026-11-11 09:54",
+        "kind": "unsealed",
+        "note": "not finished by the skill, or from before seals",
+        "from": "",
+        "img": "/img/gesso/history/red-sailboat-20261111-095458.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 10,
+        "cost": 0.404,
+        "changes": [
+          {
+            "version": "POC 0.13.0",
+            "items": [
+              "Show, don't tell: when something takes more than a sentence to explain (a shape, a stroke path, which value goes where), the lesson shows it with a diagram, a `values` table, or the step picture, and the words point at it.",
+              "Steps can carry a `values` table (dark, mid, light: paint and where), shown with swatches on the page and in the walkthrough export.",
+              "`publish` also lists single instructions over about 40 words in `long_instructions`."
+            ]
+          },
+          {
+            "version": "POC 0.14.0",
+            "items": [
+              "`--canvas WxH` (inches): the picture is fitted to the painter's canvas before planning, cheapest first: no change, a free crop that keeps the subject, or one render that extends the scene. A rectangular canvas hangs either way, so it follows the picture unless `--orientation` says otherwise.",
+              "Renders stay in the image model's nearest frame; every step picture the painter sees is cropped to the canvas.",
+              "Canvas size scales the lesson: the detail budget (fewer parts on a 10x10, more on a 24x30) and brush sizes."
+            ]
+          }
+        ]
+      },
+      {
+        "run": "red-sailboat_skill_20261111-114028",
+        "version": "POC 0.17.0",
+        "when": "2026-11-11 11:40",
+        "kind": "edited",
+        "note": "After the skill finished, its steps were relocked by hand with newer lock code (tone seams).",
+        "from": "",
+        "img": "/img/gesso/history/red-sailboat-20261111-114028.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 11,
+        "cost": 0.312,
+        "changes": [
+          {
+            "version": "POC 0.14.1",
+            "items": [
+              "Canvas crops split the cut evenly between both sides, shifting only as far as the subject needs.",
+              "No band-fill render when the photo already has the frame's shape: the cut-off edges fill the bands for free.",
+              "`grid --percent`: lines at every 10% of width and height, so measurements match the page's percentages on any canvas shape."
+            ]
+          },
+          {
+            "version": "POC 0.15.0",
+            "items": [
+              "Step pictures no longer repaint earlier work (#30): each step says where it paints (`regions` in plan.json), and `lock-steps` puts back any change outside them, free. Raw renders stay in trials/raw/."
+            ]
+          },
+          {
+            "version": "POC 0.16.0",
+            "items": [
+              "`protect` boxes: inside a step's regions, things already painted that must stay put. There only the step's own paints may change anything (matched mostly by hue, so shaded strokes count), with a crisp edge (#30)."
+            ]
+          },
+          {
+            "version": "POC 0.17.0",
+            "items": [
+              "`lock-steps` runs a backward pass from the finish when every step has regions: wherever no later step paints, a step already shows the finished painting, so the last step only shows what it adds (#30)."
+            ]
+          }
+        ]
+      },
+      {
+        "run": "red-sailboat_skill_20261112-100455",
+        "version": "POC 0.25.0",
+        "when": "2026-11-12 10:04",
+        "kind": "hands-off",
+        "note": "",
+        "from": "",
+        "img": "/img/gesso/history/red-sailboat-20261112-100455.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 10,
+        "cost": 0.374,
+        "changes": [
+          {
+            "version": "POC 0.23.2",
+            "items": [
+              "Lesson history: every publish that changes a lesson's pictures or text is kept (`site/history/`: a strip of every step and a record of the version, commit, cost, redos, and checks; the full lesson in `<lesson>/versions/<n>/`), and `site/history/index.html` shows each picture's runs newest first, what changed between runs, the owner's scores (`history-rate`), and two runs side by side. `history-backfill` recorded the runs from before."
+            ]
+          },
+          {
+            "version": "POC 0.24.0",
+            "items": [
+              "Spike (#8): `from-finish` cuts every step picture from the finished painting instead of rendering it, in a copy of the lesson. Each pixel goes to the step whose region and paints fit it (things in their own small box, like the balloon, are cut out whole with GrabCut), earlier steps paint straight through where later ones go, the first of several steps over one area is a flat coat, and the passes after it go on by value, darkest first, in equal shares. No renders, so nothing drifts and no lock is needed. `--steps` cuts only a group of passes and keeps the rest rendered (the hybrid). Findings: `docs/spikes/from-finish.md`."
+            ]
+          },
+          {
+            "version": "POC 0.24.1",
+            "items": [
+              "Each lesson's tile on the lessons site has a version pick list: every kept run of that picture, newest first, labeled with the Gesso version, the time it ran, and how its steps were made. Pick one and open it. Each version's page is written once to `lessons/<slug>/v/<run>/` and never rewritten; `site-refresh` adds new runs."
+            ]
+          },
+          {
+            "version": "POC 0.25.0",
+            "items": [
+              "Hands-off lessons: the skill's last publish is `publish --final`, which seals the lesson as made by the tool on its own. Every lesson records its provenance (hands-off, recut, edited after the seal, or unsealed), and only hands-off lessons go on the lessons site and its version lists. `from-finish` copies are recuts. The lesson history shows a Recut, Edited, or Unsealed ribbon across each run that isn't hands-off. `provenance-mark` records what's known about runs from before seals."
+            ]
+          }
+        ]
+      },
+      {
+        "run": "red-sailboat_skill_20261112-120423",
+        "version": "POC 0.26.0",
+        "when": "2026-11-12 12:04",
+        "kind": "hands-off",
+        "note": "",
+        "from": "",
+        "img": "/img/gesso/history/red-sailboat-20261112-120423.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 10,
+        "cost": 0.403,
+        "changes": [
+          {
+            "version": "POC 0.25.1",
+            "items": [
+              "`from-finish --in-place` is the skill's own step 6a inside its run, so the lesson can still be sealed hands-off; a copy without it is a recut. Once a run is sealed, its draft publishes leave the lesson history (they were work in progress). The history shows a Hands-off, Recut, Edited, or Unsealed tag on every run, and a band across the strip of each one that isn't hands-off."
+            ]
+          },
+          {
+            "version": "POC 0.25.2",
+            "items": [
+              "Lesson pages on the site have a Known problems section: what the run's reviews found and left as they are, by step, and links to the issues filed about the run (open, or fixed in a later version). The tile says how many. `site-refresh` updates it as issues are filed and closed, without touching the lesson, so it stays hands-off."
+            ]
+          },
+          {
+            "version": "POC 0.26.0",
+            "items": [
+              "The paint-lesson skill is a short spine (`SKILL.md`, about 700 words: arguments, the rules for the whole run, the steps in order) plus one file per step in `steps/`, read when that step starts, so each step's rules are fresh when they're used. The runs behind each rule moved to `docs/skill-history.md`.",
+              "`publish --final` checks before it seals: the reviews ran, notes are complete, every step has its summary, brushes, strokes, `made_with`, and regions, and the publish checks are clean (or a long step is explained in `long_steps_kept`). It refuses with a list until they pass.",
+              "The skill gaps two hands-off runs reported are fixed: the redo cap is spelled out, diagram previews need a publish first, `long_steps_kept` is in the notes schema, the text review checks `ok` steps' main shapes against the finish, and reviewers use the venv to zoom."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "picture": "chickadee",
+    "title": "A chickadee on an autumn branch",
+    "runs": [
+      {
+        "run": "chickadee_skill_20261111-152140",
+        "version": "POC 0.21.0",
+        "when": "2026-11-11 15:21",
+        "kind": "edited",
+        "note": "After the skill finished, the finish was rebuilt with finish-from-step and the head was composited by hand to fix the bird's shape.",
+        "from": "",
+        "img": "/img/gesso/history/chickadee-20261111-152140.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 11,
+        "cost": 0.638,
+        "changes": []
+      },
+      {
+        "run": "chickadee_skill_20261112-100444",
+        "version": "POC 0.25.0",
+        "when": "2026-11-12 10:04",
+        "kind": "hands-off",
+        "note": "",
+        "from": "",
+        "img": "/img/gesso/history/chickadee-20261112-100444.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 11,
+        "cost": 0.508,
+        "changes": [
+          {
+            "version": "POC 0.23.2",
+            "items": [
+              "Lesson history: every publish that changes a lesson's pictures or text is kept (`site/history/`: a strip of every step and a record of the version, commit, cost, redos, and checks; the full lesson in `<lesson>/versions/<n>/`), and `site/history/index.html` shows each picture's runs newest first, what changed between runs, the owner's scores (`history-rate`), and two runs side by side. `history-backfill` recorded the runs from before."
+            ]
+          },
+          {
+            "version": "POC 0.24.0",
+            "items": [
+              "Spike (#8): `from-finish` cuts every step picture from the finished painting instead of rendering it, in a copy of the lesson. Each pixel goes to the step whose region and paints fit it (things in their own small box, like the balloon, are cut out whole with GrabCut), earlier steps paint straight through where later ones go, the first of several steps over one area is a flat coat, and the passes after it go on by value, darkest first, in equal shares. No renders, so nothing drifts and no lock is needed. `--steps` cuts only a group of passes and keeps the rest rendered (the hybrid). Findings: `docs/spikes/from-finish.md`."
+            ]
+          },
+          {
+            "version": "POC 0.24.1",
+            "items": [
+              "Each lesson's tile on the lessons site has a version pick list: every kept run of that picture, newest first, labeled with the Gesso version, the time it ran, and how its steps were made. Pick one and open it. Each version's page is written once to `lessons/<slug>/v/<run>/` and never rewritten; `site-refresh` adds new runs."
+            ]
+          },
+          {
+            "version": "POC 0.25.0",
+            "items": [
+              "Hands-off lessons: the skill's last publish is `publish --final`, which seals the lesson as made by the tool on its own. Every lesson records its provenance (hands-off, recut, edited after the seal, or unsealed), and only hands-off lessons go on the lessons site and its version lists. `from-finish` copies are recuts. The lesson history shows a Recut, Edited, or Unsealed ribbon across each run that isn't hands-off. `provenance-mark` records what's known about runs from before seals."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "picture": "balloon-lavender",
+    "title": "A balloon over a lavender field",
+    "runs": [
+      {
+        "run": "balloon-lavender_skill_20261111-132742",
+        "version": "POC 0.19.0",
+        "when": "2026-11-11 13:27",
+        "kind": "unsealed",
+        "note": "not finished by the skill, or from before seals",
+        "from": "",
+        "img": "/img/gesso/history/lavender-20261111-132742.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 12,
+        "cost": 0.429,
+        "changes": []
+      },
+      {
+        "run": "balloon-lavender_skill_20261111-142734",
+        "version": "POC 0.20.0",
+        "when": "2026-11-11 14:27",
+        "kind": "hands-off",
+        "note": "Made in a fresh context by the skill alone (owner asked for an unassisted rerun, 2026-11-11); later republished only to fix its version label, pictures and text unchanged.",
+        "from": "",
+        "img": "/img/gesso/history/lavender-20261111-142734.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 12,
+        "cost": 0.453,
+        "changes": [
+          {
+            "version": "POC 0.20.0",
+            "items": [
+              "No texture arrives all at once: `publish` and `step-pairs` measure `texture_jumps` (a step turning over 10% of the canvas from flat to textured), and the skill fixes each one with `split-texture`, which inserts free in-between passes (the step's marks arriving darkest first) and renumbers the step images."
+            ]
+          }
+        ]
+      },
+      {
+        "run": "balloon-lavender_skill_20261112-084526",
+        "version": "POC 0.24.0",
+        "when": "2026-11-12 08:45",
+        "kind": "recut",
+        "note": "from-finish (all steps): spike #8",
+        "from": "balloon-lavender_skill_20261111-142734",
+        "img": "/img/gesso/history/lavender-20261112-084526.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 12,
+        "cost": 0.091,
+        "changes": [
+          {
+            "version": "POC 0.23.0",
+            "items": [
+              "A private lessons site (`site/`, deployed with Cloudflare Pages and locked with Cloudflare Access): `publish` also writes `lesson-standalone.html`, one self-contained page per lesson, and `site-add` puts it on the site."
+            ]
+          },
+          {
+            "version": "POC 0.23.1",
+            "items": [
+              "A lesson keeps the version it was made with (`gesso.made`) when it's republished; the footer says \"republished with\" the newer one, and the lessons site's tiles show the made-with version.",
+              "The dirty flag only counts code that shapes a lesson (spike, techniques, palettes, the skill), not site/ or docs/."
+            ]
+          },
+          {
+            "version": "POC 0.23.2",
+            "items": [
+              "Lesson history: every publish that changes a lesson's pictures or text is kept (`site/history/`: a strip of every step and a record of the version, commit, cost, redos, and checks; the full lesson in `<lesson>/versions/<n>/`), and `site/history/index.html` shows each picture's runs newest first, what changed between runs, the owner's scores (`history-rate`), and two runs side by side. `history-backfill` recorded the runs from before."
+            ]
+          },
+          {
+            "version": "POC 0.24.0",
+            "items": [
+              "Spike (#8): `from-finish` cuts every step picture from the finished painting instead of rendering it, in a copy of the lesson. Each pixel goes to the step whose region and paints fit it (things in their own small box, like the balloon, are cut out whole with GrabCut), earlier steps paint straight through where later ones go, the first of several steps over one area is a flat coat, and the passes after it go on by value, darkest first, in equal shares. No renders, so nothing drifts and no lock is needed. `--steps` cuts only a group of passes and keeps the rest rendered (the hybrid). Findings: `docs/spikes/from-finish.md`."
+            ]
+          }
+        ]
+      },
+      {
+        "run": "balloon-lavender_skill_20261112-084806",
+        "version": "POC 0.24.0",
+        "when": "2026-11-12 08:48",
+        "kind": "recut",
+        "note": "from-finish --steps lavender-rows lavender-dark-dabs lavender-mid-dabs lavender-dabs: spike #8 hybrid",
+        "from": "balloon-lavender_skill_20261111-142734",
+        "img": "/img/gesso/history/lavender-20261112-084806.webp",
+        "w": 1220,
+        "h": 318,
+        "steps": 12,
+        "cost": 0.376,
+        "changes": []
+      }
+    ]
+  }
+]
