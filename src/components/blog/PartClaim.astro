@@ -1,0 +1,158 @@
+---
+// How Gesso's outline tool splits a finished painting into parts, one part at a time, back to front.
+// Each frame is the tool's real owner map after that part was added (re-run from a lesson's plan):
+// earlier parts are flat colors, the newest part shows its paint with a white edge. The hints the
+// agent wrote for that part (boxes, yes and no spots, lines) are drawn on top. The last frame is the
+// finished map, where every pixel belongs to exactly one part.
+interface Part {
+  src: string;
+  name: string;
+  kind: string;
+  color: string;
+  method: string;
+  say: string;
+  confidence: number | null;
+  claimed: number;
+  share: number;
+  boxes: number[][];
+  yes: number[][];
+  no: number[][];
+  paths: number[][][];
+}
+interface Props {
+  parts: Part[];
+  map: string;
+  width: number;
+  height: number;
+  caption?: string;
+}
+const { parts, map, width, height, caption } = Astro.props;
+const pct = (v: number) => (v >= 0.1 ? Math.round(v * 100) : Math.round(v * 1000) / 10) + '%';
+const last = parts.length;
+---
+<figure class="claim panel bleed">
+  <div class="stage" style={`aspect-ratio: ${width} / ${height}`}>
+    {parts.map((p, i) => (
+      <img src={p.src} alt={`The owner map after ${p.name.toLowerCase()} is added`} width={width} height={height}
+        loading="lazy" decoding="async" data-f={i} class:list={[{ on: i === 0 }]} />
+    ))}
+    <img src={map} alt="The finished owner map: every pixel belongs to one part" width={width} height={height}
+      loading="lazy" decoding="async" data-f={last} />
+    <svg class="hints" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      {parts.map((p, i) => (
+        <g data-f={i} class:list={[{ on: i === 0 }]}>
+          {p.paths.map((path) => <polyline class="path" points={path.map(([x, y]) => `${x * 100},${y * 100}`).join(' ')} />)}
+          {p.boxes.map(([x0, y0, x1, y1]) => <rect class="box" x={x0 * 100} y={y0 * 100} width={(x1 - x0) * 100} height={(y1 - y0) * 100} />)}
+          {p.yes.map(([x, y]) => <line class="y" x1={x * 100} y1={y * 100} x2={x * 100} y2={y * 100} />)}
+          {p.no.map(([x, y]) => <line class="n" x1={x * 100} y1={y * 100} x2={x * 100} y2={y * 100} />)}
+        </g>
+      ))}
+    </svg>
+  </div>
+
+  <ol class="chips" aria-label="Parts, in the order they're painted">
+    {parts.map((p, i) => (
+      <li><button type="button" data-go={i} aria-pressed={i === 0 ? 'true' : 'false'} style={`--c: ${p.color}`}>
+        <i></i><span>{p.name}</span>
+      </button></li>
+    ))}
+    <li><button type="button" data-go={last} aria-pressed="false" class="all"><i></i><span>The map</span></button></li>
+  </ol>
+
+  <div class="info" aria-live="polite">
+    {parts.map((p, i) => (
+      <div data-f={i} hidden={i !== 0}>
+        <p class="head"><span class="n">{i + 1} of {parts.length}</span> <b>{p.name}</b> <em>{p.method}</em></p>
+        <p>{p.say}</p>
+        <p class="nums">
+          {p.confidence !== null && <span>Model's confidence <b>{p.confidence.toFixed(2)}</b></span>}
+          <span>Owns <b>{pct(p.claimed)}</b> of the picture now</span>
+          <span><b>{pct(p.share)}</b> at the end</span>
+        </p>
+      </div>
+    ))}
+    <div data-f={last} hidden>
+      <p class="head"><b>Every pixel has one owner</b></p>
+      <p>This map is all the later tools get. A step picture is the finished painting wherever the parts painted so far own the pixel, and white canvas everywhere else. It took about ten seconds on four ordinary CPU cores.</p>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button type="button" class="prev" aria-label="Previous part">&larr; Back</button>
+    <label class="hint-toggle"><input type="checkbox" checked /> Show the agent's hints</label>
+    <button type="button" class="next" aria-label="Next part">Next &rarr;</button>
+  </div>
+  <p class="legend" aria-hidden="true"><span><i class="lb"></i>Box</span><span><i class="ly"></i>Is the part</span><span><i class="ln"></i>Isn't</span><span><i class="lp"></i>Line along a thin part</span></p>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('figure.claim').forEach((fig) => {
+    const imgs = [...fig.querySelectorAll<HTMLImageElement>('.stage img')];
+    const n = imgs.length;
+    let cur = 0;
+    const show = (i: number) => {
+      cur = Math.max(0, Math.min(n - 1, i));
+      fig.querySelectorAll<HTMLElement>('[data-f]').forEach((el) => {
+        const on = Number(el.dataset.f) === cur;
+        if (el.closest('.info')) el.hidden = !on;
+        else el.classList.toggle('on', on);
+      });
+      fig.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.go) === cur)));
+      (fig.querySelector('.prev') as HTMLButtonElement).disabled = cur === 0;
+      (fig.querySelector('.next') as HTMLButtonElement).disabled = cur === n - 1;
+      // warm the next frame so stepping doesn't flash
+      if (cur + 1 < n) imgs[cur + 1].loading = 'eager';
+    };
+    fig.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((b) => b.addEventListener('click', () => show(Number(b.dataset.go))));
+    fig.querySelector('.prev')!.addEventListener('click', () => show(cur - 1));
+    fig.querySelector('.next')!.addEventListener('click', () => show(cur + 1));
+    const box = fig.querySelector<HTMLInputElement>('.hint-toggle input')!;
+    box.addEventListener('change', () => fig.classList.toggle('nohints', !box.checked));
+    fig.querySelector('.stage')!.addEventListener('click', () => show(cur + 1 >= n ? 0 : cur + 1));
+    show(0);
+  });
+</script>
+
+<style>
+  .claim { padding: 16px; }
+  .stage { position: relative; width: 100%; max-width: min(100%, calc(64vh * 1.27)); margin: 0 auto; border-radius: 14px; overflow: hidden; background: var(--bg-2); cursor: pointer; }
+  .stage img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 0.35s ease; }
+  .stage img.on { opacity: 1; }
+  .stage .hints { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .hints g { opacity: 0; transition: opacity 0.35s ease; }
+  .hints g.on { opacity: 1; }
+  .claim.nohints .hints { display: none; }
+  .hints .box { fill: none; stroke: #ffd24a; stroke-width: 2.5; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+  .hints .path { fill: none; stroke: #fff; stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .hints line { stroke-linecap: round; stroke-width: 11; vector-effect: non-scaling-stroke; }
+  .hints .y { stroke: #19c2a6; }
+  .hints .n { stroke: #f0564a; }
+  .claim ol.chips { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips li { margin: 0; }
+  .chips button { font: 600 0.78rem/1 Inter, sans-serif; min-height: 34px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .chips button[aria-pressed='true'] { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
+  .chips i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset; }
+  .chips .all i { background: conic-gradient(#6f86b0, #ffd23f, #4fb36b, #a8612d, #e8433a, #9b5cf0, #3ad0e6, #6f86b0); }
+  .chips button:focus-visible, .nav button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .info { margin-top: 12px; min-height: 8.5em; }
+  .info p { margin: 0 0 6px; font-size: 0.98rem; line-height: 1.5; }
+  .info .head { font-size: 1.02rem; }
+  .info .head .n { font: 600 0.72rem/1 Inter, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .info .head em { font: 600 0.68rem/1 Inter, sans-serif; font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; margin-left: 6px; color: var(--violet); background: color-mix(in srgb, var(--violet) 16%, transparent); border: 1px solid color-mix(in srgb, var(--violet) 40%, transparent); vertical-align: 2px; }
+  .info .nums { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.86rem; color: var(--muted); }
+  .info .nums b { color: var(--text); }
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+  .nav button { white-space: nowrap; font: 600 0.88rem/1 Inter, sans-serif; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+  .nav button:disabled { opacity: 0.4; cursor: default; }
+  .hint-toggle { font-size: 0.86rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; font-size: 0.8rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; }
+  .legend .lb { border: 2px dashed #ffd24a; border-radius: 2px; }
+  .legend .ly, .legend .ln { width: 11px; height: 11px; border-radius: 50%; background: #19c2a6; }
+  .legend .ln { background: #f0564a; }
+  .legend .lp { height: 0; border-top: 2px dashed var(--text); }
+  @media (max-width: 560px) { .claim { padding: 12px; } .nav button { padding: 0 12px; } .hint-toggle { font-size: 0.8rem; } .chips button span { max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .info { min-height: 11em; } }
+  @media (prefers-reduced-motion: reduce) { .stage img, .hints g { transition: none; } }
+</style>
