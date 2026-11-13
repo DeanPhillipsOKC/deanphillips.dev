@@ -39,8 +39,8 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
   Parts say "the full end-to-end suite", not a count.
 - The Gesso series (picture to painting lesson) is `series: gesso`, overview `gesso` as `part: 0`,
   with eyebrow "Experiment". It leads with pictures and the interactive Flipbook, CompareSlider, and
-  Gallery components, and keeps the reading light. **No costs or prices anywhere in it** (owner's
-  call). Its images come from the Gesso repo's lesson runs (a private repo; don't link it).
+  Gallery components, and keeps the reading light. Costs are fine to include when they're measured
+  (say what the number covers, such as image-model cost only). Its images come from the Gesso repo's lesson runs (a private repo; don't link it).
   Gesso is an **ongoing experiment** toward an app with lessons for many mediums and techniques.
   Never frame it as finished or "built in a day": the first parts are day one's proof of concept.
 - Each part opens with one sentence linking the overview, and ends with a "What broke" section
