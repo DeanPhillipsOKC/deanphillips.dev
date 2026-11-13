@@ -26,7 +26,7 @@ This is part 10 of a series about Gesso, an ongoing experiment in turning any pi
 
 I had three complaints about my own tool. The lessons didn't tell a new painter enough. Too much of each lesson came from an AI guessing when plain math would do. And every step was a fresh picture from the image model, which repaints the whole canvas each time, so most of a run went to repairing what it had moved.
 
-So I asked the strongest model I have to take the whole thing apart and tell me what it would do instead. Its answer was one sentence long. Paint the finished picture once, then cut every step out of it.
+So I wrote down what I wanted fixed and what was off the table. More detail for a new painter. A tool wherever a tool gives a good result. And no reaching for a better image model to paper over the cracks. Then I sat down with the strongest model I have and we took the whole thing apart. I pushed for smaller steps, set the rules (a lesson never loses a color a painter can see), and decided what stayed and what went. The idea that came out of it fits in one sentence. Paint the finished picture once, then cut every step out of it.
 
 Here is a lesson's finished painting, pulled apart into the layers it gets painted in. Drag it.
 
@@ -56,7 +56,7 @@ You look at a painting of a bird and see a bird. A computer sees a grid of color
 
 **Things with an edge** (a bird, a sail, a hill) get a box. The agent measures roughly where the thing is, and a small model that has learned what edges look like traces the outline inside the box. It runs on an ordinary computer in about ten seconds, with no image model involved.
 
-**Things without an edge** (a branch that wanders across the whole picture, mist, a reflection) defeat that model completely. My first try at the branch came back as most of the background. What works is almost embarrassingly simple. Point at a few spots that are the branch and a few that aren't. Then ask of every dot in the picture, is your color closer to the yes spots or the no spots? That's the whole rule. Try it above and you'll see where it goes wrong and how one more tap fixes it.
+**Things without an edge** (a branch that wanders across the whole picture, mist, a reflection) defeat that model completely. My first try at the branch came back as most of the background. What works is almost embarrassingly simple. Point at a few spots that are the branch and a few that aren't. Then ask of every dot in the picture, is your color closer to the yes spots or the no spots? That's the whole rule. Try it above. It starts with my spots already placed. Press Clear to do it yourself, and you'll see where it goes wrong and how one more tap fixes it.
 
 ## Small steps cost nothing now
 
@@ -80,7 +80,7 @@ The same outlines get used again on the lesson page. Each step now shows where i
 
 ## Who did the work
 
-I made the decisions. One model wrote the design and built the risky first piece. It handed the rest to other agents one issue at a time and reviewed what came back before I saw it. Then I had three different models each make the same three lessons with nobody helping. All nine finished on their own. The smallest model was the fastest and planned the worst (it painted every sky as ragged patches, so there's a rule against that now).
+The goals, the rules, and every merge were mine, and each change waited for me to read it before it went in. One model wrote the design with me and built the risky first piece. It handed the rest to other agents one issue at a time and reviewed what came back before I saw it. Then I had three different models each make the same three lessons with nobody helping. All nine finished on their own. The smallest model was the fastest and planned the worst (it painted every sky as ragged patches, so there's a rule against that now).
 
 ## What broke
 

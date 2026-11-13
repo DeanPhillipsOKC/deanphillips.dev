@@ -96,6 +96,7 @@ const { src, width, height, box, outline, yes, no, edgeName = 'the bird', softNa
     let no = start.no.map((p) => [...p]);
     let kind: 'yes' | 'no' = 'yes';
     let mode: 'edge' | 'color' = 'edge';
+    let last = -1; // how much of the picture was lit before the latest tap
     let labs: Float32Array | null = null;
     let pixels: ImageData | null = null;
     const W = canvas.width, H = canvas.height;
@@ -141,14 +142,19 @@ const { src, width, height, box, outline, yes, no, edgeName = 'the bird', softNa
       no.forEach((p) => dot(p, 'n'));
       if (!labs || !pixels) return;
       const out = ctx.createImageData(W, H);
-      if (!yes.length || !no.length) {
+      if (!yes.length) {
         ctx.clearRect(0, 0, W, H);
-        say2.textContent = !yes.length
-          ? `Tap a few spots on ${names.softName}: a light bit, a dark bit.`
-          : `Now tap a few spots that aren't ${names.softName}: the mist, the orange leaves.`;
+        last = -1;
+        say2.textContent = no.length
+          ? `Those red spots say what isn't ${names.softName}. Now press "Tap ${names.softName}" and tap it in two or three places, so there's something to compare them with.`
+          : `Tap ${names.softName} in two or three places: a light bit, a dark bit.`;
         return;
       }
       const ys = yes.map(colorAt), ns = no.map(colorAt);
+      // With no "isn't" spots yet there's nothing to compare against, so show every dot that is
+      // simply close in color to a "yes" spot. Every tap shows something, even before there's a 'no' spot.
+      const alone = !no.length;
+      const NEAR = 16 * 16;
       let n = 0;
       const d = pixels.data, o = out.data;
       for (let i = 0, j = 0; i < o.length; i += 4, j += 3) {
@@ -156,11 +162,19 @@ const { src, width, height, box, outline, yes, no, edgeName = 'the bird', softNa
         let dy = Infinity, dn = Infinity;
         for (const c of ys) { const v = (L - c[0]) ** 2 + (a - c[1]) ** 2 + (b - c[2]) ** 2; if (v < dy) dy = v; }
         for (const c of ns) { const v = (L - c[0]) ** 2 + (a - c[1]) ** 2 + (b - c[2]) ** 2; if (v < dn) dn = v; }
-        if (dy < dn) { o[i] = d[i]; o[i + 1] = d[i + 1]; o[i + 2] = d[i + 2]; o[i + 3] = 255; n += 1; }
+        if (alone ? dy < NEAR : dy < dn) { o[i] = d[i]; o[i + 1] = d[i + 1]; o[i + 2] = d[i + 2]; o[i + 3] = 255; n += 1; }
         else { const g = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; o[i] = o[i + 1] = o[i + 2] = 40 + g * 0.25; o[i + 3] = 225; }
       }
       ctx.putImageData(out, 0, 0);
-      say2.textContent = `${Math.round((n / (W * H)) * 100)}% of the picture is closer in color to your ${yes.length} "yes" ${yes.length === 1 ? 'spot' : 'spots'} than to your ${no.length} "no" ${no.length === 1 ? 'spot' : 'spots'}. Add a spot wherever it's wrong.`;
+      const pct = (n / (W * H)) * 100;
+      const moved = last < 0 ? 0 : pct - last;
+      last = pct;
+      const what = Math.abs(moved) < 0.05 ? '' : moved > 0
+        ? `That tap lit up ${moved < 1 ? 'a little' : Math.round(moved) + '%'} more of the picture. `
+        : `That tap switched off ${-moved < 1 ? 'a little' : Math.round(-moved) + '%'} of the picture. `;
+      say2.textContent = alone
+        ? `${what}The lit part is every dot close in color to your green ${yes.length === 1 ? 'spot' : 'spots'}. Tap a part of ${names.softName} that's still dark. When something lights up that isn't ${names.softName}, press "Tap what isn't" and tap it.`
+        : `${what}The lit part (${Math.round(pct)}% of the picture) is closer in color to a green spot than to a red one. Find something wrong and tap it: green on a dark bit of ${names.softName}, red on a lit bit that isn't.`;
     }
 
     function show() {
@@ -179,12 +193,13 @@ const { src, width, height, box, outline, yes, no, edgeName = 'the bird', softNa
 
     tabs.forEach((t) => t.addEventListener('click', () => { mode = t.dataset.mode as 'edge' | 'color'; show(); }));
     steps.forEach((s, i) => s.addEventListener('click', () => step(i)));
-    picks.forEach((p) => p.addEventListener('click', () => {
-      kind = p.dataset.kind as 'yes' | 'no';
-      picks.forEach((q) => q.setAttribute('aria-pressed', String(q === p)));
-    }));
-    root.querySelector('.reset')!.addEventListener('click', () => { yes = start.yes.map((p) => [...p]); no = start.no.map((p) => [...p]); paint(); });
-    root.querySelector('.clear')!.addEventListener('click', () => { yes = []; no = []; paint(); });
+    function pickKind(k: 'yes' | 'no') {
+      kind = k;
+      picks.forEach((q) => q.setAttribute('aria-pressed', String(q.dataset.kind === k)));
+    }
+    picks.forEach((p) => p.addEventListener('click', () => pickKind(p.dataset.kind as 'yes' | 'no')));
+    root.querySelector('.reset')!.addEventListener('click', () => { yes = start.yes.map((p) => [...p]); no = start.no.map((p) => [...p]); last = -1; paint(); });
+    root.querySelector('.clear')!.addEventListener('click', () => { yes = []; no = []; last = -1; pickKind('yes'); paint(); });
     stage.addEventListener('click', (e) => {
       if (mode !== 'color') return;
       const r = stage.getBoundingClientRect();
