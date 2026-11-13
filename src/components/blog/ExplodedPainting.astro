@@ -1,0 +1,228 @@
+---
+// One finished painting pulled apart into the layers it's painted in, back to front. Drag to turn it,
+// slide to pull the layers apart, press Paint to watch them go on in order, tap a layer to name it.
+// The layers are cut by Gesso's tools from one finished painting: each is what the painter leaves
+// on the canvas after that stage, including the paint that later stages cover.
+interface Layer { src: string; name: string; steps: number; stepNames?: string[] }
+interface Props {
+  layers: Layer[];
+  width: number;
+  height: number;
+  caption?: string;
+  // How far apart the layers sit at full spread, as a share of the picture's width.
+  spread?: number;
+}
+const { layers, width, height, caption, spread = 0.11 } = Astro.props;
+---
+<figure class="exploded panel bleed" data-layers={JSON.stringify(layers)} data-spread={spread}>
+  <div class="scene" style={`aspect-ratio: ${width} / ${height}`} tabindex="0" role="group"
+       aria-label="The painting as separate layers. Use the left and right arrow keys to turn it.">
+    <div class="stack">
+      <div class="canvas" aria-hidden="true"></div>
+      {layers.map((l, i) => (
+        <img class="layer" src={l.src} alt="" width={width} height={height} data-i={i} draggable="false"
+             decoding="async" loading={i === 0 ? 'eager' : 'lazy'} />
+      ))}
+    </div>
+  </div>
+  <p class="where" aria-live="polite"><b class="count"></b> <span class="name"></span></p>
+  <div class="controls">
+    <label class="slide"><span>Pull apart</span>
+      <input type="range" class="gap" min="0" max="100" value="55" aria-label="Pull the layers apart" />
+    </label>
+    <button type="button" class="paint" aria-pressed="false">Paint it</button>
+    <button type="button" class="all">Show all</button>
+  </div>
+  <ol class="chips">
+    {layers.map((l, i) => (
+      <li><button type="button" class="chip" data-i={i} aria-pressed="false">
+        <b>{i + 1}</b> {l.name} <span>{l.steps} {l.steps === 1 ? 'step' : 'steps'}</span>
+      </button></li>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type Layer = { src: string; name: string; steps: number; stepNames?: string[] };
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const root of document.querySelectorAll<HTMLElement>('.exploded')) {
+    const layers: Layer[] = JSON.parse(root.dataset.layers!);
+    const spread = Number(root.dataset.spread) || 0.11;
+    const scene = root.querySelector<HTMLElement>('.scene')!;
+    const stack = root.querySelector<HTMLElement>('.stack')!;
+    const imgs = [...root.querySelectorAll<HTMLImageElement>('.layer')];
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('.chip')];
+    const gap = root.querySelector<HTMLInputElement>('.gap')!;
+    const paint = root.querySelector<HTMLButtonElement>('.paint')!;
+    const all = root.querySelector<HTMLButtonElement>('.all')!;
+    const count = root.querySelector('.count')!;
+    const name = root.querySelector('.name')!;
+    const total = layers.reduce((n, l) => n + l.steps, 0);
+
+    let ry = -24;        // turn left and right, degrees
+    let rx = 9;          // tilt
+    let shown = layers.length;  // how many layers are on the canvas
+    let picked = -1;     // the layer a tap or a chip picked out
+    let timer: number | undefined;
+    let touched = false; // once someone drags, the idle sway stops
+    let t0 = performance.now();
+
+    function place() {
+      const w = scene.clientWidth;
+      const g = (Number(gap.value) / 100) * spread * w;
+      const mid = (layers.length - 1) / 2;
+      // smaller as it opens and turns, so the whole stack stays inside the frame
+      const fit = 1 - 0.2 * (Number(gap.value) / 100) - 0.1 * Math.abs(ry) / 62;
+      stack.style.transform = `scale(${fit}) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      root.style.setProperty('--depth', `${g}px`);
+      imgs.forEach((img, i) => {
+        const on = i < shown;
+        const z = (i - mid) * g;
+        img.style.transform = `translateZ(${on ? z : z + g * 0.9}px)`;
+        img.style.opacity = on ? (picked >= 0 && picked !== i ? '0.22' : '1') : '0';
+      });
+      const canvas = stack.querySelector<HTMLElement>('.canvas')!;
+      canvas.style.transform = `translateZ(${(-mid - 0.6) * g - 1}px)`;
+      chips.forEach((c, i) => {
+        c.setAttribute('aria-pressed', String(picked === i));
+        c.classList.toggle('off', i >= shown);
+      });
+      const i = picked >= 0 ? picked : shown - 1;
+      if (shown === 0) {
+        count.textContent = 'A blank canvas.';
+        name.textContent = '';
+      } else if (picked < 0 && shown === layers.length && !timer) {
+        count.textContent = `${layers.length} layers, ${total} steps.`;
+        name.textContent = 'Drag to turn it. Tap a layer to pick it out.';
+      } else {
+        const l = layers[i];
+        count.textContent = `Layer ${i + 1} of ${layers.length}:`;
+        name.textContent = `${l.name} (${l.steps} ${l.steps === 1 ? 'step' : 'steps'}${l.stepNames ? ': ' + l.stepNames.join(', ').toLowerCase() : ''})`;
+      }
+    }
+
+    function stop() {
+      window.clearInterval(timer);
+      timer = undefined;
+      paint.textContent = 'Paint it';
+      paint.setAttribute('aria-pressed', 'false');
+    }
+
+    paint.addEventListener('click', () => {
+      if (timer) { stop(); place(); return; }
+      picked = -1;
+      shown = 0;
+      paint.textContent = 'Pause';
+      paint.setAttribute('aria-pressed', 'true');
+      place();
+      timer = window.setInterval(() => {
+        shown += 1;
+        if (shown >= layers.length) { shown = layers.length; place(); window.setTimeout(() => { stop(); place(); }, 900); window.clearInterval(timer); return; }
+        place();
+      }, reduce ? 1400 : 1100);
+    });
+    all.addEventListener('click', () => { stop(); shown = layers.length; picked = -1; place(); });
+    gap.addEventListener('input', () => { touched = true; place(); });
+    chips.forEach((c, i) => c.addEventListener('click', () => {
+      stop();
+      if (i >= shown) shown = i + 1;
+      picked = picked === i ? -1 : i;
+      place();
+    }));
+    imgs.forEach((img, i) => img.addEventListener('click', () => {
+      if (moved) return;
+      stop();
+      picked = picked === i ? -1 : i;
+      place();
+    }));
+
+    // Drag to turn. Up-and-down drags still scroll the page on a phone (touch-action: pan-y).
+    let down = false, moved = false, px = 0, py = 0;
+    scene.addEventListener('pointerdown', (e) => { down = true; moved = false; px = e.clientX; py = e.clientY; });
+    window.addEventListener('pointerup', () => { down = false; window.setTimeout(() => { moved = false; }, 0); });
+    scene.addEventListener('pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - px, dy = e.clientY - py;
+      if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
+      if (!moved) return;
+      touched = true;
+      ry = Math.max(-62, Math.min(62, ry + dx * 0.35));
+      if (e.pointerType === 'mouse') rx = Math.max(-28, Math.min(34, rx - dy * 0.25));
+      px = e.clientX; py = e.clientY;
+      place();
+    });
+    scene.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      touched = true;
+      ry = Math.max(-62, Math.min(62, ry + (e.key === 'ArrowLeft' ? -8 : 8)));
+      place();
+      e.preventDefault();
+    });
+
+    // A slow sway until someone takes over, so it reads as depth at a glance.
+    function sway(now: number) {
+      if (touched || reduce) return;
+      ry = -22 + Math.sin((now - t0) / 2600) * 13;
+      place();
+      window.requestAnimationFrame(sway);
+    }
+    new ResizeObserver(place).observe(scene);
+    place();
+    if (!reduce) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((x) => x.isIntersecting)) { io.disconnect(); t0 = performance.now(); window.requestAnimationFrame(sway); }
+      });
+      io.observe(scene);
+    }
+    // For the looping video: window.__exploded.set({ry, rx, gap, shown, picked}) drives it frame by frame.
+    (window as any).__exploded = {
+      set(v: { ry?: number; rx?: number; gap?: number; shown?: number; picked?: number }) {
+        touched = true;
+        if (v.ry !== undefined) ry = v.ry;
+        if (v.rx !== undefined) rx = v.rx;
+        if (v.gap !== undefined) gap.value = String(v.gap);
+        if (v.shown !== undefined) shown = v.shown;
+        if (v.picked !== undefined) picked = v.picked;
+        place();
+      },
+      layers: layers.length,
+    };
+  }
+</script>
+
+<style>
+  .exploded { padding: 16px; }
+  .scene { position: relative; width: 100%; max-width: min(100%, calc(62vh * 1.27)); margin: 26px auto 34px; perspective: 1500px; touch-action: pan-y; cursor: grab; outline: none; user-select: none; -webkit-user-select: none; }
+  .scene:active { cursor: grabbing; }
+  .scene:focus-visible { outline: 2px solid var(--teal); outline-offset: 14px; border-radius: 12px; }
+  .stack { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.12s linear; will-change: transform; }
+  .layer, .canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .layer { display: block; transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.45s ease; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.28)); pointer-events: auto; -webkit-user-drag: none; }
+  .canvas { background: #faf9f5; border-radius: 4px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .where { margin: 0 0 12px; font-size: 1rem; min-height: 3em; }
+  .where b { font-family: 'Space Grotesk', sans-serif; color: var(--teal); }
+  .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+  .slide { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; font: 600 0.88rem/1 Inter, sans-serif; color: var(--muted); }
+  .slide input { width: 100%; accent-color: var(--teal); min-height: 32px; }
+  .paint, .all { font: 600 0.9rem/1 Inter, sans-serif; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; }
+  .paint { border-color: var(--teal); }
+  .chips { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips :global(li) { margin: 0; }
+  .chip { font: 500 0.86rem/1.2 Inter, sans-serif; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; text-align: left; }
+  .chip b { color: var(--teal); margin-right: 4px; }
+  .chip span { color: var(--muted); margin-left: 4px; }
+  .chip[aria-pressed='true'] { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
+  .chip.off { opacity: 0.45; }
+  .paint:focus-visible, .all:focus-visible, .chip:focus-visible, .slide input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  @media (max-width: 560px) {
+    .exploded { padding: 12px; }
+    .scene { margin: 18px auto 26px; perspective: 900px; }
+    .controls { grid-template-columns: 1fr 1fr; }
+    .slide { grid-column: 1 / -1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .layer, .canvas, .stack { transition: none; }
+  }
+</style>

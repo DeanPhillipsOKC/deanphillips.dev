@@ -1,0 +1,308 @@
+{
+ "lavender": {
+  "width": 1000,
+  "height": 785,
+  "layers": [
+   {
+    "src": "/img/gesso/cut/lav-layer-1.webp",
+    "name": "The sunset sky",
+    "steps": 2,
+    "stepNames": [
+     "Blend the sunset sky",
+     "Paint the sun"
+    ]
+   },
+   {
+    "src": "/img/gesso/cut/lav-layer-2.webp",
+    "name": "The clouds",
+    "steps": 2,
+    "stepNames": [
+     "Dab in the coral clouds",
+     "Light the cloud edges"
+    ]
+   },
+   {
+    "src": "/img/gesso/cut/lav-layer-3.webp",
+    "name": "The mountains and the hill",
+    "steps": 3,
+    "stepNames": [
+     "Paint the far mountains",
+     "Coat the hill olive green",
+     "Dry-brush gold on the hilltop"
+    ]
+   },
+   {
+    "src": "/img/gesso/cut/lav-layer-4.webp",
+    "name": "The tree",
+    "steps": 4,
+    "stepNames": [
+     "Dab the dark leaf clumps",
+     "Pull the trunk and branches",
+     "Dab the middle greens",
+     "Dab the sunlit leaves"
+    ]
+   },
+   {
+    "src": "/img/gesso/cut/lav-layer-5.webp",
+    "name": "The lavender field",
+    "steps": 5,
+    "stepNames": [
+     "Lay the dark rows toward one point",
+     "Paint the rust soil paths",
+     "Dry-brush the sunlit soil",
+     "Stamp the violet lavender",
+     "Stamp the light lavender tips"
+    ]
+   },
+   {
+    "src": "/img/gesso/cut/lav-layer-6.webp",
+    "name": "The balloon",
+    "steps": 5,
+    "stepNames": [
+     "Build the orange balloon shape",
+     "Paint the red stripes",
+     "Paint the violet-blue stripes",
+     "Paint the yellow stripes",
+     "Paint the green stripes and basket"
+    ]
+   }
+  ],
+  "finish": "/img/gesso/cut/lav-finish.webp",
+  "steps": 21
+ },
+ "chickadee": {
+  "width": 900,
+  "height": 708,
+  "frames": [
+   {
+    "src": "/img/gesso/cut/chick-01.webp",
+    "label": "Blend the misty sunset sky",
+    "tip": "Cover the whole canvas with misty blue, cool gray, and sunset gold, blended wet."
+   },
+   {
+    "src": "/img/gesso/cut/chick-02.webp",
+    "label": "Paint the sun",
+    "tip": "Paint a small round cream sun in the brightest gold, top right."
+   },
+   {
+    "src": "/img/gesso/cut/chick-03.webp",
+    "label": "Pull down the far trunks",
+    "tip": "Pull down two slate-blue misty trunks near the right edge."
+   },
+   {
+    "src": "/img/gesso/cut/chick-04.webp",
+    "label": "Dab the rust foliage",
+    "tip": "Dab loose rust patches of far autumn leaves across the misty woods."
+   },
+   {
+    "src": "/img/gesso/cut/chick-05.webp",
+    "label": "Paint the branch dark",
+    "tip": "Paint the trunk and the curved branch in dark bark brown."
+   },
+   {
+    "src": "/img/gesso/cut/chick-06.webp",
+    "label": "Drag bark tan along the top",
+    "tip": "Drag bark tan along the trunk and the top of the branch."
+   },
+   {
+    "src": "/img/gesso/cut/chick-07.webp",
+    "label": "Catch the sun on the bark",
+    "tip": "Catch the sun on the top edge of the bark with a few light strokes."
+   },
+   {
+    "src": "/img/gesso/cut/chick-08.webp",
+    "label": "Block in the four leaves",
+    "tip": "Block in the four leaves in warm rust: two at the top left, two below the branch."
+   },
+   {
+    "src": "/img/gesso/cut/chick-09.webp",
+    "label": "Deepen the red leaves",
+    "tip": "Deepen two of the leaves with leaf red."
+   },
+   {
+    "src": "/img/gesso/cut/chick-10.webp",
+    "label": "Brighten the gold leaves",
+    "tip": "Brighten the other two leaves with sunset gold."
+   },
+   {
+    "src": "/img/gesso/cut/chick-11.webp",
+    "label": "Block in the body",
+    "tip": "Block in the whole chickadee as one flat sunset-gold shape."
+   },
+   {
+    "src": "/img/gesso/cut/chick-12.webp",
+    "label": "Block in the wing and tail",
+    "tip": "Block in the gray wing and tail over the gold body."
+   },
+   {
+    "src": "/img/gesso/cut/chick-13.webp",
+    "label": "Paint the black cap and bib",
+    "tip": "Paint the black cap and the black bib."
+   },
+   {
+    "src": "/img/gesso/cut/chick-14.webp",
+    "label": "Paint the white cheek",
+    "tip": "Fill the white cheek between the cap and the bib."
+   },
+   {
+    "src": "/img/gesso/cut/chick-15.webp",
+    "label": "Light the chest",
+    "tip": "Light the chest and belly with warm white curved strokes."
+   },
+   {
+    "src": "/img/gesso/cut/chick-16.webp",
+    "label": "Stripe the wing feathers",
+    "tip": "Stripe the wing and tail with dark gray feather marks."
+   },
+   {
+    "src": "/img/gesso/cut/chick-17.webp",
+    "label": "Add the legs and feet",
+    "tip": "Paint the thin dark legs and the toes gripping the branch."
+   }
+  ]
+ },
+ "finder": {
+  "src": "/img/gesso/cut/chick-finish.webp",
+  "width": 720,
+  "height": 566,
+  "box": [
+   0.1112,
+   0.1,
+   0.6178,
+   0.66
+  ],
+  "outline": "M56.56 19.53 L54.95 17.38 L53.34 16.11 L52.34 14.36 L49.19 12.11 L46.35 11.72 L46.05 12.21 L43.98 12.70 L42.75 13.87 L41.90 14.26 L40.06 16.80 L39.98 17.87 L38.53 20.21 L38.60 20.80 L38.14 21.78 L38.22 22.27 L37.91 23.14 L37.91 24.61 L37.45 25.39 L37.38 26.37 L34.15 29.59 L31.70 33.59 L31.31 33.79 L30.78 35.25 L30.47 35.35 L29.55 37.11 L28.01 38.96 L27.01 41.02 L25.86 42.38 L25.79 43.55 L23.87 46.00 L22.87 48.83 L19.26 52.64 L17.27 54.10 L15.58 56.74 L13.28 59.77 L13.05 59.77 L13.05 60.74 L14.43 61.82 L16.12 60.94 L16.50 60.94 L17.04 61.52 L17.65 61.52 L18.73 60.94 L25.56 52.44 L28.01 50.29 L31.85 50.00 L36.76 54.20 L38.14 54.79 L39.22 54.88 L39.68 54.69 L39.45 54.30 L39.60 54.00 L40.06 53.91 L42.36 56.35 L47.43 55.18 L49.19 54.20 L49.73 54.20 L51.88 52.73 L52.26 52.83 L53.65 51.07 L54.34 50.68 L55.79 48.63 L57.18 45.80 L58.48 44.53 L58.25 44.04 L58.33 43.36 L59.40 40.62 L59.63 36.33 L59.48 33.01 L58.94 31.25 L58.86 30.08 L57.64 27.15 L57.25 23.63 L56.87 22.27 L57.02 21.19 Z",
+  "yes": [
+   [
+    0.0523,
+    0.3
+   ],
+   [
+    0.2644,
+    0.66
+   ],
+   [
+    0.5,
+    0.61
+   ],
+   [
+    0.7356,
+    0.68
+   ],
+   [
+    0.4057,
+    0.6
+   ],
+   [
+    0.0052,
+    0.15
+   ],
+   [
+    0.877,
+    0.8
+   ],
+   [
+    0.9065,
+    0.86
+   ],
+   [
+    0.9595,
+    0.94
+   ],
+   [
+    0.9241,
+    0.705
+   ]
+  ],
+  "no": [
+   [
+    0.2644,
+    0.5
+   ],
+   [
+    0.6178,
+    0.5
+   ],
+   [
+    0.2055,
+    0.92
+   ],
+   [
+    0.4057,
+    0.76
+   ],
+   [
+    0.1466,
+    0.45
+   ],
+   [
+    0.5,
+    0.75
+   ],
+   [
+    0.8299,
+    0.65
+   ],
+   [
+    0.9477,
+    0.76
+   ],
+   [
+    0.7945,
+    0.9
+   ],
+   [
+    0.1112,
+    0.48
+   ],
+   [
+    0.6767,
+    0.57
+   ],
+   [
+    0.6414,
+    0.585
+   ],
+   [
+    0.9948,
+    0.68
+   ],
+   [
+    0.48,
+    0.52
+   ],
+   [
+    0.5,
+    0.26
+   ],
+   [
+    0.46,
+    0.36
+   ],
+   [
+    0.3,
+    0.47
+   ],
+   [
+    0.6,
+    0.82
+   ],
+   [
+    0.73,
+    0.9
+   ],
+   [
+    0.2,
+    0.3
+   ],
+   [
+    0.27,
+    0.08
+   ],
+   [
+    0.55,
+    0.44
+   ]
+  ]
+ }
+}
