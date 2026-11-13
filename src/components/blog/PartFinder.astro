@@ -1,0 +1,232 @@
+---
+// How a computer finds one part of a painting, two ways.
+// "Things with an edge": a box goes around the thing, and a model traces its outline (the outline
+// here is the one Gesso's tool really made).
+// "Things without an edge": you tap spots that are the thing and spots that aren't, and every pixel
+// goes to whichever its color is closer to. This one runs live in the browser, the same rule the
+// tool uses for a branch, mist, or a reflection.
+interface Props {
+  src: string;
+  width: number;
+  height: number;
+  // The box around the thing with an edge, as shares of the picture: [x0, y0, x1, y1].
+  box: number[];
+  // Its traced outline as an SVG path in a 0 to 100 box.
+  outline: string;
+  // Starting spots for the color rule, as shares of the picture.
+  yes: number[][];
+  no: number[][];
+  edgeName?: string;
+  softName?: string;
+  caption?: string;
+}
+const { src, width, height, box, outline, yes, no, edgeName = 'the bird', softName = 'the branch', caption } = Astro.props;
+---
+<figure class="finder panel bleed" data-yes={JSON.stringify(yes)} data-no={JSON.stringify(no)}>
+  <div class="tabs" role="group" aria-label="Choose a way of finding a part">
+    <button type="button" class="tab" data-mode="edge" aria-pressed="true">Things with an edge</button>
+    <button type="button" class="tab" data-mode="color" aria-pressed="false">Things without one</button>
+  </div>
+  <div class="stage" style={`aspect-ratio: ${width} / ${height}`}>
+    <img src={src} alt="The finished chickadee painting" width={width} height={height} crossorigin="anonymous" decoding="async" />
+    <canvas width={width} height={height} aria-hidden="true"></canvas>
+    <svg class="edge" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="dim" d={`M0 0 H100 V100 H0 Z ${outline}`} fill-rule="evenodd" />
+      <rect class="box" x={box[0] * 100} y={box[1] * 100} width={(box[2] - box[0]) * 100} height={(box[3] - box[1]) * 100} />
+      <path class="trace" d={outline} pathLength="100" />
+    </svg>
+    <svg class="dots" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </div>
+
+  <div class="panel-edge">
+    <div class="controls">
+      <button type="button" class="step" data-step="0" aria-pressed="true">1. The picture</button>
+      <button type="button" class="step" data-step="1" aria-pressed="false">2. Draw a box</button>
+      <button type="button" class="step" data-step="2" aria-pressed="false">3. Trace it</button>
+    </div>
+    <p class="say" aria-live="polite"></p>
+  </div>
+
+  <div class="panel-color" hidden>
+    <div class="controls">
+      <button type="button" class="pick" data-kind="yes" aria-pressed="true"><i class="y"></i> Tap {softName}</button>
+      <button type="button" class="pick" data-kind="no" aria-pressed="false"><i class="n"></i> Tap what isn't</button>
+      <button type="button" class="reset">Start over</button>
+      <button type="button" class="clear">Clear</button>
+    </div>
+    <p class="say2" aria-live="polite"></p>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script define:vars={{ edgeName, softName }}>
+  window.__finderNames = { edgeName, softName };
+</script>
+<script>
+  const names = (window as any).__finderNames as { edgeName: string; softName: string };
+  const SAY = [
+    `A person sees ${names.edgeName} right away. A computer sees a grid of colored dots.`,
+    `So it gets a hint. A rough box that says "the thing is somewhere in here". The agent measures where to put it.`,
+    `A model trained to find the edges of things traces the outline inside the box. Everything inside the line is ${names.edgeName}. Everything outside isn't.`,
+  ];
+
+  // sRGB to Lab, so "closer in color" means closer to the eye, not closer in the numbers
+  function lab(r: number, g: number, b: number): [number, number, number] {
+    const f = (v: number) => { v /= 255; return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92; };
+    const R = f(r), G = f(g), B = f(b);
+    const g3 = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+    const x = g3((R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047);
+    const y = g3(R * 0.2126 + G * 0.7152 + B * 0.0722);
+    const z = g3((R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.finder')) {
+    const stage = root.querySelector<HTMLElement>('.stage')!;
+    const img = root.querySelector<HTMLImageElement>('img')!;
+    const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
+    const dots = root.querySelector<SVGElement>('.dots')!;
+    const say = root.querySelector('.say')!;
+    const say2 = root.querySelector('.say2')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.tab')];
+    const steps = [...root.querySelectorAll<HTMLButtonElement>('.step')];
+    const picks = [...root.querySelectorAll<HTMLButtonElement>('.pick')];
+    const start = { yes: JSON.parse(root.dataset.yes!) as number[][], no: JSON.parse(root.dataset.no!) as number[][] };
+    let yes = start.yes.map((p) => [...p]);
+    let no = start.no.map((p) => [...p]);
+    let kind: 'yes' | 'no' = 'yes';
+    let mode: 'edge' | 'color' = 'edge';
+    let labs: Float32Array | null = null;
+    let pixels: ImageData | null = null;
+    const W = canvas.width, H = canvas.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+
+    function readPicture() {
+      if (labs || !img.complete || !img.naturalWidth) return;
+      ctx.drawImage(img, 0, 0, W, H);
+      pixels = ctx.getImageData(0, 0, W, H);
+      labs = new Float32Array(W * H * 3);
+      const d = pixels.data;
+      for (let i = 0, j = 0; i < d.length; i += 4, j += 3) {
+        const [L, a, b] = lab(d[i], d[i + 1], d[i + 2]);
+        labs[j] = L; labs[j + 1] = a; labs[j + 2] = b;
+      }
+      ctx.clearRect(0, 0, W, H);
+    }
+
+    // the color at a spot: the middle color of a small patch, so one brush mark doesn't decide it
+    function colorAt(p: number[]): [number, number, number] {
+      const cx = Math.min(W - 1, Math.floor(p[0] * W)), cy = Math.min(H - 1, Math.floor(p[1] * H));
+      const Ls: number[] = [], As: number[] = [], Bs: number[] = [];
+      for (let y = Math.max(0, cy - 3); y <= Math.min(H - 1, cy + 3); y++)
+        for (let x = Math.max(0, cx - 3); x <= Math.min(W - 1, cx + 3); x++) {
+          const j = (y * W + x) * 3;
+          Ls.push(labs![j]); As.push(labs![j + 1]); Bs.push(labs![j + 2]);
+        }
+      const mid = (v: number[]) => v.sort((a, b) => a - b)[v.length >> 1];
+      return [mid(Ls), mid(As), mid(Bs)];
+    }
+
+    function paint() {
+      readPicture();
+      dots.innerHTML = '';
+      const dot = (p: number[], cls: string) => {
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        c.setAttribute('cx', String(p[0] * 100)); c.setAttribute('cy', String(p[1] * 100));
+        c.setAttribute('rx', String(1.3)); c.setAttribute('ry', String(1.3 * W / H));
+        c.setAttribute('class', cls);
+        dots.append(c);
+      };
+      yes.forEach((p) => dot(p, 'y'));
+      no.forEach((p) => dot(p, 'n'));
+      if (!labs || !pixels) return;
+      const out = ctx.createImageData(W, H);
+      if (!yes.length || !no.length) {
+        ctx.clearRect(0, 0, W, H);
+        say2.textContent = !yes.length
+          ? `Tap a few spots on ${names.softName}: a light bit, a dark bit.`
+          : `Now tap a few spots that aren't ${names.softName}: the mist, the orange leaves.`;
+        return;
+      }
+      const ys = yes.map(colorAt), ns = no.map(colorAt);
+      let n = 0;
+      const d = pixels.data, o = out.data;
+      for (let i = 0, j = 0; i < o.length; i += 4, j += 3) {
+        const L = labs[j], a = labs[j + 1], b = labs[j + 2];
+        let dy = Infinity, dn = Infinity;
+        for (const c of ys) { const v = (L - c[0]) ** 2 + (a - c[1]) ** 2 + (b - c[2]) ** 2; if (v < dy) dy = v; }
+        for (const c of ns) { const v = (L - c[0]) ** 2 + (a - c[1]) ** 2 + (b - c[2]) ** 2; if (v < dn) dn = v; }
+        if (dy < dn) { o[i] = d[i]; o[i + 1] = d[i + 1]; o[i + 2] = d[i + 2]; o[i + 3] = 255; n += 1; }
+        else { const g = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]; o[i] = o[i + 1] = o[i + 2] = 40 + g * 0.25; o[i + 3] = 225; }
+      }
+      ctx.putImageData(out, 0, 0);
+      say2.textContent = `${Math.round((n / (W * H)) * 100)}% of the picture is closer in color to your ${yes.length} "yes" ${yes.length === 1 ? 'spot' : 'spots'} than to your ${no.length} "no" ${no.length === 1 ? 'spot' : 'spots'}. Add a spot wherever it's wrong.`;
+    }
+
+    function show() {
+      tabs.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.mode === mode)));
+      root.querySelector<HTMLElement>('.panel-edge')!.hidden = mode !== 'edge';
+      root.querySelector<HTMLElement>('.panel-color')!.hidden = mode !== 'color';
+      stage.dataset.mode = mode;
+      if (mode === 'color') paint();
+      else { ctx.clearRect(0, 0, W, H); dots.innerHTML = ''; }
+    }
+    function step(k: number) {
+      stage.dataset.step = String(k);
+      steps.forEach((s, i) => s.setAttribute('aria-pressed', String(i === k)));
+      say.textContent = SAY[k];
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => { mode = t.dataset.mode as 'edge' | 'color'; show(); }));
+    steps.forEach((s, i) => s.addEventListener('click', () => step(i)));
+    picks.forEach((p) => p.addEventListener('click', () => {
+      kind = p.dataset.kind as 'yes' | 'no';
+      picks.forEach((q) => q.setAttribute('aria-pressed', String(q === p)));
+    }));
+    root.querySelector('.reset')!.addEventListener('click', () => { yes = start.yes.map((p) => [...p]); no = start.no.map((p) => [...p]); paint(); });
+    root.querySelector('.clear')!.addEventListener('click', () => { yes = []; no = []; paint(); });
+    stage.addEventListener('click', (e) => {
+      if (mode !== 'color') return;
+      const r = stage.getBoundingClientRect();
+      const p = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+      (kind === 'yes' ? yes : no).push(p);
+      paint();
+    });
+    if (!img.complete) img.addEventListener('load', () => { if (mode === 'color') paint(); });
+    step(0);
+    show();
+    // For the looping video.
+    (window as any).__finder = { mode(m: 'edge' | 'color') { mode = m; show(); }, step };
+  }
+</script>
+
+<style>
+  .finder { padding: 16px; }
+  .tabs, .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tabs { margin-bottom: 14px; }
+  .controls { margin-top: 14px; }
+  .tab, .step, .pick, .reset, .clear { font: 600 0.88rem/1 Inter, sans-serif; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .tab[aria-pressed='true'], .step[aria-pressed='true'], .pick[aria-pressed='true'] { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
+  .tab:focus-visible, .step:focus-visible, .pick:focus-visible, .reset:focus-visible, .clear:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .pick i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; display: inline-block; }
+  .pick i.y { background: #19c2a6; }
+  .pick i.n { background: #f0564a; }
+  .stage { position: relative; width: 100%; max-width: min(100%, calc(64vh * 1.27)); margin: 0 auto; border-radius: 14px; overflow: hidden; background: var(--bg-2); }
+  .stage img { display: block; width: 100%; height: 100%; }
+  .stage canvas, .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .stage[data-mode='color'] { cursor: crosshair; }
+  .stage[data-mode='color'] .edge { display: none; }
+  .edge .dim { fill: rgba(12, 16, 22, 0.72); opacity: 0; transition: opacity 0.5s ease 0.5s; }
+  .edge .box { fill: none; stroke: #ffd24a; stroke-width: 0.7; stroke-dasharray: 2 1.4; vector-effect: non-scaling-stroke; opacity: 0; transition: opacity 0.35s ease; }
+  .edge .trace { fill: none; stroke: #19c2a6; stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.5s ease; }
+  .stage[data-step='1'] .box, .stage[data-step='2'] .box { opacity: 1; }
+  .stage[data-step='1'] .box { stroke-width: 2.5; }
+  .stage[data-step='2'] .trace { stroke-dashoffset: 0; }
+  .stage[data-step='2'] .dim { opacity: 1; }
+  .edge .box { stroke-width: 2.5; }
+  .dots :global(.y) { fill: #19c2a6; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .dots :global(.n) { fill: #f0564a; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .say, .say2 { margin: 12px 0 0; font-size: 1rem; min-height: 3.2em; }
+  @media (max-width: 560px) { .finder { padding: 12px; } }
+  @media (prefers-reduced-motion: reduce) { .edge .trace, .edge .dim, .edge .box { transition: none; } }
+</style>
