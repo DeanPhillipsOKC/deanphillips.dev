@@ -3,7 +3,7 @@ title: "One painting, cut into every step"
 titleAccent: "cut into every step"
 tabTitle: One Painting, Every Step
 partTitle: One painting, cut into every step
-description: "Gesso used to ask an AI image model to draw every step of a lesson, and no two came out as the same painting. Now it draws the finished painting once, finds each part's outline, and cuts every step out of it. Pull the layers apart, and try the trick the computer uses to find a branch."
+description: "Gesso used to ask an AI image model to draw every step of a lesson, and no two came out as the same painting. Now it draws the finished painting once, finds each part's outline with a small model on an ordinary CPU, and cuts every step out of it. Pull the layers apart, try the trick that finds a branch, and watch eleven parts claim a painting one at a time."
 dek: Every step of a Gesso lesson used to be its own picture from the image model, and the model never painted the same painting twice. So I stopped asking. Now it paints the finished picture once, and every step is cut out of that one painting.
 eyebrow: Experiment
 date: 2026-11-13
@@ -17,6 +17,8 @@ import ExplodedPainting from '../../components/blog/ExplodedPainting.astro';
 import PartFinder from '../../components/blog/PartFinder.astro';
 import Flipbook from '../../components/blog/Flipbook.astro';
 import StatRow from '../../components/blog/StatRow.astro';
+import PartClaim from '../../components/blog/PartClaim.astro';
+import Flow from '../../components/blog/Flow.astro';
 import Callout from '../../components/blog/Callout.astro';
 import cut from '../../data/gesso/cut.json';
 
@@ -26,7 +28,11 @@ This is part 10 of a series about Gesso, an ongoing experiment in turning any pi
 
 I had three complaints about my own tool. The lessons didn't tell a new painter enough. Too much of each lesson came from an AI guessing when plain math would do. And every step was a fresh picture from the image model, which repaints the whole canvas each time, so most of a run went to repairing what it had moved.
 
-So I wrote down what I wanted fixed and what was off the table. More detail for a new painter. A tool wherever a tool gives a good result. And no reaching for a better image model to paper over the cracks. Then I sat down with the strongest model I have and we took the whole thing apart. I pushed for smaller steps, set the rules (a lesson never loses a color a painter can see), and decided what stayed and what went. The idea that came out of it fits in one sentence. Paint the finished picture once, then cut every step out of it.
+My fix was to take the AI out of everywhere it didn't need to be. In my words at the time, "if we could do more stuff without inference it would be faster and we would get more consistent results." That turned a small experiment in the backlog into the main bet. Paint the finished picture once, then cut every step out of it.
+
+I set the rules first. More detail for a new painter. A free tool wherever one gives a good result. No paying for a fancier image setting. Smaller steps (12 to 24, up from 5 to 12). And never drop a color a painter can see.
+
+The first try cut the steps with boxes and fell over on the lavender sunset, where the sky's gold and the field's gold match. A box can't tell where one stops. So I asked for real outlines. The agent tested a free outline model, wrote a design inside my rules, two fresh reviewers picked it apart, and I approved it before anything was built.
 
 Here is a lesson's finished painting, pulled apart into the layers it gets painted in. Drag it.
 
@@ -37,11 +43,11 @@ Here is a lesson's finished painting, pulled apart into the layers it gets paint
   caption="One finished painting, six layers, 21 steps. Each layer is what's on the canvas after that stage, including the paint the next layers will cover. The sky really does run behind the tree."
 />
 
-Nothing in that stack was drawn separately. It is one picture with its parts found and lifted out. Because every step comes from the same painting, a road can't change shape between steps and a bird can't grow a different head. That whole class of problem is gone, along with the reviews and repairs that existed to catch it.
+Nothing in that stack was drawn separately. Because every step comes from the same painting, a road can't change shape between steps and a bird can't grow a different head. The reviews and repairs that existed to catch that are gone too.
 
 ## How a computer finds the parts
 
-You look at a painting of a bird and see a bird. A computer sees a grid of colored dots. Getting from dots to "this is the bird" took two different tricks, because paintings have two kinds of things in them.
+You see a bird. A computer sees a grid of colored dots. Getting from dots to "this is the bird" takes two tricks, because paintings have two kinds of things in them.
 
 <PartFinder
   src={cut.finder.src}
@@ -54,15 +60,38 @@ You look at a painting of a bird and see a bird. A computer sees a grid of color
   caption="Two ways to find a part. The second one runs right here in your browser. Tap the picture to add your own spots. (The real tool also keeps the branch near a rough line drawn along it, which is why it needs fewer spots than you will.)"
 />
 
-**Things with an edge** (a bird, a sail, a hill) get a box. The agent measures roughly where the thing is, and a small model that has learned what edges look like traces the outline inside the box. It runs on an ordinary computer in about ten seconds, with no image model involved.
+**Things with an edge** (a bird, a sail, a hill) get a box. The agent measures roughly where the thing is, and a small model that has learned what edges look like traces the outline inside it.
 
-**Things without an edge** (a branch that wanders across the whole picture, mist, a reflection) defeat that model completely. My first try at the branch came back as most of the background. What works is almost embarrassingly simple. Point at a few spots that are the branch and a few that aren't. Then ask of every dot in the picture, is your color closer to the yes spots or the no spots? That's the whole rule. Try it above. It starts with my spots already placed. Press Clear to do it yourself, and you'll see where it goes wrong and how one more tap fixes it.
+**Things without an edge** (a branch that wanders across the whole picture, mist, a reflection) defeat that model completely. The first try at the branch came back as most of the background. What works is almost embarrassingly simple. Point at a few spots that are the branch and a few that aren't. Then ask every dot, is your color closer to the yes spots or the no spots? That's the whole rule. Press Clear above to place your own, and watch one more tap fix what goes wrong.
+
+## Under the hood
+
+The outline model is Segment Anything, an open model from Meta, in its smallest version. It's squeezed down to 108 MB and runs with ONNX Runtime on the CPU. No graphics card, no PyTorch, no cloud. The rest is Python, NumPy, and OpenCV. The color rule compares colors in Lab, a color space built so distances roughly match what your eye sees, and it reads each spot as the middle color of a small patch so one stray brush mark can't decide it.
+
+The agent's job is the hints. It lists the parts back to front and gives each one a kind (an area, an object, marks painted on something, or a thin line) and its boxes, spots, or lines, measured off a grid laid over the painting. Then each part claims its pixels, and when two want the same one, the part painted later wins. These are the real hints and the real map from a hands-off run.
+
+<PartClaim
+  parts={cut.claim.parts}
+  map={cut.claim.map}
+  width={cut.claim.width}
+  height={cut.claim.height}
+  caption="The chickadee lesson's eleven parts, in painting order. Earlier parts are flat colors, the newest one shows its paint. Watch the foliage grab the bird's chest at step 4, then lose it to the bird at step 7."
+/>
+
+<StatRow stats={[
+  { value: '108 MB', label: 'the whole outline model' },
+  { value: '5 s', label: 'to read the picture, once' },
+  { value: '0.05 s', label: 'per box after that' },
+  { value: '$0', label: 'per run, on the CPU' },
+]} />
+
+The agent looks at a preview once and gets two rounds to fix a part. The same hints give the same outlines, byte for byte, on one machine. The model file is pinned by its checksum, so a changed download gets refused instead of quietly moving every outline.
 
 ## Small steps cost nothing now
 
-When each step was its own picture from the image model, splitting a step in two meant asking for another one and hoping it matched. So steps stayed big. The old chickadee lesson took the bird from a flat tan shape to finished feathers in a single step, which is a lot to ask of someone who has painted ten pictures.
+When each step was its own picture, splitting one meant another render and hoping it matched. So steps stayed big. The old chickadee lesson took the bird from a flat tan shape to finished feathers in one step.
 
-Now a step is just a different cut of the same painting, so it can be as small as a beginner needs. A flat coat first, then one pass per paint.
+Now a step is a different cut of the same painting, so it can be as small as a beginner needs. A flat coat first, then one pass per paint, where each pass shows the finish wherever its color is nearest that paint.
 
 <Flipbook
   sequences={[{ label: 'Chickadee', width: cut.chickadee.width, height: cut.chickadee.height, frames: cut.chickadee.frames }]}
@@ -76,20 +105,31 @@ Now a step is just a different cut of the same painting, so it can be as small a
   { value: '51¢ → 8¢', label: 'image-model cost for it' },
 ]} />
 
-The same outlines get used again on the lesson page. Each step now shows where its paint goes, a close-up when the area is small, and a map of which paint goes where. None of it is the AI describing a picture. It's measured.
+The same outlines give each step a close-up, a picture of where its paint goes, and a map of which paint goes where. Measured, not described.
 
-## Who did the work
+## Who does what
 
-The goals, the rules, and every merge were mine, and each change waited for me to read it before it went in. One model wrote the design with me and built the risky first piece. It handed the rest to other agents one issue at a time and reviewed what came back before I saw it. Then I had three different models each make the same three lessons with nobody helping. All nine finished on their own. The smallest model was the fastest and planned the worst (it painted every sky as ragged patches, so there's a rule against that now).
+I make the decisions, the agents do the typing, and nothing ships until I've looked at it. The direction, the rules, the version number, and every merge were mine. The agents built it in eight issues, each reviewed before it reached me. Then three different models each made the same three lessons with nobody helping, and all nine finished. The smallest was the fastest and planned the worst (it painted every sky as ragged patches, so there's a rule against that now). The new version went live when I scored the lessons and said "The pics look good."
+
+<Flow steps={[
+  { who: 'me', title: 'Pick a photo', text: 'And start the run. Nobody touches it after that.' },
+  { who: 'ai', title: 'Paint the finish', text: 'The image model paints the finished picture. One render.' },
+  { who: 'ai', title: 'List the parts', text: 'The agent writes each part with its boxes, spots, or lines.' },
+  { who: 'auto', title: 'Outline', text: 'Segment Anything and the color rule, about 10 seconds on a CPU.' },
+  { who: 'ai', title: 'Check the preview', text: 'The agent looks once and gets two rounds of fixes.' },
+  { who: 'auto', title: 'Cut the steps', text: 'Every step picture, close-up, and paint map, from the outlines.' },
+  { who: 'ai', title: 'Write', text: 'The agent adds what only this photo needs to drafted step text.' },
+  { who: 'me', title: 'Score it', text: 'A new version goes live only after I score its lessons.' },
+]} caption="One lesson, start to finish." />
 
 ## What broke
 
 Plenty.
 
-- **The first outlines were stretched.** Every part sat a little below where it belonged, and I'd already written down that it worked. A second reviewer caught it by looking at the picture.
-- **A ghost boat.** The sky is painted straight through where the boat will go, and the finished painting doesn't show that sky. The first fills left a blurry boat shape in every step before the boat. Now one extra picture, the painting with the boat taken out, fills in what's behind it.
+- **The first outlines were stretched.** Every part sat a little below where it belonged. The model works on a padded 1,024 pixel square, and its full-size output assumes the picture was square too. A second reviewer caught it by looking. Now the tool reads the model's 256 pixel answer and cuts off the padding itself, and a test checks outlines against saved ones.
+- **A ghost boat.** The sky runs straight through where the boat will go, but the finish doesn't show that sky. The first fills left a blurry boat in every early step. Now one extra picture, the painting with the boat taken out, fills in behind it.
 - **The red sailboat with no red paint.** I'd asked for at most ten paint mixes in a lesson. The tool obeyed by merging the hull's red into a muddy brown. The rule is now "aim for ten, but never merge two colors a painter could tell apart."
-- **Soil on a blank canvas.** Bits of the path between lavender rows got filed under "sky" and painted eleven steps early. Fixed in the tool. The lesson made before the fix still shows it, and it says so on its page.
+- **Soil on a blank canvas.** Bits of path between lavender rows got filed under "sky" and painted eleven steps early. Fixed. The lesson made before the fix says so on its page.
 - **It isn't much faster yet.** Fewer pictures cut the image bill to about a sixth, but they didn't buy as much time as I hoped. Most of a run is the agent planning and checking, and that's where the minutes are.
 
 <Callout title="What's next.">Painting from them. Every stroke card in a lesson is still marked "not checked yet", because I'm a beginner and I won't call a card right until I've held the brush. That part can't be automated, and I'm fine with it.</Callout>
