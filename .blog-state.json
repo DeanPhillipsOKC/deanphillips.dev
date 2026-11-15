@@ -1,11 +1,13 @@
 {
-  "lastRun": "2026-11-08T14:14:17Z",
-  "lastRepCommit": "f553de666b7fbb6a04f612777747ed6c33c6cafa",
+  "lastRun": "2026-11-15T14:14:06Z",
+  "lastRepCommit": "4dd5901dd5fdc0e5402161f6ab442f17b0f4393a",
   "suggestedShares": [
     "ai-delivery-team-asking",
     "ai-delivery-team-gate",
     "ai-governance-hole",
     "ai-governance-threat-model",
-    "ai-delivery-team-backup"
-  ]
+    "ai-delivery-team-backup",
+    "gesso-cut"
+  ],
+  "lastBacklogRepCommit": "47d709cfea5fdaf7633ff3fc5fe9faa92e0fed85"
 }
