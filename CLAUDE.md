@@ -19,4 +19,4 @@ in `src/components/blog/`. A push to `main` deploys through Cloudflare in about 
 
 ## Reply format
 
-Start every reply with a one-line status of what's done. Put anything the owner has to do in a short **Needs you** block with the exact step, or say "Nothing needed from you." Don't open a reply with questions; ask them after the status, and only when the answer changes what you do next.
+Start every reply with a one-line status of what's done. Right after it, put anything the owner has to do or answer in a short **Needs you** block, as a numbered list with the exact step for each, or say "Nothing needed from you." Number it even when there is only one item. The owner has ADHD, so an ask is never left lower in the reply or folded into a paragraph. Explanation comes after the block. Only ask when the answer changes what you do next.
