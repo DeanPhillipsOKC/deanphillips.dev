@@ -14,6 +14,12 @@ has results).
   a week of tier 1 and 2 merges have gone through the new path with no hand merges. As of
   2026-11-15 nothing has merged in the public code repo since Nov 10 (the open issues are
   all needs-review or waiting on the owner), so there's no week of merges to point to yet.
+- **Claude writes a neural network's weights by hand** (experiment, not started; from TLDR AI,
+  2026-11-18): two articles show frontier models reading and writing network weights directly, with no
+  training. Fable 5.2 hand-built an image classifier the way 1990s researchers did, and GPT-6 Astra
+  worked out what a network was for from its raw weights. Small weekend version: have Claude write
+  the weights of a tiny network for a toy problem (XOR, a small digit set), check it against a trained
+  one, and write up how it went about it. Material exists only once the experiment has been run.
 
 ## Drafted
 
