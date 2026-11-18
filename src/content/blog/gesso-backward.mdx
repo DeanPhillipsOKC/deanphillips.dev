@@ -3,7 +3,7 @@ title: "One painting, erased backward"
 titleAccent: "erased backward"
 tabTitle: One Painting, Erased Backward
 partTitle: One painting, erased backward
-description: "Gesso POC v3 renders the finished painting once, then has an image model un-paint it one piece at a time, down to bare canvas. Played forward, those pictures are the lesson. Here is how it finds objects without an outline model, the two-threshold guard that keeps 13 repaints from melting the picture, and what it still gets wrong."
+description: "Gesso POC v3 renders the finished painting once, then has an image model un-paint it one piece at a time, down to bare canvas. Played forward, and cut a little finer with masks, those pictures are the lesson. Here is how it finds objects without an outline model, the two-threshold guard that keeps 13 repaints from melting the picture, and what it still gets wrong."
 dek: Cutting steps out of a finished painting leaves holes where things used to be. So Gesso POC v3 stopped cutting. It has the image model erase the painting backward, one piece at a time, and plays the pictures forward as the lesson.
 eyebrow: Experiment
 date: 2026-11-18
@@ -54,10 +54,10 @@ POC v3 changes the order.
     { label: 'The lesson, forward', width: b.width, height: b.height, frames: b.fwd, lead: 1 },
   ]}
   unit="Picture"
-  caption="The sleeping cat. The first tab is how it was made, the finished painting erased down to bare canvas. The second tab is the same pictures as a 21-step lesson."
+  caption="The sleeping cat. The first tab is how it was made, the finished painting erased down to bare canvas. The second tab is the 21-step lesson built from them."
 />
 
-Played forward, the erased pictures are the lesson. Nothing drifts between steps, and the last step is the finished painting exactly. Both get checked on every lesson.
+Played forward, the erased pictures are the backbone of the lesson. (Fourteen pictures don't make 21 steps by themselves. More on that below.) Nothing drifts between steps, and the last step is the finished painting exactly. Both get checked on every lesson.
 
 (I also tried painting forward from a bare canvas, one thing at a time. With no finished painting to aim at, it wandered away from the photo and a lot of the steps looked alike. That one's parked.)
 
@@ -115,7 +115,9 @@ Two checks run on every picture. The guard looks at a band just outside what was
 
 ## After the pictures
 
-The same changes do three more jobs.
+The same changes do four more jobs.
+
+**They split an erase into steps.** Thirteen erases leave 14 pictures, and the lesson has 21 steps. The other seven are cut with masks, and the model isn't asked for anything. One erase took off the cat's stripes and the pink in its ears together. Every pixel that erase changed goes to whichever paint it's closest to, charcoal or pink. Lay only the charcoal pixels and you have the stripes step. Lay the rest and you have the ears. The same masks draw each step's teaching pictures. Every step gets an outline of where its paint goes, and some get a map of which paint goes where or a close-up.
 
 **They're the ruler.** Each shape is measured in inches on the canvas. The cat is 14.91 in wide and 7.18 in tall, with its top 1.35 in from the top edge.
 
