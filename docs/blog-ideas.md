@@ -14,6 +14,7 @@ has results).
   a week of tier 1 and 2 merges have gone through the new path with no hand merges. As of
   2026-11-15 nothing has merged in the public code repo since Nov 10 (the open issues are
   all needs-review or waiting on the owner), so there's no week of merges to point to yet.
+  Still true on 2026-11-22: no commits to repbunny-code since Nov 10 (`4dd5901`).
 - **Claude writes a neural network's weights by hand** (experiment, not started; from TLDR AI,
   2026-11-18): two articles show frontier models reading and writing network weights directly, with no
   training. Fable 5.2 hand-built an image classifier the way 1990s researchers did, and GPT-6 Astra
@@ -30,7 +31,8 @@ has results).
   `ai-governance-bill` material, then per-PR e2e and the lanes choosing where e2e runs). Wait about
   a week before publishing so it can say the first public releases and lane PRs held up. As of 2026-11-15, v1.0.37 and
   v1.0.38 shipped from the public repo and its PRs #6 to #13 merged by Nov 10.
-  Nothing has merged there since. On
+  Nothing has merged there since (still true on 2026-11-22), so the "held up" line has
+  only those two releases to point to. On
   publish: an OG image, the homepage's "How I build" testing line and the "RepBunny is the one you
   can try yourself" note (the code is public now). The resume already covers e2e on every pull
   request and the public code (updated 2026-11-10). `ai-governance-bill` stays an unlisted draft.
