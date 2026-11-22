@@ -1,0 +1,382 @@
+{
+ "width": 900,
+ "height": 600,
+ "back": [
+  {
+   "src": "/img/gesso/backward/chain-00.webp",
+   "label": "The finished painting",
+   "tip": "Rendered once. Every step ends on this picture."
+  },
+  {
+   "src": "/img/gesso/backward/chain-01.webp",
+   "label": "Erased: the cat's sleeping face",
+   "tip": "The picture changed over 40% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-02.webp",
+   "label": "Erased: the cat's fur",
+   "tip": "The picture changed over 40% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-03.webp",
+   "label": "Erased: the cat's stripes and pink ears",
+   "tip": "The picture changed over 41% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-04.webp",
+   "label": "Erased: the cat's shading and white patches",
+   "tip": "The picture changed over 40% of the canvas. It took 2 tries."
+  },
+  {
+   "src": "/img/gesso/backward/chain-05.webp",
+   "label": "Erased: the sleeping tabby cat",
+   "tip": "The picture changed over 39% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-06.webp",
+   "label": "Erased: the blanket's knit loops",
+   "tip": "The picture changed over 43% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-07.webp",
+   "label": "Erased: the yellow knit blanket",
+   "tip": "The picture changed over 41% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-08.webp",
+   "label": "Erased: the sill's shadow and sunlight",
+   "tip": "The picture changed over 36% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-09.webp",
+   "label": "Erased: the wooden windowsill",
+   "tip": "The picture changed over 36% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-10.webp",
+   "label": "Erased: the frame's shadows",
+   "tip": "The picture changed over 22% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-11.webp",
+   "label": "Erased: the white window frame",
+   "tip": "The picture changed over 17% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-12.webp",
+   "label": "Erased: the blue wall",
+   "tip": "The picture changed over 99% of the canvas. It took 3 tries."
+  },
+  {
+   "src": "/img/gesso/backward/chain-13.webp",
+   "label": "Erased: the leaves outside the window",
+   "tip": "The picture changed over 1% of the canvas."
+  },
+  {
+   "src": "/img/gesso/backward/chain-14.webp",
+   "label": "Erased: the sky. Bare canvas.",
+   "tip": "The sky is the first thing painted, so it's the last to go."
+  }
+ ],
+ "fwd": [
+  {
+   "src": "/img/gesso/backward/chain-14.webp",
+   "label": "Bare canvas"
+  },
+  {
+   "src": "/img/gesso/backward/step-01.webp",
+   "label": "Blend the sky in the window",
+   "tip": "Blend pale blue sky into the window corner, lighter toward its bottom.",
+   "colors": [
+    {
+     "name": "Pale sky blue",
+     "hex": "#a6c0da",
+     "recipe": "3 parts white, 1 part ultramarine, a touch of yellow"
+    },
+    {
+     "name": "Warm white",
+     "hex": "#fff9db",
+     "recipe": "12 parts white, 1 part yellow, a touch of red"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-02.webp",
+   "label": "Dab the dark leaves",
+   "tip": "Tap dark Leaf green leaf clumps over the sky in the window corner.",
+   "colors": [
+    {
+     "name": "Leaf green",
+     "hex": "#87b3a2",
+     "recipe": "3 parts white, 2 parts ultramarine, 1 part yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-03.webp",
+   "label": "Dab the sunlit leaves",
+   "tip": "Tap Sunny leaf green on the tops of the dark leaf clumps.",
+   "colors": [
+    {
+     "name": "Sunny leaf green",
+     "hex": "#95c145",
+     "recipe": "2 parts yellow, 1 part ultramarine, 1 part white, a touch of burnt sienna"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-04.webp",
+   "label": "Blend the blue wall",
+   "tip": "Blend the blue wall across the top of the canvas, from the window to the right edge.",
+   "colors": [
+    {
+     "name": "Deep wall blue",
+     "hex": "#5977dd",
+     "recipe": "1 part ultramarine, 1 part white"
+    },
+    {
+     "name": "Wall blue",
+     "hex": "#668eb6",
+     "recipe": "1 part ultramarine, 1 part white, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-05.webp",
+   "label": "Block in the window frame",
+   "tip": "Block in the cream window frame: the tall post, the crossbar and the ledge.",
+   "colors": [
+    {
+     "name": "Warm white",
+     "hex": "#fff9db",
+     "recipe": "12 parts white, 1 part yellow, a touch of red"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-06.webp",
+   "label": "Shade the frame's inner sides",
+   "tip": "Paint lavender shadow bands along the frame's inner sides and under its bars.",
+   "colors": [
+    {
+     "name": "Lavender gray",
+     "hex": "#8e8db1",
+     "recipe": "6 parts white, 3 parts ultramarine, 2 parts burnt sienna"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-07.webp",
+   "label": "Block in the windowsill",
+   "tip": "Paint the wooden windowsill flat Warm wood brown across the bottom of the canvas.",
+   "colors": [
+    {
+     "name": "Warm wood brown",
+     "hex": "#943e23",
+     "recipe": "2 parts red, 1 part ultramarine, a touch of yellow, a touch of white"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-08.webp",
+   "label": "Shade the sill's front edge",
+   "tip": "Dry-brush the sill's shadow and darken its front edge with Warm wood brown.",
+   "colors": [
+    {
+     "name": "Warm wood brown",
+     "hex": "#943e23",
+     "recipe": "2 parts red, 1 part ultramarine, a touch of yellow, a touch of white"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-09.webp",
+   "label": "Lay the sunny patch on the sill",
+   "tip": "Lay the Sunny peach patches of window sunlight on the left of the sill.",
+   "colors": [
+    {
+     "name": "Sunny peach",
+     "hex": "#ffaf7d",
+     "recipe": "4 parts white, 2 parts red, 1 part yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-10.webp",
+   "label": "Block in the blanket",
+   "tip": "Fill the blanket's long, low rounded shape with flat Golden yellow.",
+   "colors": [
+    {
+     "name": "Golden yellow",
+     "hex": "#ffbf11",
+     "recipe": "1 part yellow, a touch of red"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-11.webp",
+   "label": "Tap in the dark knit loops",
+   "tip": "Tap Dark ochre loops into the blanket's sunken middle, raised edge and fold.",
+   "colors": [
+    {
+     "name": "Dark ochre",
+     "hex": "#e7921c",
+     "recipe": "2 parts yellow, 1 part red, a touch of ultramarine"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-12.webp",
+   "label": "Tap in the light knit loops",
+   "tip": "Tap Pale yellow loops on the lit tops of the blanket's rolls.",
+   "colors": [
+    {
+     "name": "Pale yellow",
+     "hex": "#edaa15",
+     "recipe": "1 part yellow, a touch of red, a touch of burnt sienna"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-13.webp",
+   "label": "Block in the curled cat",
+   "tip": "Block in the curled cat as one flat Mid gray shape lying in the blanket.",
+   "colors": [
+    {
+     "name": "Mid gray",
+     "hex": "#938f91",
+     "recipe": "2 parts white, 1 part ultramarine, 1 part burnt sienna, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-14.webp",
+   "label": "Shade the cat's shadow side",
+   "tip": "Paint Dark gray over the cat, leaving the first gray only where white patches go.",
+   "colors": [
+    {
+     "name": "Dark gray",
+     "hex": "#847d89",
+     "recipe": "3 parts white, 2 parts ultramarine, 2 parts burnt sienna, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-15.webp",
+   "label": "Paint the white patches",
+   "tip": "Paint the white muzzle, the two front paws and the white patch on the cat's side.",
+   "colors": [
+    {
+     "name": "Warm white",
+     "hex": "#fff9db",
+     "recipe": "12 parts white, 1 part yellow, a touch of red"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-16.webp",
+   "label": "Pull the dark tabby stripes",
+   "tip": "Pull curved Charcoal tabby stripes over the gray cat's head, back and tail.",
+   "colors": [
+    {
+     "name": "Charcoal",
+     "hex": "#5b5459",
+     "recipe": "2 parts ultramarine, 2 parts burnt sienna, 1 part white, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-17.webp",
+   "label": "Paint the pink inside the ears",
+   "tip": "Fill the inside of both ears with Soft pink, leaving a gray rim.",
+   "colors": [
+    {
+     "name": "Soft pink",
+     "hex": "#c3928a",
+     "recipe": "6 parts white, 3 parts burnt sienna, 1 part red, 1 part ultramarine"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-18.webp",
+   "label": "Flick in the light fur",
+   "tip": "Flick light gray fur over the cat's head and back, stripes still showing.",
+   "colors": [
+    {
+     "name": "Light gray",
+     "hex": "#75716f",
+     "recipe": "1 part ultramarine, 1 part burnt sienna, 1 part white, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-19.webp",
+   "label": "Paint the pink nose",
+   "tip": "Press a small Soft pink nose onto the white muzzle, just under the closed eyes.",
+   "colors": [
+    {
+     "name": "Soft pink",
+     "hex": "#c3928a",
+     "recipe": "6 parts white, 3 parts burnt sienna, 1 part red, 1 part ultramarine"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-20.webp",
+   "label": "Line the closed eyes and mouth",
+   "tip": "Pull two curved Charcoal lines for the closed eyes and a tiny mouth under the nose.",
+   "colors": [
+    {
+     "name": "Charcoal",
+     "hex": "#5b5459",
+     "recipe": "2 parts ultramarine, 2 parts burnt sienna, 1 part white, a touch of yellow"
+    }
+   ]
+  },
+  {
+   "src": "/img/gesso/backward/step-21.webp",
+   "label": "Pull the whiskers",
+   "tip": "Pull thin Warm white whiskers fanning out from the muzzle on both sides.",
+   "colors": [
+    {
+     "name": "Warm white",
+     "hex": "#fff9db",
+     "recipe": "12 parts white, 1 part yellow, a touch of red"
+    }
+   ]
+  }
+ ],
+ "v2": "/img/gesso/backward/cmp-v2.webp",
+ "v3": "/img/gesso/backward/cmp-v3.webp",
+ "guard": [
+  {
+   "src": "/img/gesso/backward/guard-1.webp",
+   "caption": "<b>1. The picture given.</b> The cat is one flat gray coat."
+  },
+  {
+   "src": "/img/gesso/backward/guard-2.webp",
+   "caption": "<b>2. The model's answer.</b> A whole new picture."
+  },
+  {
+   "src": "/img/gesso/backward/guard-3.webp",
+   "caption": "<b>3. How far each pixel moved</b> in color. Brighter is farther."
+  },
+  {
+   "src": "/img/gesso/backward/guard-4.webp",
+   "caption": "<b>4. Two thresholds.</b> Red moved 20 or more. Orange moved 9 or more and touches red."
+  },
+  {
+   "src": "/img/gesso/backward/guard-5.webp",
+   "caption": "<b>5. What's kept.</b> 36% of the canvas, taken from the answer."
+  },
+  {
+   "src": "/img/gesso/backward/guard-6.webp",
+   "caption": "<b>6. The result.</b> Every other pixel is copied from picture 1."
+  }
+ ],
+ "paints": "/img/gesso/backward/paints.webp",
+ "paintsSize": [
+  1800,
+  1480
+ ]
+}

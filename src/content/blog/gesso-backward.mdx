@@ -1,0 +1,156 @@
+---
+title: "One painting, erased backward"
+titleAccent: "erased backward"
+tabTitle: One Painting, Erased Backward
+partTitle: One painting, erased backward
+description: "Gesso POC v3 renders the finished painting once, then has an image model un-paint it one piece at a time, down to bare canvas. Played forward, and cut a little finer with masks, those pictures are the lesson. Here is how it finds objects without an outline model, the two-threshold guard that keeps 13 repaints from melting the picture, and what it still gets wrong."
+dek: Cutting steps out of a finished painting leaves holes where things used to be. So Gesso POC v3 stopped cutting. It has the image model erase the painting backward, one piece at a time, and plays the pictures forward as the lesson.
+eyebrow: Experiment
+date: 2026-11-18
+readMinutes: 9
+image: /img/og/gesso-backward.jpg
+series: gesso
+part: 11
+draft: false
+---
+import Flipbook from '../../components/blog/Flipbook.astro';
+import CompareSlider from '../../components/blog/CompareSlider.astro';
+import Gallery from '../../components/blog/Gallery.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import Callout from '../../components/blog/Callout.astro';
+import b from '../../data/gesso/backward.json';
+
+This is part 11 of a series about Gesso, an ongoing experiment in turning any picture into a painting lesson. The [overview](/blog/gesso/) has the story so far, and [part 10](/blog/gesso-cut/) cut every step out of one finished painting. That stopped getting better, so this is Gesso POC v3. (Fair warning. This one gets technical.)
+
+## Cutting leaves holes
+
+POC v2 worked like scissors. An outline model found each part, and a step picture was the finished painting with the not-yet-painted parts cut away.
+
+Cutting something out leaves a hole. Whatever was behind the cat was never in the finished painting, because the cat was in front of it. So POC v2 made it up with fill rules. Stretch the nearby color in. Borrow texture from next door. Patch the rims. By the end, the code that built step pictures held about 34 tuned numbers, most of them named after one past failure.
+
+<CompareSlider
+  before={{ src: b.v2, label: 'POC v2' }}
+  after={{ src: b.v3, label: 'POC v3' }}
+  width={b.width}
+  height={b.height}
+  caption="The same photo at the same moment in the lesson. The blanket is done and there's no cat yet. POC v2 has a cat-shaped bite out of the blanket, because nobody ever painted the part the cat was lying on. (The two lessons were made on different days, so the paintings differ a little.)"
+/>
+
+From POC 1.0.0 to 1.12.1, known problems per lesson stayed between 2 and 7. Every fix came back as the same fault in a new shape. So I stopped fixing and started over.
+
+## Plan first, then paint backward
+
+POC v3 changes the order.
+
+1. **A painter's plan comes first.** Claude Opus 5.5 looks at the picture and writes the lesson a teacher would give. The things in it, what's behind each one, the stages, and what each step lays down. No outlines and no boxes. For the sleeping cat that's 7 things, 8 stages, 21 steps, and 17 paints.
+2. **The finished painting is still rendered once.**
+3. **The image model un-paints it,** one piece of the plan at a time. Each picture is made from the one before.
+4. **A guard keeps only what really changed** in each picture, and copies every other pixel across untouched.
+5. **The words come last.** They're written from the pictures and checked against measurements.
+
+<Flipbook
+  sequences={[
+    { label: 'Erased backward', width: b.width, height: b.height, frames: b.back },
+    { label: 'The lesson, forward', width: b.width, height: b.height, frames: b.fwd, lead: 1 },
+  ]}
+  unit="Picture"
+  caption="The sleeping cat. The first tab is how it was made, the finished painting erased down to bare canvas. The second tab is the 21-step lesson built from them."
+/>
+
+Played forward, the erased pictures are the backbone of the lesson. (Fourteen pictures don't make 21 steps by themselves. More on that below.) Nothing drifts between steps, and the last step is the finished painting exactly. Both get checked on every lesson.
+
+(I also tried painting forward from a bare canvas, one thing at a time. With no finished painting to aim at, it wandered away from the photo and a lot of the steps looked alike. That one's parked.)
+
+## Sunburst, the eraser
+
+The image model is OpenAI's `gpt-image-2.5-sunburst`. I can't tell you how it works inside. I can tell you how Gesso uses it and what comes back, because both shaped the design.
+
+Gesso sends it two things. One picture and one written request. There's no mask. A classic inpainting tool has you paint a blob over the area to redo, and it promises to leave the rest alone. Here you describe the change in words, and the model decides where it applies.
+
+The usage record for a call tells you a lot. The picture goes in as 1,536 image tokens, next to a couple hundred tokens of text. The answer comes back as 158. In other words, the model reads the picture as a compact code and writes a whole new picture back. It doesn't patch pixels. One erase costs about 1.8 cents and takes around ten seconds.
+
+You can measure what that does. Even when the request says "change nothing else", the brushwork comes back redrawn and edges shift. Across the cat's 13 kept pictures, between 1.4% and 51% of the area that should have stayed put had moved. Stack 13 of those and the painting slowly melts.
+
+So the request does a lot of work. Code builds every one from the plan. This is the one that removes the cat's first flat coat (trimmed).
+
+> This is an unfinished acrylic painting. Remove these things from it completely: the plain gray curled cat shape. Behind them there is only this: The blue wall; The yellow knit blanket. Paint that there, plain and empty, as it is in the open places of the painting, in the same colors and the same brushwork. Paint no new thing there [...] Leave no trace, outline, or shadow of what you removed. [...] These are already painted and stay exactly as they are, wherever they can be seen now: the pale blue sky seen through the window; The leaves outside the window; The blue wall; The white window frame; The wooden windowsill; The yellow knit blanket.
+
+Each clause is there because a test failed without it. Told to "continue what is around", the model invents new things to fill the space, so the request names what's behind (from the plan). Without the list of what stays, a picture that removes a row of bushes repaints the woods behind them. And the model likes to leave a few small ones behind, hence "the dark, the faint and the small ones too" in the full version.
+
+## Finding objects without looking for them
+
+Part 10 found objects the usual way. Run a model that outlines things, then work with the outlines. It worked on things with an edge and fell over on things without one. Worse, the outlines ended up deciding the lesson. A cow's face that didn't outline well got no step of its own.
+
+POC v3 runs no outline model at all. A thing's shape is whatever its picture changed. Ask the model to remove the cat, compare the answer with the picture it was given, and the part that changed is the cat. (As far as the lesson cares, anyway.)
+
+That shape follows how the painting gets made. If removing the cat also removes the dent it left in the blanket, the dent belongs to the cat's step, which is where a painter would deal with it. It also needs no training. It works the same on a cat, a waterfall, or a haze of far trees.
+
+The catch is that a change is often bigger than the thing. It takes the shadow or the reflection with it. Compared with POC v2's outlines for the same things, the overlap ran anywhere from 17% to 88%. So measurements use the solid middle of the change, and the picture uses all of it.
+
+## The guard
+
+The guard decides which pixels to believe. It's about forty lines of OpenCV and five numbers.
+
+<Gallery cols={3} items={b.guard} caption="The guard, on the picture that removes the cat's first coat. The model was asked to change nothing else." />
+
+First it blurs both pictures a little (2.5 pixels), so a bristle mark that moved half a pixel doesn't count.
+
+Then it measures how far each pixel moved in color. It uses Lab, the color space from part 10, where distances roughly match what your eye sees.
+
+Then come two thresholds. A pixel that moved 20 or more was certainly repainted. A pixel that moved 9 or more might have been. A "might" patch is kept only if it touches a "certainly" pixel. If you've met the Canny edge detector, it's the same trick (hysteresis). One threshold forces a bad choice. Set it high and you lose the cat's soft edges, so a gray halo stays behind. Set it low and you keep every flicker of redrawn brushwork on the wall. Two thresholds keep the soft edge because it's attached to something that definitely changed.
+
+Then it tidies up. Small gaps close. A hole smaller than 0.4% of the picture gets filled. A loose speck under 0.02% gets dropped.
+
+Last, inside the kept shape it takes the model's pixels. Everywhere else it copies the old picture, byte for byte. That last line is the whole guarantee. For the cat, pixels moved outside a kept change come to 0.00% across all 13.
+
+## Painting what was never there
+
+Removing a thing is half the job. The other half is filling the space, which the trade calls inpainting. The classic way looks at the hole's edges and pushes those colors inward. That's fine for a small hole in a plain sky. It can't fill a cat-sized hole in a knit blanket, because the answer isn't at the edges. Something has to know what a blanket looks like where a cat isn't lying on it.
+
+In POC v3 the model removes and fills in one move, and the plan says what belongs there. There are three kinds of erase. A thing on bare canvas (the wall) leaves plain white. A thing in front of others (the cat) leaves what the plan says is behind it. A layer on a thing that stays (stripes, fur, whiskers) takes that thing back one stage.
+
+The third kind is where the extra steps come from. A painter blocks in a flat gray cat, shades it, adds the white patches, pulls the stripes, flicks the fur, and finishes the face. Backward, that's five erases on one animal.
+
+Two checks run on every picture. The guard looks at a band just outside what was removed. If 2% of the canvas or more still looks like the thing that went, it asks again on the spot. Then a second copy of Opus 5.5, with no memory of the run, gets the before, the after, and what was asked for. It answers two questions. Was anything left? Did anything new creep in? A failed picture is thrown away and asked for again, at most twice. The cat needed 16 pictures for 13 erases. The blue wall took three tries.
+
+## After the pictures
+
+The same changes do four more jobs.
+
+**They split an erase into steps.** Thirteen erases leave 14 pictures, and the lesson has 21 steps. The other seven are cut with masks, and the model isn't asked for anything. One erase took off the cat's stripes and the pink in its ears together. Every pixel that erase changed goes to whichever paint it's closest to, charcoal or pink. Lay only the charcoal pixels and you have the stripes step. Lay the rest and you have the ears. The same masks draw each step's teaching pictures. Every step gets an outline of where its paint goes, and some get a map of which paint goes where or a close-up.
+
+**They're the ruler.** Each shape is measured in inches on the canvas. The cat is 14.91 in wide and 7.18 in tall, with its top 1.35 in from the top edge.
+
+**They pick the paints.** The plan names each paint and guesses its color. Then each pixel a step changed goes to the nearest of that step's paints, and each paint moves to the middle of the pixels it won. (A small k-means, the same idea as [part 5](/blog/gesso-filters/).) A second model, Mixbox, turns each color into a recipe. Paint doesn't mix like light. Average blue and yellow on a screen and you get gray. Mix the paints and you get green. Mixbox models pigment, and Gesso searches for the mix of tubes that lands closest.
+
+<figure class="bleed">
+  <img src={b.paints} alt="The cat lesson's 17 paints, each with a bar showing how much of each tube goes into it" width={b.paintsSize[0]} height={b.paintsSize[1]} loading="lazy" style="width:100%;height:auto;border-radius:16px" />
+  <figcaption>The cat's 17 paints, all from five tubes. Look closely and "Light gray" came out darker than "Mid gray". More on that below.</figcaption>
+</figure>
+
+**They keep the writers honest.** Eight copies of Opus 5.5 write at once, one per stage, each with its steps' before and after pictures. Then a checker compares every number and every left, right, top, and bottom with the measurements. The cat's first step says its shape is "about 15 in wide and 7 in tall". Measured, 14.91 and 7.18. Both are inside the allowed 0.27 in, so the sentence stands. One that fails goes back to its writer once, and after that it gets cut. In testing, a wrong position planted in a sentence was caught 97% to 100% of the time.
+
+<StatRow stats={[
+  { value: '1', label: 'picture of the finished painting' },
+  { value: '16', label: 'erase pictures, 3 of them thrown away' },
+  { value: '0.00%', label: 'of pixels moved outside a kept change' },
+  { value: '60¢', label: 'image-model cost for the whole lesson' },
+]} />
+
+That 60 cents compares with 8 for part 10's chickadee. It's the price of the model painting what's behind things. I think it's cheap.
+
+## Who does what
+
+I make the decisions, the agents do the typing, and nothing ships until I've looked at it. The budget, the bar it had to clear, and the call to replace POC v2 were mine. Before the switch, five lessons went through with nobody steering (a highland cow, this cat, a birch grove, a chickadee, and a lavender field). I looked at them and said "Worlds better than v2." You can open the [sleeping cat](https://gesso-lessons.pages.dev/lessons/sleeping-cat/) on the [lessons site](https://gesso-lessons.pages.dev/) and judge for yourself.
+
+## What broke
+
+- **Known problems per lesson are still 4 to 7.** I wanted under 2. Most are paints whose color drifted away from their name, like that "Light gray". The picture is right and the label is wrong.
+- **The step after a flat first coat is a big jump.** A thing goes from a paper cutout to fully textured in one step.
+- **Faint things on a sky won't fully erase.** On the cow lesson, about half of the clouds survived their own erase.
+- **A stray change can still get through.** Tested blind on 77 pictures, the checker caught two of three known strays.
+- **The guard's numbers were set on three pictures.** They've held so far.
+
+What surprised me is how little of this is the image model being clever. It does one thing, over and over. It repaints a picture with something missing. The rest is a plan, two thresholds, a ruler, and a second reader.
+
+<Callout title="What's next.">Making POC v3 the default, then rerunning the older lessons from their photos. After that, Christa and I still owe these lessons a real brush.</Callout>
