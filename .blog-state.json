@@ -1,5 +1,5 @@
 {
-  "lastRun": "2026-11-15T14:14:06Z",
+  "lastRun": "2026-11-22T14:13:23Z",
   "lastRepCommit": "4dd5901dd5fdc0e5402161f6ab442f17b0f4393a",
   "suggestedShares": [
     "ai-delivery-team-asking",
@@ -7,7 +7,8 @@
     "ai-governance-hole",
     "ai-governance-threat-model",
     "ai-delivery-team-backup",
-    "gesso-cut"
+    "gesso-cut",
+    "gesso-backward"
   ],
   "lastBacklogRepCommit": "47d709cfea5fdaf7633ff3fc5fe9faa92e0fed85"
 }
