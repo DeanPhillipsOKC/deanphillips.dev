@@ -1,0 +1,95 @@
+---
+// Training versus inference, side by side. Left: books stream into a grid of knobs that keep turning
+// (training nudges the model's numbers). Right: the books are gone, the knobs are locked where training
+// left them, and a question goes in and an answer comes out (inference). Plays when it scrolls into view.
+// Without JavaScript or with reduced motion, it's a still diagram with the same labels.
+interface Props { caption?: string }
+const { caption } = Astro.props;
+const knobs = Array.from({ length: 24 }, (_, i) => ({ r: ((i * 137) % 300) - 150, d: (i * 0.29) % 1.7 }));
+const books = ['var(--teal)', 'var(--violet)', 'var(--warn)', 'var(--pink)', 'var(--ok)', 'var(--violet)'];
+---
+<figure class="sve panel bleed">
+  <div class="sve-grid">
+    <section class="sve-card sve-train">
+      <p class="sve-k">Studying <span>(training)</span></p>
+      <p class="sve-when">Happens once, over weeks or months.</p>
+      <div class="sve-scene">
+        <div class="sve-books" aria-hidden="true">
+          {books.map((c, i) => <i style={`--c:${c};--i:${i}`}></i>)}
+        </div>
+        <div class="sve-arrow" aria-hidden="true"></div>
+        <div class="sve-knobs" aria-hidden="true">
+          {knobs.map((k) => <b style={`--r:${k.r}deg;--d:${k.d}s`}></b>)}
+        </div>
+      </div>
+      <p class="sve-say">It reads a mountain of text and nudges billions of dials, a tiny bit at a time, until its guesses get good.</p>
+    </section>
+    <section class="sve-card sve-exam">
+      <p class="sve-k">The exam <span>(inference)</span></p>
+      <p class="sve-when">Happens every time you ask, in seconds.</p>
+      <div class="sve-scene">
+        <div class="sve-gone" aria-hidden="true"><span>no books</span></div>
+        <div class="sve-flow">
+          <span class="sve-chip sve-in">your question</span>
+          <div class="sve-knobs sve-locked" aria-hidden="true">
+            {knobs.map((k) => <b style={`--r:${k.r}deg`}></b>)}
+          </div>
+          <span class="sve-chip sve-out">an answer</span>
+        </div>
+      </div>
+      <p class="sve-say">The books are gone. The dials stay right where studying left them, and your question runs through them.</p>
+    </section>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.sve')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('sve-ready');
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { root.classList.add('sve-go'); io.disconnect(); } }, { threshold: 0.4 });
+    io.observe(root);
+  }
+</script>
+
+<style is:global>
+  .sve p { margin: 0; }
+  .sve-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .sve-card { border-radius: 16px; padding: 16px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 10px; align-content: start; }
+  .sve-k { font: 700 1.2rem/1.2 "Space Grotesk", sans-serif; }
+  .sve-k span { font: 500 0.85rem Inter, sans-serif; color: var(--muted); }
+  .sve-train .sve-k { color: var(--violet); }
+  .sve-exam .sve-k { color: var(--teal); }
+  .sve-when { font: 600 0.82rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .sve-say { font-size: 0.95rem; line-height: 1.5; }
+  .sve-scene { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .sve-books { display: grid; grid-template-columns: repeat(2, 14px); gap: 4px; }
+  .sve-books i { width: 14px; height: 34px; border-radius: 3px; background: var(--c); box-shadow: inset 0 -6px 0 rgb(0 0 0 / .18), inset 3px 0 0 rgb(255 255 255 / .2); }
+  .sve-arrow { width: 26px; height: 2px; background: var(--muted); position: relative; }
+  .sve-arrow::after { content: ''; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left-color: var(--muted); border-right: 0; }
+  .sve-knobs { display: grid; grid-template-columns: repeat(6, 18px); gap: 5px; }
+  .sve-knobs b { width: 18px; height: 18px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--line); position: relative; }
+  .sve-knobs b::after { content: ''; position: absolute; left: 50%; top: 2px; width: 2px; height: 7px; margin-left: -1px; border-radius: 2px; background: var(--violet); transform-origin: 50% 6px; transform: rotate(var(--r)); }
+  .sve-locked b::after { background: var(--teal); }
+  .sve-gone { position: absolute; left: 6px; top: 6px; font: 600 0.7rem Inter, sans-serif; color: var(--muted); padding: 4px 8px; border: 1px dashed var(--line); border-radius: 8px; text-decoration: line-through; }
+  .sve-flow { display: grid; justify-items: center; gap: 8px; }
+  .sve-chip { font: 600 0.8rem/1 Inter, sans-serif; padding: 6px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+  .sve-out { border-color: var(--teal); color: var(--teal); }
+  /* Motion, once it scrolls into view. */
+  .sve-ready .sve-books i { opacity: 0; }
+  .sve-go .sve-books i { animation: sve-feed 2.4s ease-in-out infinite; animation-delay: calc(var(--i) * .4s); }
+  .sve-go .sve-train .sve-knobs b::after { animation: sve-turn 2.6s ease-in-out infinite alternate; animation-delay: calc(var(--d) * -1); }
+  .sve-ready .sve-in, .sve-ready .sve-out { opacity: 0; }
+  .sve-go .sve-in { animation: sve-down 3.2s ease-in-out infinite; }
+  .sve-go .sve-out { animation: sve-up 3.2s ease-in-out infinite; }
+  .sve-go .sve-locked { animation: sve-glow 3.2s ease-in-out infinite; }
+  @keyframes sve-feed { 0% { opacity: 0; transform: translateX(-20px); } 25%, 60% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(46px) scale(.4); } }
+  @keyframes sve-turn { from { transform: rotate(calc(var(--r) - 70deg)); } to { transform: rotate(calc(var(--r) + 40deg)); } }
+  @keyframes sve-down { 0% { opacity: 0; transform: translateY(-10px); } 15%, 45% { opacity: 1; transform: none; } 55%, 100% { opacity: 0; transform: translateY(14px); } }
+  @keyframes sve-up { 0%, 50% { opacity: 0; transform: translateY(-10px); } 65%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+  @keyframes sve-glow { 0%, 35%, 70%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 6px var(--teal)); } }
+  @media (max-width: 560px) {
+    .sve-grid { grid-template-columns: 1fr; }
+    .sve-scene { height: 130px; }
+  }
+</style>

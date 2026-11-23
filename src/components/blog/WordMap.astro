@@ -1,0 +1,116 @@
+---
+// Step two: every token gets a spot on a map, and words that mean similar things sit close together.
+// When it scrolls into view the words start scattered and glide into place (a picture of what training
+// does to the map). Tap any word to see its nearest neighbors. The map is hand-drawn in two directions;
+// a real model's map has thousands, and the caption says so. Without JavaScript, the words show in place.
+interface W { w: string; x: number; y: number; g: string }
+interface Props { words: W[]; pick?: string; caption?: string }
+const { words, pick = words[0].w, caption } = Astro.props;
+const HUE: Record<string, string> = { animal: 'var(--teal)', food: 'var(--warn)', ride: 'var(--violet)', feel: 'var(--pink)', royal: 'var(--ok)', water: 'var(--teal)', money: 'var(--warn)', bank: 'var(--text)' };
+---
+<figure class="wm panel bleed" data-pick={pick}>
+  <div class="wm-map">
+    <svg class="wm-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+    {words.map((d) => (
+      <button type="button" class={`wm-w${d.g === 'bank' ? ' wm-bank' : ''}`} data-w={d.w} data-x={d.x} data-y={d.y}
+        style={`left:${d.x}%;top:${d.y}%;--c:${HUE[d.g] ?? 'var(--text)'}`}>{d.w}</button>
+    ))}
+  </div>
+  <div class="wm-bar">
+    <p class="wm-near" aria-live="polite">Tap any word to see its closest neighbors.</p>
+    <button type="button" class="wm-again" hidden>Scramble it and watch it learn again</button>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  for (const root of document.querySelectorAll<HTMLElement>('.wm')) {
+    const map = root.querySelector<HTMLElement>('.wm-map')!;
+    const svg = root.querySelector<SVGSVGElement>('.wm-lines')!;
+    const near = root.querySelector<HTMLElement>('.wm-near')!;
+    const again = root.querySelector<HTMLButtonElement>('.wm-again')!;
+    const btns = [...root.querySelectorAll<HTMLButtonElement>('.wm-w')];
+    const pts = btns.map((b) => ({ b, w: b.dataset.w!, x: +b.dataset.x!, y: +b.dataset.y! }));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function select(w: string) {
+      const me = pts.find((p) => p.w === w)!;
+      const nn = pts.filter((p) => p !== me).map((p) => ({ p, d: Math.hypot(p.x - me.x, (p.y - me.y) * 0.7) })).sort((a, b) => a.d - b.d).slice(0, 3);
+      svg.replaceChildren();
+      for (const { p } of nn) {
+        const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        l.setAttribute('x1', String(me.x)); l.setAttribute('y1', String(me.y));
+        l.setAttribute('x2', String(p.x)); l.setAttribute('y2', String(p.y));
+        l.setAttribute('vector-effect', 'non-scaling-stroke');
+        svg.append(l);
+      }
+      for (const p of pts) {
+        p.b.classList.toggle('on', p === me);
+        p.b.classList.toggle('near', nn.some((n) => n.p === p));
+        p.b.setAttribute('aria-pressed', String(p === me));
+      }
+      near.innerHTML = `Closest to <b></b>: ${nn.map(() => '<span></span>').join(', ')}.`;
+      near.querySelector('b')!.textContent = me.w;
+      near.querySelectorAll('span').forEach((s, i) => (s.textContent = nn[i].p.w));
+    }
+    for (const p of pts) p.b.addEventListener('click', () => select(p.w));
+
+    // The words start in random spots and glide to where they belong.
+    function learn() {
+      svg.replaceChildren();
+      for (const p of pts) p.b.classList.remove('on', 'near');
+      near.textContent = 'Training moves every word until similar ones end up as neighbors…';
+      const from = pts.map(() => ({ x: 6 + Math.random() * 88, y: 6 + Math.random() * 88 }));
+      const t0 = performance.now(), dur = 2200;
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / dur);
+        pts.forEach((p, i) => {
+          const k = ease(Math.max(0, Math.min(1, t * 1.25 - (i % 7) * 0.035)));
+          p.b.style.left = `${from[i].x + (p.x - from[i].x) * k}%`;
+          p.b.style.top = `${from[i].y + (p.y - from[i].y) * k}%`;
+        });
+        if (t < 1) requestAnimationFrame(step);
+        else select(root.dataset.pick!);
+      };
+      requestAnimationFrame(step);
+    }
+
+    again.hidden = false;
+    again.addEventListener('click', learn);
+    if (reduce) { select(root.dataset.pick!); continue; }
+    map.classList.add('wm-wait');
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      map.classList.remove('wm-wait');
+      learn();
+    }, { threshold: 0.45 });
+    io.observe(root);
+  }
+</script>
+
+<style is:global>
+  .wm { padding: 14px; }
+  .wm p { margin: 0; }
+  .wm-map { position: relative; aspect-ratio: 16 / 11; border-radius: 14px; background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 30%, transparent) 1px, transparent 0) 0 0 / 22px 22px, var(--bg-2); overflow: hidden; }
+  .wm-wait .wm-w { opacity: 0; }
+  .wm-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wm-lines line { stroke: var(--teal); stroke-width: 2; stroke-dasharray: 4 4; }
+  .wm-w { position: absolute; transform: translate(-50%, -50%); font: 600 0.92rem/1 "Space Grotesk", sans-serif; padding: 5px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 14%, var(--card)); color: var(--text); cursor: pointer; white-space: nowrap; transition: opacity .3s, box-shadow .2s; }
+  .wm-w::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--c); margin-right: 5px; vertical-align: 1px; }
+  .wm-bank { border-style: dashed; }
+  .wm-w.on { box-shadow: 0 0 0 3px var(--teal); z-index: 2; }
+  .wm-w.near { box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 60%, transparent); z-index: 1; }
+  .wm-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .wm-near { font-size: 0.95rem; color: var(--muted); }
+  .wm-near b { color: var(--text); }
+  .wm-again { font: 600 0.82rem/1 Inter, sans-serif; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  @media (max-width: 560px) {
+    .wm { padding: 10px; }
+    .wm-map { aspect-ratio: 3 / 4; }
+    .wm-w { font-size: 0.7rem; padding: 4px 5px; }
+    .wm-w::before { width: 5px; height: 5px; margin-right: 3px; }
+  }
+</style>

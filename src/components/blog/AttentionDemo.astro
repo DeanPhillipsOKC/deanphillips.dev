@@ -1,0 +1,111 @@
+---
+// Step three: attention. One word ("bank") looks at the other words in its sentence, and the thicker the
+// arc, the more that word changes what "bank" means here. Switch sentences and the meaning slides from one
+// end to the other. The weights are made up to show the idea, and the caption says so.
+// Without JavaScript, the sentences and their strongest word show as text.
+interface S { label: string; words: string[]; weights: number[]; lean: number }
+interface Props { focus: string; ends: [string, string]; sentences: S[]; caption?: string }
+const { focus, ends, sentences, caption } = Astro.props;
+---
+<figure class="att panel bleed" data-focus={focus} data-s={JSON.stringify(sentences)}>
+  <div class="att-tabs" role="group" aria-label="Pick a sentence" hidden>
+    {sentences.map((s, i) => <button type="button" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.label}</button>)}
+  </div>
+  <div class="att-stage">
+    <svg class="att-arcs" aria-hidden="true"></svg>
+    <p class="att-words"></p>
+  </div>
+  <div class="att-meter" hidden>
+    <p class="att-q">What does <b>{focus}</b> mean here?</p>
+    <div class="att-track"><span class="att-dot"></span></div>
+    <p class="att-ends"><span>{ends[0]}</span><span>{ends[1]}</span></p>
+  </div>
+  <ul class="att-fallback">
+    {sentences.map((s) => <li>{s.words.join(' ')}</li>)}
+  </ul>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type S = { label: string; words: string[]; weights: number[]; lean: number };
+  for (const root of document.querySelectorAll<HTMLElement>('.att')) {
+    const focus = root.dataset.focus!;
+    const ss: S[] = JSON.parse(root.dataset.s!);
+    const words = root.querySelector<HTMLElement>('.att-words')!, svg = root.querySelector<SVGSVGElement>('.att-arcs')!;
+    const stage = root.querySelector<HTMLElement>('.att-stage')!, dot = root.querySelector<HTMLElement>('.att-dot')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.att-tabs button')];
+    root.querySelector<HTMLElement>('.att-fallback')!.remove();
+    root.querySelector<HTMLElement>('.att-tabs')!.hidden = false;
+    root.querySelector<HTMLElement>('.att-meter')!.hidden = false;
+    let cur = 0;
+
+    function show(i: number) {
+      cur = i;
+      tabs.forEach((t, j) => t.setAttribute('aria-pressed', String(j === i)));
+      const s = ss[i];
+      words.replaceChildren();
+      s.words.forEach((w, j) => {
+        const c = document.createElement('span');
+        c.className = 'att-w' + (w === focus ? ' att-focus' : '');
+        c.textContent = w;
+        c.style.setProperty('--a', String(s.weights[j]));
+        words.append(c);
+      });
+      dot.style.left = `${s.lean * 100}%`;
+      requestAnimationFrame(arcs);
+    }
+    function arcs() {
+      const s = ss[cur];
+      const box = stage.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+      svg.replaceChildren();
+      const chips = [...words.children] as HTMLElement[];
+      const f = chips.findIndex((c) => c.textContent === focus);
+      const fr = chips[f].getBoundingClientRect();
+      const fx = fr.left + fr.width / 2 - box.left, fy = fr.top - box.top;
+      chips.forEach((c, j) => {
+        if (j === f || s.weights[j] < 0.03) return;
+        const r = c.getBoundingClientRect();
+        const x = r.left + r.width / 2 - box.left, y = r.top - box.top;
+        const lift = Math.min(box.height * 0.8, 24 + Math.abs(x - fx) * 0.35);
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', `M${fx},${fy - 2} C${fx},${fy - lift} ${x},${y - lift} ${x},${y - 2}`);
+        p.style.strokeWidth = String(1.5 + s.weights[j] * 14);
+        p.style.opacity = String(0.25 + s.weights[j] * 1.1);
+        svg.append(p);
+        const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t.setAttribute('x', String((fx + x) / 2)); t.setAttribute('y', String(Math.min(fy, y) - lift * 0.75 - 6));
+        t.textContent = `${Math.round(s.weights[j] * 100)}%`;
+        if (s.weights[j] >= 0.1) svg.append(t);
+      });
+    }
+    tabs.forEach((t) => t.addEventListener('click', () => show(+t.dataset.i!)));
+    new ResizeObserver(() => arcs()).observe(stage);
+    show(0);
+  }
+</script>
+
+<style is:global>
+  .att { container-type: inline-size; }
+  .att p { margin: 0; }
+  .att-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .att-tabs button { font: 600 0.88rem/1.2 Inter, sans-serif; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--muted); cursor: pointer; }
+  .att-tabs button[aria-pressed="true"] { border-color: var(--teal); color: var(--text); background: color-mix(in srgb, var(--teal) 14%, var(--bg-2)); }
+  .att-stage { position: relative; padding-top: 110px; }
+  .att-arcs { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .att-arcs path { fill: none; stroke: var(--violet); stroke-linecap: round; transition: d .4s; }
+  .att-arcs text { fill: var(--muted); font: 600 11px Inter, sans-serif; text-anchor: middle; }
+  .att-words { display: flex; flex-wrap: nowrap; gap: clamp(3px, 1.2cqw, 8px); justify-content: center; }
+  .att-w { font: 600 clamp(0.68rem, 3.3cqw, 1.3rem)/1 "Space Grotesk", sans-serif; padding: clamp(6px, 1.4cqw, 9px) clamp(4px, 1.6cqw, 11px); white-space: nowrap; border-radius: 10px; background: color-mix(in srgb, var(--violet) calc(var(--a) * 70%), var(--bg-2)); border: 1px solid var(--line); }
+  .att-focus { background: color-mix(in srgb, var(--teal) 24%, var(--bg-2)); border: 2px solid var(--teal); }
+  .att-meter { margin-top: 26px; }
+  .att-q { font-size: 0.95rem; color: var(--muted); margin-bottom: 10px !important; }
+  .att-q b { color: var(--teal); }
+  .att-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--teal) 50%, transparent), color-mix(in srgb, var(--warn) 50%, transparent)); }
+  .att-dot { position: absolute; top: 50%; width: 22px; height: 22px; border-radius: 50%; background: var(--text); border: 3px solid var(--card); transform: translate(-50%, -50%); transition: left .6s cubic-bezier(.3, .7, .3, 1.1); box-shadow: 0 2px 8px rgb(0 0 0 / .3); }
+  .att-ends { display: flex; justify-content: space-between; font: 600 0.85rem/1.3 Inter, sans-serif; margin-top: 8px !important; }
+  .att-ends span:first-child { color: var(--teal); }
+  .att-ends span:last-child { color: var(--warn); }
+  @media (max-width: 560px) { .att-stage { padding-top: 96px; } }
+  @media (prefers-reduced-motion: reduce) { .att-dot { transition: none; } }
+</style>
