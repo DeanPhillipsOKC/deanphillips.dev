@@ -4,30 +4,20 @@
 // the end of the answer. Then the whole answer is read again for the next guess. The percentages are
 // made up to show the idea, and the caption says so.
 //
-// With `space` (and always in the social video), above the bars the tokens float in a slowly swaying 3D cloud, grouped by meaning (hand-placed; a real
-// model's space has thousands of directions). A glowing "thought" point stands for the whole sentence so
-// far: for each guess it drifts to wherever the candidates' scores point (here, their probability-weighted
-// middle), the candidates light up by score, and a blue trail runs to the token that gets picked. The trail
-// jumps between groups ("sky" to "looks" to "blue"), because the next token is wherever the whole sentence
-// points, not the last word's nearest neighbor.
-//
 // Drawn as a pure function of time, so scripts/video/next-word-reel.mjs can record it frame by frame:
 // it sets data-reel on the figure (the loop stops) and calls window.__nextWord.draw(seconds).
 // Without JavaScript, or with reduced motion, it shows the finished answer and the last guess.
 interface Step { pick: string; options: [string, number][] }
-// The post uses the simpler version (no `space`); scripts/video/next-word-reel.mjs turns the space on for
-// the social video with window.__nextWord.showSpace().
-interface Props { question: string; steps: Step[]; groups: Record<string, string[]>; space?: boolean; caption?: string }
-const { question, steps, groups, space = false, caption } = Astro.props;
+interface Props { question: string; steps: Step[]; caption?: string }
+const { question, steps, caption } = Astro.props;
 const answer = steps.map((s) => s.pick).join('');
 const last = steps[steps.length - 1];
 ---
-<figure class="nw panel bleed" data-steps={JSON.stringify(steps)} data-groups={JSON.stringify(groups)} data-space={space ? '1' : undefined}>
+<figure class="nw panel bleed" data-steps={JSON.stringify(steps)}>
   <p class="nw-reel-top" aria-hidden="true">This is how an AI answers you.</p>
   <div class="nw-stage">
     <p class="nw-q"><span class="nw-who">You asked</span><span class="nw-qtext">{question}</span></p>
     <p class="nw-a"><span class="nw-who">The AI</span><span class="nw-atext">{answer}</span><span class="nw-cursor" aria-hidden="true"></span></p>
-    <canvas class="nw-space" role="img" aria-label="Tokens floating in a turning 3D space, grouped by meaning. A glowing point moves with each guess, the likeliest tokens light up, and a blue trail runs to each token that gets picked." hidden></canvas>
     <div class="nw-guess">
       <p class="nw-head"><span class="nw-n">Guess {steps.length}</span> <span class="nw-what">what comes next?</span></p>
       <ol class="nw-bars">
@@ -50,15 +40,6 @@ const last = steps[steps.length - 1];
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const ease = (t: number) => 1 - (1 - t) ** 3;
 
-  type V3 = [number, number, number];
-  // Where each group of tokens sits in the space. Hand-placed, like the word map further down.
-  const CENTERS: Record<string, V3> = {
-    small: [-1.0, 0.5, -0.35], sky: [0.75, 0.6, 0.4], action: [-0.35, -0.62, 0.8], link: [0.25, -0.1, -0.95], mark: [0.7, -0.5, -0.1],
-  };
-  const hash = (str: string, salt: number) => { let h = 2166136261 ^ salt; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
-  const mix = (a: V3, b: V3, k: number): V3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-  const key = (tok: string) => tok.trim() || tok;
-
   for (const root of document.querySelectorAll<HTMLElement>('.nw')) setup(root);
 
   function setup(root: HTMLElement) {
@@ -68,163 +49,6 @@ const last = steps[steps.length - 1];
     const atext = $('.nw-atext'), n = $('.nw-n'), what = $('.nw-what'), bars = $('.nw-bars'), note = $('.nw-note');
     const guess = $('.nw-guess'), pause = $<HTMLButtonElement>('.nw-pause');
     const endNote = $('.nw-reel-end');
-
-    // The space: every labeled token at its group's spot plus a little jitter, and a haze of unlabeled
-    // dots standing in for the tens of thousands of other tokens.
-    const groups: Record<string, string[]> = JSON.parse(root.dataset.groups!);
-    const pos = new Map<string, V3>();
-    for (const [g, toks] of Object.entries(groups)) for (const tok of toks) {
-      const c = CENTERS[g];
-      pos.set(tok, [c[0] + (hash(tok, 1) - 0.5) * 0.8, c[1] + (hash(tok, 2) - 0.5) * 0.62, c[2] + (hash(tok, 3) - 0.5) * 0.8]);
-    }
-    const at = (tok: string): V3 => pos.get(key(tok)) ?? [0, 0, 0];
-    const haze: V3[] = [];
-    const cs = Object.values(CENTERS);
-    for (let i = 0; i < 420; i++) {
-      const c = cs[i % cs.length], r = 0.12 + hash('h' + i, 4) * 0.62, a = hash('h' + i, 5) * 6.283, b = Math.acos(2 * hash('h' + i, 6) - 1);
-      haze.push(i % 5 === 0
-        ? [(hash('h' + i, 7) - 0.5) * 3, (hash('h' + i, 8) - 0.5) * 2.2, (hash('h' + i, 9) - 0.5) * 3]
-        : [c[0] + r * Math.sin(b) * Math.cos(a), c[1] + r * 0.8 * Math.cos(b), c[2] + r * Math.sin(b) * Math.sin(a)]);
-    }
-    // The thought for each guess: the probability-weighted middle of its candidates, pulled back toward the
-    // center of the space so the beams it sends out can be seen.
-    const thoughts: V3[] = steps.map((s) => {
-      const sum = s.options.reduce((a, [, p]) => a + p, 0);
-      return s.options.reduce<V3>((acc, [tok, p]) => { const q = at(tok); return [acc[0] + q[0] * p / sum, acc[1] + q[1] * p / sum, acc[2] + q[2] * p / sum]; }, [0, 0, 0]);
-    }).map((m) => mix(m, [0, 0, 0], 0.38));
-
-    const canvas = $<HTMLCanvasElement>('.nw-space');
-    canvas.hidden = !root.dataset.space;
-    const ctx = canvas.getContext('2d')!;
-    let W = 0, H = 0, dpr = 1, lastT = 0;
-    let colors = { text: '#eef2f7', muted: '#9aa6b6', teal: '#4fd1c5', violet: '#a78bfa', trail: '#5ab4ff', light: false };
-    function fit() {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
-      W = canvas.clientWidth; H = canvas.clientHeight;
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      const cs = getComputedStyle(root);
-      const v = (n: string, f: string) => cs.getPropertyValue(n).trim() || f;
-      const light = matchMedia('(prefers-color-scheme: light)').matches && document.documentElement.dataset.theme !== 'dark';
-      colors = { text: v('--text', colors.text), muted: v('--muted', colors.muted), teal: v('--teal', colors.teal), violet: v('--violet', colors.violet), trail: light ? '#1d6fd8' : '#5ab4ff', light };
-    }
-
-    function project(p0: V3, yaw: number) {
-      const pitch = 0.32;
-      const p: V3 = [p0[0] - 0.14, p0[1] - 0.04, p0[2]];
-      const x1 = p[0] * Math.cos(yaw) + p[2] * Math.sin(yaw), z1 = -p[0] * Math.sin(yaw) + p[2] * Math.cos(yaw);
-      const y2 = p[1] * Math.cos(pitch) - z1 * Math.sin(pitch), z2 = p[1] * Math.sin(pitch) + z1 * Math.cos(pitch);
-      const f = 4.5 / (4.5 + z2);
-      const s = Math.min(W * 0.36, H * 0.46);
-      return { x: W / 2 + x1 * s * f, y: H / 2 - y2 * s * f, f, z: z2 };
-    }
-    const alpha = (hex: string, a: number) => {
-      if (hex.startsWith('#') && hex.length === 7) return hex + Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, '0');
-      return hex;
-    };
-
-    function space(t: number, k: number, phase: number, done: boolean) {
-      if (canvas.hidden || !W || !H) return;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      // A slow sway rather than a full turn, so the cloud never swings toward the camera.
-      const yaw = -0.25 + 0.7 * Math.sin(t * 0.22);
-      const P = (p: V3) => project(p, yaw);
-      const pickOn = !done && phase > 0.44;
-      const grow = done ? 0 : ease(clamp((phase - 0.08) / 0.34));
-      const beam = done ? 1 : ease(clamp((phase - 0.44) / 0.18));
-      const sizeK = Math.max(0.75, Math.min(1.6, W / 640));
-
-      // The haze.
-      for (const h of haze) {
-        const q = P(h);
-        ctx.fillStyle = alpha(colors.muted, 0.16 + 0.22 * (q.f - 0.6));
-        ctx.beginPath(); ctx.arc(q.x, q.y, 1.3 * q.f * sizeK, 0, 6.283); ctx.fill();
-      }
-
-      // The trail so far, through every picked token in order.
-      const picked = done ? steps.length : k + (pickOn ? 1 : 0);
-      const pts = steps.slice(0, picked).map((s) => P(at(s.pick)));
-      if (pts.length > 1) {
-        ctx.save();
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        ctx.shadowColor = colors.trail; ctx.shadowBlur = colors.light ? 0 : 14;
-        for (let i = 1; i < pts.length; i++) {
-          const a = pts[i - 1], b = pts[i];
-          const age = (pts.length - 1 - i);
-          ctx.strokeStyle = alpha(colors.trail, Math.max(0.28, 0.95 - age * 0.06));
-          ctx.lineWidth = Math.max(1.4, 3.2 - age * 0.12) * sizeK;
-          const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - Math.hypot(b.x - a.x, b.y - a.y) * 0.18;
-          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(mx, my, b.x, b.y); ctx.stroke();
-        }
-        ctx.restore();
-      }
-
-      // The thought drifts from the last guess's spot to this one's.
-      const prev = thoughts[Math.max(0, k - 1)], here = thoughts[k];
-      const th = done ? thoughts[steps.length - 1] : mix(k === 0 ? [0, 0, 0] : prev, here, ease(clamp(phase / 0.3)));
-      const tq = P(th);
-
-      // Faint scoring beams to every candidate, then a bright one to the pick.
-      const opts = done ? [] : steps[k].options;
-      const top = Math.max(1, ...opts.map(([, p]) => p));
-      for (const [tok, p] of opts) {
-        const q = P(at(tok));
-        const isPick = tok === steps[k].pick;
-        ctx.save();
-        if (isPick && pickOn) {
-          ctx.strokeStyle = colors.trail; ctx.lineWidth = 3.2 * sizeK; ctx.shadowColor = colors.trail; ctx.shadowBlur = colors.light ? 0 : 18;
-          ctx.beginPath(); ctx.moveTo(tq.x, tq.y); ctx.lineTo(tq.x + (q.x - tq.x) * beam, tq.y + (q.y - tq.y) * beam); ctx.stroke();
-        } else {
-          ctx.strokeStyle = alpha(colors.violet, 0.5 * grow * (p / top) * (pickOn ? 0.4 : 1));
-          ctx.lineWidth = (0.8 + 2 * p / 100) * sizeK; ctx.setLineDash([3 * sizeK, 4 * sizeK]);
-          ctx.beginPath(); ctx.moveTo(tq.x, tq.y); ctx.lineTo(q.x, q.y); ctx.stroke();
-        }
-        ctx.restore();
-      }
-
-      // Labeled tokens, drawn back to front: candidates glow by score, picked ones stay lit.
-      const pickedSet = new Set(steps.slice(0, picked).map((s) => key(s.pick)));
-      const cand = new Map(opts.map(([tok, p]) => [key(tok), p]));
-      const labels = [...pos.keys()].map((tok) => ({ tok, q: P(pos.get(tok)!) })).sort((a, b) => b.q.z - a.q.z);
-      for (const { tok, q } of labels) {
-        const p = cand.get(tok);
-        const isPick = !done && key(steps[k].pick) === tok && pickOn;
-        const lit = p !== undefined ? grow * (p / top) : 0;
-        const r = (2.2 + 5 * lit) * q.f * sizeK;
-        if (lit > 0.02 && !colors.light) {
-          const g = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, r * 4);
-          g.addColorStop(0, alpha(isPick ? colors.trail : colors.violet, 0.55 * lit)); g.addColorStop(1, alpha(colors.violet, 0));
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(q.x, q.y, r * 4, 0, 6.283); ctx.fill();
-        }
-        ctx.fillStyle = isPick || (pickedSet.has(tok) && p === undefined) ? colors.trail : p !== undefined ? colors.violet : alpha(colors.muted, 0.7);
-        ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.283); ctx.fill();
-        const strong = p !== undefined || pickedSet.has(tok);
-        // Only the candidates and the picked tokens get words; the rest are just dots.
-        if (!strong) continue;
-        const fs = Math.max(11, (13 + 5 * lit) * q.f * sizeK);
-        ctx.font = `600 ${fs.toFixed(1)}px "Space Grotesk", sans-serif`;
-        const right = q.x + r + 3 + ctx.measureText(tok).width < W - 4;
-        ctx.textAlign = right ? 'left' : 'right'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = isPick ? colors.trail : p !== undefined ? alpha(colors.text, 0.45 + 0.55 * Math.max(lit, 0.3)) : pickedSet.has(tok) ? alpha(colors.text, 0.75) : alpha(colors.muted, 0.55 * q.f);
-        ctx.fillText(tok, right ? q.x + r + 3 : q.x - r - 3, q.y);
-      }
-
-      // The thought itself.
-      ctx.save();
-      const pulse = 1 + 0.12 * Math.sin(t * 5);
-      if (!colors.light) {
-        const g = ctx.createRadialGradient(tq.x, tq.y, 0, tq.x, tq.y, 22 * sizeK * pulse);
-        g.addColorStop(0, alpha(colors.teal, 0.85)); g.addColorStop(1, alpha(colors.teal, 0));
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(tq.x, tq.y, 22 * sizeK * pulse, 0, 6.283); ctx.fill();
-      }
-      ctx.fillStyle = colors.light ? colors.teal : '#ffffff';
-      ctx.beginPath(); ctx.arc(tq.x, tq.y, 4.5 * sizeK, 0, 6.283); ctx.fill();
-      ctx.strokeStyle = alpha(colors.teal, 0.8); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(tq.x, tq.y, 9 * sizeK * pulse, 0, 6.283); ctx.stroke();
-      ctx.restore();
-    }
-    fit();
-    new ResizeObserver(() => { fit(); draw(lastT); }).observe(canvas);
 
     // One row per candidate, rebuilt when the guess changes.
     let shown = -1;
@@ -243,7 +67,6 @@ const last = steps[steps.length - 1];
     }
 
     function draw(t: number) {
-      lastT = t;
       t = ((t % total) + total) % total;
       const k = Math.min(steps.length - 1, Math.floor(t / D));
       const phase = t < steps.length * D ? (t - k * D) / D : 1;
@@ -276,15 +99,12 @@ const last = steps[steps.length - 1];
       }
       const offPick = steps[k].options.find(([tok]) => tok === steps[k].pick)![1] < top;
       note.textContent = pickOn && offPick && !done ? 'Not the top pick. It rolls the dice a little.' : '';
-      const fadeTo = root.dataset.reel ? 1 : 0.55;
-      guess.style.opacity = done ? String(1 - fadeTo * ease(clamp((t - steps.length * D) / 0.6))) : '1';
+      guess.style.opacity = done ? String(1 - 0.55 * ease(clamp((t - steps.length * D) / 0.6))) : '1';
       root.classList.toggle('nw-done', done);
       endNote.style.opacity = done ? String(ease(clamp((t - steps.length * D - 0.4) / 0.6))) : '0';
-      space(t, k, phase, done);
     }
 
-    const showSpace = () => { root.dataset.space = '1'; canvas.hidden = false; fit(); };
-    (window as any).__nextWord ??= { draw, total, fit, showSpace };
+    (window as any).__nextWord ??= { draw, total };
 
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { draw(steps.length * D - 0.01); return; }
@@ -318,10 +138,6 @@ const last = steps[steps.length - 1];
   .nw-cursor { display: inline-block; width: 0.08em; height: 1em; margin-left: 0.06em; vertical-align: -0.12em; background: var(--teal); animation: nw-blink 1s steps(1) infinite; }
   .nw-done .nw-cursor { opacity: 0; animation: none; }
   @keyframes nw-blink { 50% { opacity: 0; } }
-  .nw-space { display: block; width: 100%; aspect-ratio: 16 / 9; margin: -0.4em 0; }
-  @container (max-width: 520px) { .nw-space { aspect-ratio: 1 / 0.9; } }
-  .nw-space[hidden] { display: none; }
-  .nw[data-reel] .nw-space { aspect-ratio: var(--reel-space, 2 / 1); }
   .nw-guess { border-top: 1px solid var(--line); padding-top: clamp(10px, 2.6cqw, 30px); transition: none; }
   .nw-head { font: 600 0.78em/1.3 Inter, sans-serif; color: var(--muted); margin-bottom: 0.7em !important; }
   .nw-n { color: var(--teal); }
@@ -337,12 +153,12 @@ const last = steps[steps.length - 1];
   .nw-note { min-height: 1.3em; margin-top: 0.6em !important; font: 600 0.7em/1.3 Inter, sans-serif; color: var(--warn); }
   .nw-pause { position: absolute; top: 12px; right: 12px; font: 600 0.78rem/1 Inter, sans-serif; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; }
   .nw figcaption { padding: 0 18px 16px; }
-  .nw[data-reel] { position: fixed; inset: 0; z-index: 9999; margin: 0 !important; width: 100vw; height: 100vh; max-width: none !important; box-sizing: border-box; padding: 3cqw 0 !important; gap: 2.5cqw; border: 0; border-radius: 0; display: grid; align-content: center; background: var(--bg); }
+  .nw[data-reel] { position: fixed; inset: 0; z-index: 9999; margin: 0 !important; width: 100vw; height: 100vh; max-width: none !important; box-sizing: border-box; padding: 6cqw 0 !important; gap: 4cqw; border: 0; border-radius: 0; display: grid; align-content: center; background: var(--bg); }
   .nw[data-reel] .nw-pause, .nw[data-reel] figcaption { display: none; }
-  .nw[data-reel] .nw-stage { font-size: var(--reel-size, 2.8cqw); align-content: start; background: none; padding: 0 5cqw; }
+  .nw[data-reel] .nw-stage { font-size: var(--reel-size, 3.5cqw); align-content: start; background: none; }
   .nw[data-reel] { background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--violet) 18%, transparent), transparent 60%), radial-gradient(100% 70% at 100% 100%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 60%), var(--bg) !important; }
   .nw-reel-top, .nw-reel-end { display: none; }
   .nw[data-reel] .nw-reel-top { display: block; margin: 0; padding: 0 5cqw; font: 700 var(--reel-title, 5.1cqw)/1.15 "Space Grotesk", sans-serif; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .nw[data-reel] .nw-reel-end { display: block; position: absolute; left: 0; right: 0; bottom: 6cqw; margin: 0; padding: 0 5cqw; font: 700 4.6cqw/1.25 "Space Grotesk", sans-serif; opacity: 0; transition: none; }
+  .nw[data-reel] .nw-reel-end { display: block; margin: 0; padding: 0 5cqw; min-height: 2.6em; font: 700 4.6cqw/1.25 "Space Grotesk", sans-serif; opacity: 0; transition: none; }
   .nw[data-reel] .nw-reel-end span { display: block; font: 600 3cqw/1.4 Inter, sans-serif; color: var(--muted); }
 </style>
