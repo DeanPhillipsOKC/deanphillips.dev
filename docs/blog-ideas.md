@@ -25,8 +25,8 @@ has results).
 ## Drafted
 
 - **AI, plainly: inference** (owner's idea, 2026-11-23): `ai-plainly`, part 0 of a new `ai-plainly`
-  series explaining AI to non-developers with the Feynman technique. Drafted 2026-11-23 as an unlisted
-  draft. Opens with the owner's own first explanation (search the training data as vectors) as the gap
+  series explaining AI to non-developers with the Feynman technique. Drafted 2026-11-23 and
+  published the same day (after an adversarial beginner review, PR #73). Opens with the owner's own first explanation (search the training data as vectors) as the gap
   the technique finds. Interactive pieces: NextWord (the opening animation with probability bars, also recorded as the social
   video `public/video/ai-plainly-reel.mp4` by `scripts/video/next-word-reel.mjs`), StudyVsExam,
   TokenSplit, WordMap, AttentionDemo, BeTheModel, and a GuessCards quiz. All percentages and IDs are
