@@ -1,0 +1,176 @@
+---
+// What a dial (a weight) does, alone and together. A tiny model with nine dials: each clue word in the
+// sentence pushes on each possible answer by its dial's amount, and the pushes add up into percentages.
+// The reader can turn any dial by hand, or press Study to watch real training: guess, compare with the
+// right answer, nudge only the dials that took part, repeat. The night sentence needs two clues working
+// together, since "sky" alone pushes toward blue. Without JavaScript, a short note shows instead.
+interface S { text: string; clues: string[]; answer: string }
+interface Props { clues: string[]; answers: string[]; sentences: S[]; caption?: string }
+const { clues, answers, sentences, caption } = Astro.props;
+---
+<figure class="dd panel bleed" data-clues={JSON.stringify(clues)} data-answers={JSON.stringify(answers)} data-s={JSON.stringify(sentences)}>
+  <div class="dd-tabs" role="group" aria-label="Pick a sentence" hidden>
+    {sentences.map((s, i) => <button type="button" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.text} ___</button>)}
+  </div>
+  <div class="dd-body" hidden>
+    <div class="dd-grid-wrap">
+      <p class="dd-label">The dials <span>(each clue word pushes on each answer)</span></p>
+      <table class="dd-grid">
+        <thead><tr><th></th>{answers.map((a) => <th scope="col">{a}</th>)}</tr></thead>
+        <tbody>
+          {clues.map((c) => (
+            <tr data-clue={c}>
+              <th scope="row">{c}</th>
+              {answers.map((a) => (
+                <td>
+                  <svg class="dd-knob" viewBox="-20 -20 40 40" aria-hidden="true">
+                    <circle r="16" class="dd-ring" />
+                    <path class="dd-arc" />
+                    <line x1="0" y1="0" x2="0" y2="-12" class="dd-needle" />
+                  </svg>
+                  <input type="range" min="-4" max="4" step="0.1" value="0" data-c={c} data-a={a} aria-label={`Dial from ${c} to ${a}`} />
+                  <output class="dd-val">0</output>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="dd-out">
+      <p class="dd-label">Its guess <span>(✓ marks the right answer)</span></p>
+      <ol class="dd-bars">
+        {answers.map((a) => <li data-a={a}><span class="dd-w">{a}</span><span class="dd-bar"><i></i></span><span class="dd-p"></span></li>)}
+      </ol>
+      <p class="dd-status" aria-live="polite"></p>
+      <div class="dd-ctl">
+        <button type="button" class="dd-study">Study</button>
+        <button type="button" class="dd-scramble">Scramble the dials</button>
+      </div>
+    </div>
+  </div>
+  <noscript><p>This one needs JavaScript. It shows nine dials, one for each clue word and answer, and lets you turn them or watch training set them.</p></noscript>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  type S = { text: string; clues: string[]; answer: string };
+  for (const root of document.querySelectorAll<HTMLElement>('.dd')) {
+    const clues: string[] = JSON.parse(root.dataset.clues!);
+    const answers: string[] = JSON.parse(root.dataset.answers!);
+    const ss: S[] = JSON.parse(root.dataset.s!);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    $('.dd-tabs').hidden = false; $('.dd-body').hidden = false;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('.dd-tabs button')];
+    const inputs = [...root.querySelectorAll<HTMLInputElement>('.dd-grid input')];
+    const status = $('.dd-status'), study = $<HTMLButtonElement>('.dd-study');
+    const W: Record<string, Record<string, number>> = {};
+    let cur = 0, timer = 0, seed = 3;
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+    const probs = (s: S) => {
+      const z = answers.map((a) => s.clues.reduce((acc, c) => acc + W[c][a], 0));
+      const m = Math.max(...z), e = z.map((v) => Math.exp(v - m)), t = e.reduce((a, b) => a + b, 0);
+      return e.map((v) => v / t);
+    };
+    function scramble() {
+      for (const c of clues) { W[c] = {}; for (const a of answers) W[c][a] = Math.round((rand() * 2 - 1) * 10) / 10; }
+    }
+    function render(msg?: string) {
+      const s = ss[cur];
+      tabs.forEach((t, i) => t.setAttribute('aria-pressed', String(i === cur)));
+      for (const inp of inputs) {
+        const v = W[inp.dataset.c!][inp.dataset.a!];
+        inp.value = String(v);
+        const td = inp.parentElement!;
+        const ang = (v / 4) * 135;
+        td.querySelector('.dd-needle')!.setAttribute('transform', `rotate(${ang})`);
+        // The arc shows which way the dial pushes: teal for toward, pink for away.
+        const r = 16, a0 = -Math.PI / 2, a1 = a0 + (ang * Math.PI) / 180;
+        const p = (a: number) => `${(r * Math.cos(a)).toFixed(2)} ${(r * Math.sin(a)).toFixed(2)}`;
+        const arc = td.querySelector('.dd-arc')!;
+        arc.setAttribute('d', Math.abs(ang) < 1 ? '' : `M ${p(a0)} A ${r} ${r} 0 0 ${ang > 0 ? 1 : 0} ${p(a1)}`);
+        arc.setAttribute('class', 'dd-arc ' + (v >= 0 ? 'pos' : 'neg'));
+        td.querySelector('output')!.textContent = (v > 0 ? '+' : '') + v.toFixed(1);
+        td.closest('tr')!.classList.toggle('off', !s.clues.includes(inp.dataset.c!));
+      }
+      const pr = probs(s);
+      root.querySelectorAll<HTMLElement>('.dd-bars li').forEach((li, i) => {
+        li.querySelector<HTMLElement>('i')!.style.width = `${pr[i] * 100}%`;
+        li.querySelector('.dd-p')!.textContent = `${Math.round(pr[i] * 100)}%`;
+        li.querySelector('.dd-w')!.textContent = answers[i] + (answers[i] === s.answer ? ' \u2713' : '');
+        li.classList.toggle('dd-lead', pr[i] === Math.max(...pr));
+      });
+      status.textContent = msg ?? (Math.max(...pr) === pr[answers.indexOf(s.answer)]
+        ? `Right. It guesses "${s.answer}". The grayed-out row isn't in this sentence, so those dials don't count here.`
+        : `Wrong. The right answer is "${s.answer}". Turn a dial in a lit row, or press Study.`);
+    }
+    function stop() { clearInterval(timer); timer = 0; study.textContent = 'Study'; }
+    // Real training: guess, compare with the right answer, and nudge only the dials whose clue was there.
+    function studyStep(n: number) {
+      const s = ss[n % ss.length];
+      const pr = probs(s);
+      const guess = answers[pr.indexOf(Math.max(...pr))];
+      answers.forEach((a, i) => { for (const c of s.clues) W[c][a] = Math.max(-4, Math.min(4, W[c][a] + 0.9 * ((a === s.answer ? 1 : 0) - pr[i]))); });
+      for (const c of clues) for (const a of answers) W[c][a] = Math.round(W[c][a] * 10) / 10;
+      cur = n % ss.length;
+      const ok = ss.every((x) => { const p = probs(x); return p[answers.indexOf(x.answer)] > 0.8; });
+      render(`Study round ${n + 1}. "${s.text} ___" It guessed "${guess}", the answer was "${s.answer}". ${guess === s.answer ? 'Small nudge.' : 'Bigger nudge.'}`);
+      return ok;
+    }
+    study.addEventListener('click', () => {
+      if (timer) return stop();
+      study.textContent = 'Pause';
+      let n = 0;
+      timer = window.setInterval(() => {
+        const ok = studyStep(n++);
+        if (ok || n > 120) { stop(); render(`Done after ${n} study rounds. All three sentences come out right, and none of them is stored anywhere. Only the nine dial settings are. Click through the sentences to check.`); }
+      }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 30 : 260);
+    });
+    $('.dd-scramble').addEventListener('click', () => { stop(); scramble(); render(); });
+    tabs.forEach((t) => t.addEventListener('click', () => { stop(); cur = +t.dataset.i!; render(); }));
+    for (const inp of inputs) inp.addEventListener('input', () => { stop(); W[inp.dataset.c!][inp.dataset.a!] = +inp.value; render(); });
+    scramble();
+    render();
+  }
+</script>
+
+<style is:global>
+  .dd p { margin: 0; }
+  .dd-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .dd-tabs button { font: 600 0.9rem/1.2 "Space Grotesk", sans-serif; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--muted); cursor: pointer; }
+  .dd-tabs button[aria-pressed="true"] { border-color: var(--teal); color: var(--text); background: color-mix(in srgb, var(--teal) 14%, var(--bg-2)); }
+  .dd-body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 22px; align-items: start; }
+  .dd-label { font: 600 0.75rem/1.3 Inter, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px !important; }
+  .dd-label span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .dd-grid { border-collapse: separate; border-spacing: 4px; width: 100%; margin: 0 !important; }
+  .dd-grid th { font: 600 0.92rem/1.2 "Space Grotesk", sans-serif; color: var(--text); padding: 2px; border: 0 !important; background: none !important; }
+  .dd-grid thead th { text-align: center; }
+  .dd-grid tbody th { text-align: right; padding-right: 6px; }
+  .dd-grid td { text-align: center; padding: 6px 2px; border-radius: 12px; background: var(--bg-2); border: 0 !important; transition: opacity .25s; }
+  .dd-grid tr.off td, .dd-grid tr.off th { opacity: 0.32; }
+  .dd-knob { display: block; width: 46px; height: 46px; margin: 0 auto; }
+  .dd-ring { fill: var(--card); stroke: var(--line); stroke-width: 2; }
+  .dd-arc { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+  .dd-arc.pos { stroke: var(--teal); }
+  .dd-arc.neg { stroke: var(--pink); }
+  .dd-needle { stroke: var(--text); stroke-width: 3; stroke-linecap: round; transition: transform .2s; }
+  .dd-grid input { width: 100%; max-width: 74px; margin: 4px auto 0; display: block; accent-color: var(--teal); }
+  .dd-val { display: block; font: 600 0.72rem/1.2 ui-monospace, Menlo, monospace; color: var(--muted); }
+  .dd-bars { list-style: none; margin: 0 0 12px !important; padding: 0 !important; display: grid; gap: 8px; }
+  .dd-bars li { margin: 0 !important; display: grid; grid-template-columns: 4.8em 1fr 2.8em; gap: 8px; align-items: center; white-space: nowrap; font: 600 0.95rem/1.2 "Space Grotesk", sans-serif; }
+  .dd-bar { height: 12px; border-radius: 999px; background: var(--bg-2); overflow: hidden; }
+  .dd-bar i { display: block; height: 100%; border-radius: inherit; background: color-mix(in srgb, var(--muted) 55%, transparent); transition: width .25s; }
+  .dd-bars li.dd-lead .dd-bar i { background: var(--grad); }
+  .dd-bars li.dd-lead .dd-w { color: var(--teal); }
+  .dd-p { text-align: right; color: var(--muted); font: 600 0.85rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .dd-status { font-size: 0.92rem; line-height: 1.45; min-height: 4.4em; margin-bottom: 12px !important; }
+  .dd-ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dd-ctl button { font: 600 0.88rem/1 Inter, sans-serif; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .dd-study { border-color: var(--teal) !important; }
+  @media (max-width: 620px) {
+    .dd-body { grid-template-columns: 1fr; }
+    .dd-knob { width: 40px; height: 40px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dd-needle, .dd-bar i { transition: none; } }
+</style>

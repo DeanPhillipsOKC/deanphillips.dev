@@ -50,7 +50,7 @@ await og.evaluate(() => {
   nw.querySelector('.nw-reel-end').style.display = 'none';
   nw.style.padding = '3cqw 0';
   nw.style.gap = '1cqw';
-  window.__nextWord.draw(5 * 1.5 + 1.4);
+  window.__nextWord.draw(5.93 * window.__nextWord.D);
 });
 await og.screenshot({ path: join(work, 'og.png') });
 await og.close();

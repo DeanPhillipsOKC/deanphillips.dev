@@ -1,0 +1,61 @@
+---
+// The whole inference loop on one strip: each step in order, a small dial on the steps that run through
+// the trained dials, a "repeat in layers" badge where it applies, and an arrow back to the start once a
+// token is picked. Static, so it reads the same everywhere; the step boxes light up in turn when it scrolls
+// into view, unless the reader prefers less motion.
+interface Step { title: string; text: string; dials?: boolean; repeat?: string }
+interface Props { steps: Step[]; back: string; caption?: string }
+const { steps, back, caption } = Astro.props;
+---
+<figure class="ls panel bleed">
+  <ol class="ls-steps">
+    {steps.map((s, i) => (
+      <li style={`--i:${i}`}>
+        <span class="ls-n">{i + 1}</span>
+        <b>{s.title}</b>
+        <span class="ls-t">{s.text}</span>
+        <span class="ls-tags">
+          {s.dials && <span class="ls-dial"><svg viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>uses the dials</span>}
+          {s.repeat && <span class="ls-rep">{s.repeat}</span>}
+        </span>
+      </li>
+    ))}
+  </ol>
+  <p class="ls-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8v4a4 4 0 0 1-4 4H6m0 0 4-4m-4 4 4 4" /></svg>{back}</p>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.ls')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('ls-ready');
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { root.classList.add('ls-go'); io.disconnect(); } }, { threshold: 0.5 });
+    io.observe(root);
+  }
+</script>
+
+<style is:global>
+  .ls p { margin: 0; }
+  .ls-steps { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px; }
+  .ls-steps li { position: relative; margin: 0 !important; padding: 12px; border-radius: 14px; background: var(--bg-2); border: 2px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .ls-steps li:not(:last-child)::after { content: ''; position: absolute; right: -18px; top: 50%; border: 7px solid transparent; border-left-color: var(--muted); border-right: 0; margin-top: -7px; opacity: .7; }
+  .ls-n { font: 700 0.72rem/1 Inter, sans-serif; color: var(--teal); }
+  .ls-steps b { font: 700 1rem/1.2 "Space Grotesk", sans-serif; }
+  .ls-t { font-size: 0.84rem; line-height: 1.4; color: var(--muted); }
+  .ls-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+  .ls-dial, .ls-rep { display: inline-flex; align-items: center; gap: 4px; font: 600 0.68rem/1 Inter, sans-serif; padding: 4px 7px; border-radius: 999px; }
+  .ls-dial { color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); }
+  .ls-dial svg { width: 12px; height: 12px; }
+  .ls-dial circle { fill: none; stroke: currentColor; stroke-width: 2; }
+  .ls-dial line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+  .ls-rep { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
+  .ls-back { display: flex; align-items: center; gap: 8px; margin-top: 14px !important; padding: 10px 14px; border-radius: 12px; border: 2px dashed color-mix(in srgb, var(--teal) 60%, var(--line)); font: 600 0.92rem/1.35 Inter, sans-serif; }
+  .ls-back svg { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--teal); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .ls-ready .ls-steps li { opacity: .35; }
+  .ls-go .ls-steps li { animation: ls-lit .6s ease-out forwards; animation-delay: calc(var(--i) * .45s); }
+  @keyframes ls-lit { to { opacity: 1; border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); } }
+  @media (max-width: 700px) {
+    .ls-steps { grid-template-columns: 1fr; gap: 16px; }
+    .ls-steps li:not(:last-child)::after { right: auto; left: 50%; top: auto; bottom: -15px; margin: 0 0 0 -7px; border: 7px solid transparent; border-top-color: var(--muted); border-bottom: 0; }
+  }
+</style>
