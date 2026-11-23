@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Records the opening animation of the "AI, plainly" inference post (NextWord.astro) as a silent social
-// video, and saves its link-preview image. Both turn on the 3D token space, which the post itself leaves
-// off for simplicity. Build and preview the site first, then:
+// video, and saves its link-preview image. Build and preview the site first, then:
 //   node scripts/video/next-word-reel.mjs [post URL]   (default http://localhost:4321/blog/ai-plainly/)
 // Writes public/video/ai-plainly-reel.mp4 (1080x1350, the 4:5 shape LinkedIn and Facebook feeds show
 // biggest) and public/img/og/ai-plainly.jpg (1200x630). The component draws itself as a pure function of
@@ -25,9 +24,6 @@ async function open(width, height) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => { document.querySelector('.nw').dataset.reel = '1'; document.body.style.overflow = 'hidden'; });
-  // The figure changes size in reel mode, so the 3D space has to measure itself again.
-  await page.waitForTimeout(200);
-  await page.evaluate(() => window.__nextWord.showSpace());
   return page;
 }
 
@@ -44,23 +40,16 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-reel.mp4']);
 
-// The link preview: the 3D space at the moment the AI takes its second-best guess.
+// The link preview: the moment the AI takes its second-best guess.
 const og = await open(1200, 630);
 await og.evaluate(() => {
   const nw = document.querySelector('.nw');
-  nw.style.setProperty('--reel-size', '2.4cqw');
-  nw.style.setProperty('--reel-space', '1200 / 330');
+  nw.style.setProperty('--reel-size', '2.3cqw');
   nw.querySelector('.nw-q').style.display = 'none';
-  nw.querySelector('.nw-guess').style.display = 'none';
-  window.__nextWord.fit();
   nw.style.setProperty('--reel-title', '3.4cqw');
   nw.querySelector('.nw-reel-end').style.display = 'none';
   nw.style.padding = '3cqw 0';
   nw.style.gap = '1cqw';
-  window.__nextWord.draw(5 * 1.5 + 1.4);
-});
-await og.waitForTimeout(100);
-await og.evaluate(() => {
   window.__nextWord.draw(5 * 1.5 + 1.4);
 });
 await og.screenshot({ path: join(work, 'og.png') });

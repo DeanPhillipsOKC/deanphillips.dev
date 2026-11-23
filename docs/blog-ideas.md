@@ -27,12 +27,14 @@ has results).
 - **AI, plainly: inference** (owner's idea, 2026-11-23): `ai-plainly`, part 0 of a new `ai-plainly`
   series explaining AI to non-developers with the Feynman technique. Drafted 2026-11-23 as an unlisted
   draft. Opens with the owner's own first explanation (search the training data as vectors) as the gap
-  the technique finds. Interactive pieces: NextWord (the opening animation with probability bars; the social
-  video adds a 3D token cloud with a "thought" point and a blue trail to each pick, the owner's pick
-  for grabbing attention, while the post keeps the simpler version; recorded as the social
+  the technique finds. Interactive pieces: NextWord (the opening animation with probability bars, also recorded as the social
   video `public/video/ai-plainly-reel.mp4` by `scripts/video/next-word-reel.mjs`), StudyVsExam,
   TokenSplit, WordMap, AttentionDemo, BeTheModel, and a GuessCards quiz. All percentages and IDs are
   labeled as made up. Next parts it promises: retrieval (the search it isn't), then tools and agents.
+  A 3D token cloud with a glowing "thought" point and a blue trail was tried for both the post and the
+  reel (PRs #70, #71) and dropped by the owner on 2026-11-23. It looked cool but cluttered, hid the
+  picked words, and made inference feel mysterious, which works against a series meant to demystify
+  it. Keep this series' visuals plain and readable for someone who hasn't read the post.
 - **Going public** (RepBunny #937, #942, #943, #944, #945, #946, #947, #949): the `going-public`
   series, drafted 2026-11-10 with the owner as unlisted drafts. `going-public` (part 0, why the
   code is public and the backlog isn't, the snapshot, the license), `going-public-cutover` (part 1,
