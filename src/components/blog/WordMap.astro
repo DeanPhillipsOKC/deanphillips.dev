@@ -6,7 +6,8 @@
 interface W { w: string; x: number; y: number; g: string }
 interface Props { words: W[]; pick?: string; caption?: string }
 const { words, pick = words[0].w, caption } = Astro.props;
-const HUE: Record<string, string> = { animal: 'var(--teal)', food: 'var(--warn)', ride: 'var(--violet)', feel: 'var(--pink)', royal: 'var(--ok)', water: 'var(--teal)', money: 'var(--warn)', bank: 'var(--text)' };
+// One color per group, so no two groups look related.
+const HUE: Record<string, string> = { animal: 'var(--teal)', food: 'var(--warn)', ride: 'var(--violet)', feel: 'var(--pink)', royal: '#d4b83a', water: '#4b93f0', money: 'var(--ok)', bank: 'var(--text)' };
 ---
 <figure class="wm panel bleed" data-pick={pick}>
   <div class="wm-map">

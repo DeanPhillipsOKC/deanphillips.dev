@@ -530,24 +530,24 @@
       "lean": 0.9
     },
     {
-      "label": "Both?",
+      "label": "Tricky",
       "words": [
         "The",
-        "river",
-        "bank",
-        "cashed",
-        "my",
-        "check"
+        "fisherman",
+        "went",
+        "to",
+        "the",
+        "bank"
       ],
       "weights": [
         0.03,
-        0.3,
-        0,
-        0.4,
-        0.05,
-        0.22
+        0.46,
+        0.2,
+        0.07,
+        0.04,
+        0
       ],
-      "lean": 0.68
+      "lean": 0.32
     }
   ],
   "game": {
@@ -871,12 +871,17 @@
     {
       "prompt": "When you ask a question, the AI looks the answer up in the text it studied.",
       "answer": "Myth",
-      "why": "The text is gone after training. It only has the dials that studying set."
+      "why": "It doesn't keep a copy of that text. It only has the dials that studying set (though it can memorize bits it saw many, many times)."
     },
     {
       "prompt": "The AI writes its answer one small piece at a time.",
       "answer": "Fact",
       "why": "One token per trip around the loop, and every trip reads the whole answer so far."
+    },
+    {
+      "prompt": "The \"parameters\" or \"weights\" in AI news stories are the dials.",
+      "answer": "Fact",
+      "why": "Each one is a single number that sets how hard one thing pushes on another. Big models have billions."
     },
     {
       "prompt": "The AI always picks the most likely next word.",
@@ -892,6 +897,68 @@
       "prompt": "If an answer sounds confident, the AI checked that it's true.",
       "answer": "Myth",
       "why": "Nothing in the loop checks facts. A wrong answer that looks right comes out just as smoothly."
+    }
+  ],
+  "dials": {
+    "clues": [
+      "sky",
+      "grass",
+      "night"
+    ],
+    "answers": [
+      "blue",
+      "green",
+      "black"
+    ],
+    "sentences": [
+      {
+        "text": "The sky is",
+        "clues": [
+          "sky"
+        ],
+        "answer": "blue"
+      },
+      {
+        "text": "The grass is",
+        "clues": [
+          "grass"
+        ],
+        "answer": "green"
+      },
+      {
+        "text": "The sky at night is",
+        "clues": [
+          "sky",
+          "night"
+        ],
+        "answer": "black"
+      }
+    ]
+  },
+  "loop": [
+    {
+      "title": "Chop",
+      "text": "Split the conversation into tokens, and swap each for an ID number."
+    },
+    {
+      "title": "Place",
+      "text": "Look up each token's spot on the word map.",
+      "dials": true
+    },
+    {
+      "title": "Look back",
+      "text": "Each word looks back at the words before it and shifts its spot.",
+      "dials": true,
+      "repeat": "dozens of layers"
+    },
+    {
+      "title": "Score",
+      "text": "Give every token in its list a chance of coming next.",
+      "dials": true
+    },
+    {
+      "title": "Pick",
+      "text": "Roll weighted dice and add the winner to the answer."
     }
   ]
 }

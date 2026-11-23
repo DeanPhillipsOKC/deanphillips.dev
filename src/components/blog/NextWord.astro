@@ -35,7 +35,7 @@ const last = steps[steps.length - 1];
 
 <script>
   type Step = { pick: string; options: [string, number][] };
-  const D = 1.5; // seconds per guess
+  const D = 2.2; // seconds per guess (slow enough for someone who has never seen this)
   const HOLD = 3.2; // the finished answer stays up this long before the loop restarts
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const ease = (t: number) => 1 - (1 - t) ** 3;
@@ -104,7 +104,7 @@ const last = steps[steps.length - 1];
       endNote.style.opacity = done ? String(ease(clamp((t - steps.length * D - 0.4) / 0.6))) : '0';
     }
 
-    (window as any).__nextWord ??= { draw, total };
+    (window as any).__nextWord ??= { draw, total, D };
 
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { draw(steps.length * D - 0.01); return; }

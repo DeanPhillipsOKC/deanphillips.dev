@@ -30,7 +30,7 @@ has results).
   the technique finds. Interactive pieces: NextWord (the opening animation with probability bars, also recorded as the social
   video `public/video/ai-plainly-reel.mp4` by `scripts/video/next-word-reel.mjs`), StudyVsExam,
   TokenSplit, WordMap, AttentionDemo, BeTheModel, and a GuessCards quiz. All percentages and IDs are
-  labeled as made up. Next parts it promises: retrieval (the search it isn't), then tools and agents.
+  labeled as made up. Next parts it promises: tools (web search, files, running code), then agents.
   A 3D token cloud with a glowing "thought" point and a blue trail was tried for both the post and the
   reel (PRs #70, #71) and dropped by the owner on 2026-11-23. It looked cool but cluttered, hid the
   picked words, and made inference feel mysterious, which works against a series meant to demystify
