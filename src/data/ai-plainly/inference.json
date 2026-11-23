@@ -893,5 +893,62 @@
       "answer": "Myth",
       "why": "Nothing in the loop checks facts. A wrong answer that looks right comes out just as smoothly."
     }
-  ]
+  ],
+  "groups": {
+    "small": [
+      "The",
+      "It",
+      "Because",
+      "the",
+      "so",
+      "tiny"
+    ],
+    "sky": [
+      "sky",
+      "sun",
+      "light",
+      "sunlight",
+      "Sunlight",
+      "blue",
+      "bright",
+      "pale",
+      "red",
+      "rays",
+      "waves",
+      "air"
+    ],
+    "action": [
+      "looks",
+      "is",
+      "appears",
+      "seems",
+      "scatters",
+      "bounces",
+      "spreads",
+      "bends",
+      "does"
+    ],
+    "link": [
+      "because",
+      "since",
+      "due",
+      "thanks",
+      "than",
+      "more",
+      "much",
+      "best",
+      "easily",
+      "strongly",
+      "often",
+      "other",
+      "longer",
+      "short"
+    ],
+    "mark": [
+      ".",
+      ",",
+      "!",
+      "and"
+    ]
+  }
 }

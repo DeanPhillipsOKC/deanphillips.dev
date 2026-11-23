@@ -24,6 +24,9 @@ async function open(width, height) {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => { document.querySelector('.nw').dataset.reel = '1'; document.body.style.overflow = 'hidden'; });
+  // The figure changes size in reel mode, so the 3D space has to measure itself again.
+  await page.waitForTimeout(200);
+  await page.evaluate(() => window.__nextWord.fit());
   return page;
 }
 
@@ -40,16 +43,23 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-reel.mp4']);
 
-// The link preview: the moment the AI takes its second-best guess.
+// The link preview: the 3D space at the moment the AI takes its second-best guess.
 const og = await open(1200, 630);
 await og.evaluate(() => {
   const nw = document.querySelector('.nw');
-  nw.style.setProperty('--reel-size', '2.3cqw');
+  nw.style.setProperty('--reel-size', '2.4cqw');
+  nw.style.setProperty('--reel-space', '1200 / 330');
   nw.querySelector('.nw-q').style.display = 'none';
+  nw.querySelector('.nw-guess').style.display = 'none';
+  window.__nextWord.fit();
   nw.style.setProperty('--reel-title', '3.4cqw');
   nw.querySelector('.nw-reel-end').style.display = 'none';
   nw.style.padding = '3cqw 0';
   nw.style.gap = '1cqw';
+  window.__nextWord.draw(5 * 1.5 + 1.4);
+});
+await og.waitForTimeout(100);
+await og.evaluate(() => {
   window.__nextWord.draw(5 * 1.5 + 1.4);
 });
 await og.screenshot({ path: join(work, 'og.png') });

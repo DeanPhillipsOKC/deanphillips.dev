@@ -26,7 +26,8 @@ import story from '../../data/ai-plainly/inference.json';
 <NextWord
   question={story.question}
   steps={story.steps}
-  caption="An AI writing its answer, one piece at a time. The percentages are made up to show the idea. A real model scores every piece it knows, tens of thousands of them, on every single guess."
+  groups={story.groups}
+  caption="An AI writing its answer, one piece at a time. The glowing point is the whole sentence so far, and the blue trail follows each pick. The space and the percentages are made up to show the idea. A real model's space has thousands of directions, and it scores every piece it knows (tens of thousands of them) on every single guess."
 />
 
 That's an AI answering a question. It isn't looking anything up. It's guessing, one small piece at a time, and every piece is a brand new guess. By the end of this post you'll know exactly what that box is showing, with no math.
@@ -96,6 +97,8 @@ The AI does this dozens of times in a row, in layers. Each time, every word's sp
 ## Last, guess the next token and do it all again
 
 After all those layers, the AI does one thing. It gives every token it knows a score for how likely it is to come next.
+
+That's the glowing point in the animation at the top. All those layers squeeze the whole conversation into one new spot on the map, and the tokens it points toward get the best scores. Watch the blue trail. It doesn't creep to the nearest word. It jumps from "sky" over to "looks" and back to "blue," because the next token is wherever the whole sentence points.
 
 Then it picks one. Usually the top one, but not always. A little randomness keeps it from sounding like a robot, and it's why asking the same question twice can get you two different answers.
 
