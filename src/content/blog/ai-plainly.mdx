@@ -1,0 +1,134 @@
+---
+title: "What actually happens when you ask an AI a question"
+titleAccent: "ask an AI a question"
+tabTitle: "AI, Plainly: Inference"
+partTitle: "Inference, one word at a time"
+description: A plain-English, picture-first explanation of inference, the part of AI that runs every time you hit send. Tokens, the word map, attention, and the one-word-at-a-time loop, with a little game where you get to be the AI. The first post in a series on AI for everyone.
+dek: I thought I knew how AI answers a question. Then I tried to explain it in plain words, using a learning trick named after Richard Feynman, and found the hole. This is the first in a series on AI for people who don't build it.
+eyebrow: "AI, plainly"
+date: 2026-11-23
+readMinutes: 5
+image: /img/og/ai-plainly.jpg
+cover: ../../assets/blog/ai-plainly.png
+series: ai-plainly
+part: 0
+draft: true
+---
+import NextWord from '../../components/blog/NextWord.astro';
+import StudyVsExam from '../../components/blog/StudyVsExam.astro';
+import TokenSplit from '../../components/blog/TokenSplit.astro';
+import WordMap from '../../components/blog/WordMap.astro';
+import AttentionDemo from '../../components/blog/AttentionDemo.astro';
+import BeTheModel from '../../components/blog/BeTheModel.astro';
+import GuessCards from '../../components/blog/GuessCards.astro';
+import story from '../../data/ai-plainly/inference.json';
+
+<NextWord
+  question={story.question}
+  steps={story.steps}
+  caption="An AI writing its answer, one piece at a time. The percentages are made up to show the idea. A real model scores every piece it knows, tens of thousands of them, on every single guess."
+/>
+
+That's an AI answering a question. It isn't looking anything up. It's guessing, one small piece at a time, and every piece is a brand new guess. By the end of this post you'll know exactly what that box is showing, with no math.
+
+## How I'm doing this
+
+There's a learning trick named after the physicist Richard Feynman. Explain a thing in words a kid could follow. Wherever you get stuck, or reach for a big word to cover the gap, that's the part you don't really understand yet. Go learn it, and try again.
+
+So I tried it on AI, starting with the part that happens every time you hit send. It's called inference. (A fancy word for "using the thing.")
+
+My first try went like this. Your words get turned into numbers. The AI searches through everything it was trained on, which is also stored as numbers, and finds what an answer should look like.
+
+The second half of that is wrong. I didn't know it was wrong until I tried to explain it. Which is the whole point of the trick.
+
+## The gap in my answer
+
+What I was missing is that an AI has two completely separate lives.
+
+<StudyVsExam caption="Studying and the exam never happen at the same time. By the time you're asking questions, the studying is long over." />
+
+Studying is called **training**. The AI reads an enormous pile of text (books, websites, code) and plays a guessing game with it, over and over. Hide the next word, guess it, check, adjust. Every wrong guess nudges billions of tiny dials inside it. When training is done, the pile of text goes away. What's left is the dials.
+
+The exam is **inference**. That's you asking a question, and it's closed-book. The AI can't flip back through what it read, because it doesn't have it. All it has is the dials, set exactly where studying left them.
+
+In other words, it doesn't keep the books. It keeps what the books taught it about what usually comes next. (Kind of like how you can't recite your high school chemistry textbook, but you still know not to mix bleach and ammonia.)
+
+Here's what happens on the exam, in four steps.
+
+## First, chop it into tokens
+
+The AI can't read letters. So your question gets chopped into small pieces called **tokens**. Common words usually stay whole. Long or rare words get split into chunks the AI has seen plenty of times.
+
+<TokenSplit
+  text="Painting happy little trees is unbelievably relaxing."
+  caption="Type your own sentence. This is a simplified splitter to show the idea, and the numbers are made up. Real ones learn their chunks from the training text, and on average a token works out to about three quarters of an English word."
+/>
+
+Each token is swapped for an ID number. From here on, the AI never sees a single letter. Just numbers.
+
+## Second, give every token a spot on a map
+
+An ID number says nothing about meaning. Token 4,812 isn't any closer to "puppy" than token 4,813 is. So every token also gets a spot on a giant map, where words with similar meanings sit close together.
+
+<WordMap
+  words={story.map}
+  pick="puppy"
+  caption="A hand-drawn version with two directions (left to right, top to bottom). A real model's map has thousands of directions. That's impossible to draw, so this is the sketch."
+/>
+
+Nobody draws this map by hand. It gets set during studying, like the dials. Words used in similar ways keep getting nudged together until they end up as neighbors. (A word's spot on the map is the "vector" people talk about. It's just the word's address.)
+
+Notice "bank," stuck by itself between the river and the money. That's the next problem.
+
+## Third, let the words look at each other
+
+"Bank" means two different things, and on its own the AI can't tell which one you meant. So the next step lets every word look at every other word in the conversation and work out which ones matter to it. This is called **attention**.
+
+<AttentionDemo
+  focus="bank"
+  ends={['the edge of a river', 'a place for money']}
+  sentences={story.attention}
+  caption="Switch sentences and watch what 'bank' pays attention to. Thicker arcs matter more. The numbers are made up to show the idea."
+/>
+
+The AI does this dozens of times in a row, in layers. Each time, every word's spot on the map shifts a little based on what's around it. By the end, "bank" in a sentence about fishing means something different from "bank" in a sentence about a paycheck. (Same goes for "it," "they," and every other word that depends on what came before.)
+
+## Last, guess the next token and do it all again
+
+After all those layers, the AI does one thing. It gives every token it knows a score for how likely it is to come next.
+
+Then it picks one. Usually the top one, but not always. A little randomness keeps it from sounding like a robot, and it's why asking the same question twice can get you two different answers.
+
+The picked token goes on the end, and the whole thing runs again with the answer so far included. Every word in an AI's answer is one trip around this loop. Try it yourself.
+
+<BeTheModel
+  start={story.game.start}
+  table={story.game.table}
+  caption="A tiny made-up model that only looks at the last word. Pick a word, or let the dice pick using the percentages."
+/>
+
+That little game only looks at the last word, so it wanders off fast. A real model looks back at everything (your whole question, plus every word it has written so far) on every guess. That's the big difference. Well, that and a few billion dials.
+
+## So is it just autocomplete?
+
+The part my first try got right is that it isn't looking up an answer. It's predicting what an answer would look like.
+
+That's also why AI can be confidently wrong. If a made-up fact looks like the kind of thing that comes next, it comes out just as smoothly as a real one. Nothing in the loop checks it against the books, because there are no books.
+
+But the "just" in "just autocomplete" is doing a lot of work. To guess the next word of a joke, a recipe, or a math proof really well, the dials have to capture a surprising amount about how the world works. And after the studying, these models get a second round of training where people rate their answers. That teaches them to predict what a helpful answer looks like.
+
+## Check yourself
+
+The real test of the Feynman trick is whether you can explain it back. Here's a quick warmup first.
+
+<GuessCards
+  title="Myth or fact?"
+  options={['Myth', 'Fact']}
+  cards={story.quiz}
+/>
+
+## What's next
+
+Inference is the heart of it, but it's only one part of the AI tools people use every day. The searching I imagined at the start does exist. It's a separate tool that looks things up and pastes what it finds into the conversation before the guessing starts. That's the next post. After that come tools and agents, where an AI runs this loop over and over to get real work done.
+
+This post is about 1,000 words, so a model would need roughly 1,400 guesses to write it. I needed a lot more than that.

@@ -1,0 +1,109 @@
+---
+// "You be the model": the reader writes a sentence one word at a time by picking from the next-word
+// guesses, or lets the dice pick. The guesses come from a tiny made-up table that only looks at the last
+// word, which is the point the post makes right after it (a real model looks at everything before it).
+// Without JavaScript, the start of the story and a note show instead.
+interface Props { start: string; table: Record<string, [string, number][]>; caption?: string }
+const { start, table, caption } = Astro.props;
+---
+<figure class="btm panel bleed" data-start={start} data-table={JSON.stringify(table)}>
+  <p class="btm-title">Your turn. Pick the next word.</p>
+  <p class="btm-text" aria-live="polite">{start}</p>
+  <ol class="btm-opts" hidden></ol>
+  <div class="btm-ctl" hidden>
+    <button type="button" class="btm-dice">Let the dice pick</button>
+    <button type="button" class="btm-again">Start over</button>
+    <span class="btm-count"></span>
+  </div>
+  <noscript><p class="btm-ns">This one needs JavaScript to play.</p></noscript>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.btm')) {
+    const start = root.dataset.start!;
+    const table: Record<string, [string, number][]> = JSON.parse(root.dataset.table!);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const text = $('.btm-text'), opts = $('.btm-opts'), count = $('.btm-count');
+    const dice = $<HTMLButtonElement>('.btm-dice'), again = $<HTMLButtonElement>('.btm-again');
+    opts.hidden = false; $('.btm-ctl').hidden = false;
+    let words: string[] = [], lastWord = '', ended = false;
+
+    function reset() { words = []; lastWord = start.split(' ').pop()!; ended = false; render(); }
+    function choose(w: string) {
+      words.push(w); lastWord = w;
+      if (w === '.') ended = true;
+      render(true);
+    }
+    function options(): [string, number][] {
+      const o = table[lastWord] ?? table['.'] ?? [];
+      // Stories wrap up: after eleven picks, the period becomes the likeliest next token.
+      if (words.length >= 11 && !o.some(([w]) => w === '.')) return [['.', 70], ...o.slice(0, 2).map(([w, p]) => [w, Math.round(p * 0.3)] as [string, number])];
+      return o;
+    }
+    function render(added = false) {
+      text.replaceChildren(document.createTextNode(start));
+      words.forEach((w, i) => {
+        const s = document.createElement('span');
+        s.textContent = w === '.' ? '.' : ' ' + w;
+        if (added && i === words.length - 1) s.className = 'btm-new';
+        text.append(s);
+      });
+      opts.replaceChildren();
+      count.textContent = words.length ? `${words.length} ${words.length === 1 ? 'guess' : 'guesses'}` : '';
+      dice.disabled = ended;
+      if (ended) {
+        const li = document.createElement('li');
+        li.className = 'btm-end';
+        li.textContent = 'The end. A real model writes answers exactly like this, just with a much better table.';
+        opts.append(li);
+        return;
+      }
+      const o = options();
+      const top = Math.max(...o.map(([, p]) => p));
+      for (const [w, p] of o) {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.innerHTML = `<span class="btm-w"></span><span class="btm-bar"><i style="width:${p}%"></i></span><span class="btm-p">${p}%</span>`;
+        b.querySelector('.btm-w')!.textContent = w === '.' ? '. (end)' : w;
+        if (p === top) b.classList.add('top');
+        b.addEventListener('click', () => choose(w));
+        li.append(b);
+        opts.append(li);
+      }
+    }
+    dice.addEventListener('click', () => {
+      const o = options();
+      const sum = o.reduce((a, [, p]) => a + p, 0);
+      let r = Math.random() * sum;
+      for (const [w, p] of o) { if ((r -= p) <= 0) return choose(w); }
+      choose(o[0][0]);
+    });
+    again.addEventListener('click', reset);
+    reset();
+  }
+</script>
+
+<style is:global>
+  .btm p { margin: 0; }
+  .btm-title { font: 600 0.82rem/1.3 Inter, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px !important; }
+  .btm-text { font: 600 clamp(1.25rem, 3.6vw, 1.6rem)/1.4 "Space Grotesk", sans-serif; min-height: 2.8em; margin-bottom: 18px !important; }
+  .btm-new { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; animation: btm-pop .35s ease-out; display: inline-block; white-space: pre; }
+  @keyframes btm-pop { from { transform: translateY(0.4em); opacity: 0; } }
+  .btm-opts { list-style: none; margin: 0 0 14px !important; padding: 0 !important; display: grid; gap: 8px; }
+  .btm-opts li { margin: 0 !important; }
+  .btm-opts button { width: 100%; display: grid; grid-template-columns: 7.5em 1fr 3em; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg-2); color: var(--text); font: 600 0.95rem/1.2 Inter, sans-serif; cursor: pointer; text-align: left; }
+  .btm-opts button:hover, .btm-opts button:focus-visible { border-color: var(--teal); }
+  .btm-w { font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; }
+  .btm-bar { height: 10px; border-radius: 999px; background: var(--card); overflow: hidden; }
+  .btm-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--muted) 55%, transparent); border-radius: inherit; }
+  .btm-opts button.top .btm-bar i { background: var(--grad); }
+  .btm-p { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .btm-end { padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--teal) 12%, var(--bg-2)); font-size: 0.98rem; }
+  .btm-ctl { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .btm-ctl button { font: 600 0.88rem/1 Inter, sans-serif; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .btm-dice { border-color: var(--violet) !important; }
+  .btm-ctl button:disabled { opacity: 0.45; cursor: default; }
+  .btm-count { color: var(--muted); font-size: 0.85rem; margin-left: auto; }
+</style>

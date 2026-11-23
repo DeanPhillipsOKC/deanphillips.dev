@@ -1,0 +1,897 @@
+{
+  "question": "Why is the sky blue?",
+  "steps": [
+    {
+      "pick": "The",
+      "options": [
+        [
+          "The",
+          46
+        ],
+        [
+          "Sunlight",
+          22
+        ],
+        [
+          "Because",
+          17
+        ],
+        [
+          "It",
+          9
+        ]
+      ]
+    },
+    {
+      "pick": " sky",
+      "options": [
+        [
+          " sky",
+          71
+        ],
+        [
+          " light",
+          12
+        ],
+        [
+          " sun",
+          8
+        ],
+        [
+          " blue",
+          4
+        ]
+      ]
+    },
+    {
+      "pick": " looks",
+      "options": [
+        [
+          " looks",
+          38
+        ],
+        [
+          " is",
+          33
+        ],
+        [
+          " appears",
+          18
+        ],
+        [
+          " seems",
+          7
+        ]
+      ]
+    },
+    {
+      "pick": " blue",
+      "options": [
+        [
+          " blue",
+          93
+        ],
+        [
+          " bright",
+          3
+        ],
+        [
+          " so",
+          2
+        ],
+        [
+          " pale",
+          1
+        ]
+      ]
+    },
+    {
+      "pick": " because",
+      "options": [
+        [
+          " because",
+          62
+        ],
+        [
+          " since",
+          18
+        ],
+        [
+          " due",
+          13
+        ],
+        [
+          " thanks",
+          4
+        ]
+      ]
+    },
+    {
+      "pick": " air",
+      "options": [
+        [
+          " sunlight",
+          41
+        ],
+        [
+          " air",
+          27
+        ],
+        [
+          " the",
+          21
+        ],
+        [
+          " tiny",
+          8
+        ]
+      ]
+    },
+    {
+      "pick": " scatters",
+      "options": [
+        [
+          " scatters",
+          58
+        ],
+        [
+          " bounces",
+          17
+        ],
+        [
+          " spreads",
+          12
+        ],
+        [
+          " bends",
+          6
+        ]
+      ]
+    },
+    {
+      "pick": " blue",
+      "options": [
+        [
+          " blue",
+          64
+        ],
+        [
+          " the",
+          16
+        ],
+        [
+          " short",
+          11
+        ],
+        [
+          " more",
+          5
+        ]
+      ]
+    },
+    {
+      "pick": " light",
+      "options": [
+        [
+          " light",
+          88
+        ],
+        [
+          " more",
+          6
+        ],
+        [
+          " waves",
+          4
+        ],
+        [
+          " rays",
+          1
+        ]
+      ]
+    },
+    {
+      "pick": " more",
+      "options": [
+        [
+          " more",
+          72
+        ],
+        [
+          " the",
+          12
+        ],
+        [
+          " much",
+          9
+        ],
+        [
+          " best",
+          4
+        ]
+      ]
+    },
+    {
+      "pick": " than",
+      "options": [
+        [
+          " than",
+          90
+        ],
+        [
+          " easily",
+          5
+        ],
+        [
+          " strongly",
+          3
+        ],
+        [
+          " often",
+          1
+        ]
+      ]
+    },
+    {
+      "pick": " red",
+      "options": [
+        [
+          " red",
+          47
+        ],
+        [
+          " other",
+          31
+        ],
+        [
+          " the",
+          12
+        ],
+        [
+          " longer",
+          6
+        ]
+      ]
+    },
+    {
+      "pick": " light",
+      "options": [
+        [
+          " light",
+          52
+        ],
+        [
+          ".",
+          39
+        ],
+        [
+          ",",
+          5
+        ],
+        [
+          " does",
+          2
+        ]
+      ]
+    },
+    {
+      "pick": ".",
+      "options": [
+        [
+          ".",
+          86
+        ],
+        [
+          ",",
+          7
+        ],
+        [
+          " and",
+          4
+        ],
+        [
+          "!",
+          1
+        ]
+      ]
+    }
+  ],
+  "map": [
+    {
+      "w": "dog",
+      "x": 10,
+      "y": 20,
+      "g": "animal"
+    },
+    {
+      "w": "puppy",
+      "x": 17,
+      "y": 10,
+      "g": "animal"
+    },
+    {
+      "w": "cat",
+      "x": 26,
+      "y": 24,
+      "g": "animal"
+    },
+    {
+      "w": "kitten",
+      "x": 34,
+      "y": 14,
+      "g": "animal"
+    },
+    {
+      "w": "horse",
+      "x": 10,
+      "y": 32,
+      "g": "animal"
+    },
+    {
+      "w": "car",
+      "x": 50,
+      "y": 7,
+      "g": "ride"
+    },
+    {
+      "w": "truck",
+      "x": 54,
+      "y": 17,
+      "g": "ride"
+    },
+    {
+      "w": "bus",
+      "x": 47,
+      "y": 24,
+      "g": "ride"
+    },
+    {
+      "w": "bicycle",
+      "x": 57,
+      "y": 30,
+      "g": "ride"
+    },
+    {
+      "w": "pizza",
+      "x": 74,
+      "y": 12,
+      "g": "food"
+    },
+    {
+      "w": "taco",
+      "x": 86,
+      "y": 19,
+      "g": "food"
+    },
+    {
+      "w": "burger",
+      "x": 77,
+      "y": 27,
+      "g": "food"
+    },
+    {
+      "w": "sandwich",
+      "x": 68,
+      "y": 22,
+      "g": "food"
+    },
+    {
+      "w": "apple",
+      "x": 89,
+      "y": 8,
+      "g": "food"
+    },
+    {
+      "w": "king",
+      "x": 33,
+      "y": 45,
+      "g": "royal"
+    },
+    {
+      "w": "queen",
+      "x": 50,
+      "y": 42,
+      "g": "royal"
+    },
+    {
+      "w": "prince",
+      "x": 35,
+      "y": 57,
+      "g": "royal"
+    },
+    {
+      "w": "princess",
+      "x": 58,
+      "y": 55,
+      "g": "royal"
+    },
+    {
+      "w": "happy",
+      "x": 12,
+      "y": 62,
+      "g": "feel"
+    },
+    {
+      "w": "glad",
+      "x": 22,
+      "y": 70,
+      "g": "feel"
+    },
+    {
+      "w": "sad",
+      "x": 22,
+      "y": 80,
+      "g": "feel"
+    },
+    {
+      "w": "angry",
+      "x": 12,
+      "y": 93,
+      "g": "feel"
+    },
+    {
+      "w": "river",
+      "x": 44,
+      "y": 80,
+      "g": "water"
+    },
+    {
+      "w": "lake",
+      "x": 33,
+      "y": 88,
+      "g": "water"
+    },
+    {
+      "w": "ocean",
+      "x": 53,
+      "y": 93,
+      "g": "water"
+    },
+    {
+      "w": "fishing",
+      "x": 44,
+      "y": 69,
+      "g": "water"
+    },
+    {
+      "w": "bank",
+      "x": 62,
+      "y": 80,
+      "g": "bank"
+    },
+    {
+      "w": "money",
+      "x": 76,
+      "y": 66,
+      "g": "money"
+    },
+    {
+      "w": "cash",
+      "x": 86,
+      "y": 74,
+      "g": "money"
+    },
+    {
+      "w": "paycheck",
+      "x": 75,
+      "y": 86,
+      "g": "money"
+    },
+    {
+      "w": "coin",
+      "x": 88,
+      "y": 60,
+      "g": "money"
+    }
+  ],
+  "attention": [
+    {
+      "label": "Fishing",
+      "words": [
+        "We",
+        "went",
+        "fishing",
+        "on",
+        "the",
+        "river",
+        "bank"
+      ],
+      "weights": [
+        0.03,
+        0.06,
+        0.29,
+        0.05,
+        0.03,
+        0.48,
+        0
+      ],
+      "lean": 0.1
+    },
+    {
+      "label": "Payday",
+      "words": [
+        "I",
+        "took",
+        "my",
+        "paycheck",
+        "to",
+        "the",
+        "bank"
+      ],
+      "weights": [
+        0.03,
+        0.12,
+        0.05,
+        0.62,
+        0.06,
+        0.04,
+        0
+      ],
+      "lean": 0.9
+    },
+    {
+      "label": "Both?",
+      "words": [
+        "The",
+        "river",
+        "bank",
+        "cashed",
+        "my",
+        "check"
+      ],
+      "weights": [
+        0.03,
+        0.3,
+        0,
+        0.4,
+        0.05,
+        0.22
+      ],
+      "lean": 0.68
+    }
+  ],
+  "game": {
+    "start": "Once upon a time, a",
+    "table": {
+      "a": [
+        [
+          "dragon",
+          38
+        ],
+        [
+          "cat",
+          27
+        ],
+        [
+          "robot",
+          21
+        ],
+        [
+          "wizard",
+          14
+        ]
+      ],
+      "dragon": [
+        [
+          "slept",
+          35
+        ],
+        [
+          "ate",
+          30
+        ],
+        [
+          "found",
+          20
+        ],
+        [
+          "sneezed",
+          15
+        ]
+      ],
+      "cat": [
+        [
+          "slept",
+          42
+        ],
+        [
+          "ate",
+          25
+        ],
+        [
+          "found",
+          20
+        ],
+        [
+          "sneezed",
+          13
+        ]
+      ],
+      "robot": [
+        [
+          "found",
+          36
+        ],
+        [
+          "ate",
+          24
+        ],
+        [
+          "slept",
+          22
+        ],
+        [
+          "sneezed",
+          18
+        ]
+      ],
+      "wizard": [
+        [
+          "found",
+          40
+        ],
+        [
+          "sneezed",
+          25
+        ],
+        [
+          "slept",
+          20
+        ],
+        [
+          "ate",
+          15
+        ]
+      ],
+      "slept": [
+        [
+          "on",
+          45
+        ],
+        [
+          "under",
+          35
+        ],
+        [
+          "through",
+          20
+        ]
+      ],
+      "ate": [
+        [
+          "the",
+          46
+        ],
+        [
+          "every",
+          30
+        ],
+        [
+          "one",
+          24
+        ]
+      ],
+      "found": [
+        [
+          "the",
+          52
+        ],
+        [
+          "one",
+          30
+        ],
+        [
+          "every",
+          18
+        ]
+      ],
+      "sneezed": [
+        [
+          "on",
+          40
+        ],
+        [
+          "and",
+          35
+        ],
+        [
+          "through",
+          25
+        ]
+      ],
+      "on": [
+        [
+          "the",
+          70
+        ],
+        [
+          "every",
+          18
+        ],
+        [
+          "one",
+          12
+        ]
+      ],
+      "under": [
+        [
+          "the",
+          78
+        ],
+        [
+          "one",
+          14
+        ],
+        [
+          "every",
+          8
+        ]
+      ],
+      "through": [
+        [
+          "the",
+          72
+        ],
+        [
+          "every",
+          16
+        ],
+        [
+          "one",
+          12
+        ]
+      ],
+      "and": [
+        [
+          "ate",
+          36
+        ],
+        [
+          "found",
+          34
+        ],
+        [
+          "slept",
+          30
+        ]
+      ],
+      "the": [
+        [
+          "castle",
+          34
+        ],
+        [
+          "sandwich",
+          28
+        ],
+        [
+          "cloud",
+          22
+        ],
+        [
+          "sock",
+          16
+        ]
+      ],
+      "every": [
+        [
+          "sandwich",
+          40
+        ],
+        [
+          "sock",
+          30
+        ],
+        [
+          "cloud",
+          18
+        ],
+        [
+          "castle",
+          12
+        ]
+      ],
+      "one": [
+        [
+          "sock",
+          38
+        ],
+        [
+          "sandwich",
+          30
+        ],
+        [
+          "cloud",
+          20
+        ],
+        [
+          "castle",
+          12
+        ]
+      ],
+      "sandwich": [
+        [
+          ".",
+          48
+        ],
+        [
+          "and",
+          32
+        ],
+        [
+          "on",
+          20
+        ]
+      ],
+      "castle": [
+        [
+          ".",
+          52
+        ],
+        [
+          "and",
+          26
+        ],
+        [
+          "under",
+          22
+        ]
+      ],
+      "cloud": [
+        [
+          ".",
+          44
+        ],
+        [
+          "and",
+          36
+        ],
+        [
+          "through",
+          20
+        ]
+      ],
+      "sock": [
+        [
+          ".",
+          58
+        ],
+        [
+          "and",
+          30
+        ],
+        [
+          "on",
+          12
+        ]
+      ]
+    }
+  },
+  "quiz": [
+    {
+      "prompt": "When you ask a question, the AI looks the answer up in the text it studied.",
+      "answer": "Myth",
+      "why": "The text is gone after training. It only has the dials that studying set."
+    },
+    {
+      "prompt": "The AI writes its answer one small piece at a time.",
+      "answer": "Fact",
+      "why": "One token per trip around the loop, and every trip reads the whole answer so far."
+    },
+    {
+      "prompt": "The AI always picks the most likely next word.",
+      "answer": "Myth",
+      "why": "It usually does, but a little randomness is on purpose. That's why the same question can get two different answers."
+    },
+    {
+      "prompt": "The word \"bank\" can mean something different to the AI depending on the sentence.",
+      "answer": "Fact",
+      "why": "That's attention. The words around it shift where it sits on the map."
+    },
+    {
+      "prompt": "If an answer sounds confident, the AI checked that it's true.",
+      "answer": "Myth",
+      "why": "Nothing in the loop checks facts. A wrong answer that looks right comes out just as smoothly."
+    }
+  ]
+}

@@ -24,6 +24,13 @@ has results).
 
 ## Drafted
 
+- **AI, plainly: inference** (owner's idea, 2026-11-23): `ai-plainly`, part 0 of a new `ai-plainly`
+  series explaining AI to non-developers with the Feynman technique. Drafted 2026-11-23 as an unlisted
+  draft. Opens with the owner's own first explanation (search the training data as vectors) as the gap
+  the technique finds. Interactive pieces: NextWord (the opening animation, also recorded as the social
+  video `public/video/ai-plainly-reel.mp4` by `scripts/video/next-word-reel.mjs`), StudyVsExam,
+  TokenSplit, WordMap, AttentionDemo, BeTheModel, and a GuessCards quiz. All percentages and IDs are
+  labeled as made up. Next parts it promises: retrieval (the search it isn't), then tools and agents.
 - **Going public** (RepBunny #937, #942, #943, #944, #945, #946, #947, #949): the `going-public`
   series, drafted 2026-11-10 with the owner as unlisted drafts. `going-public` (part 0, why the
   code is public and the backlog isn't, the snapshot, the license), `going-public-cutover` (part 1,
