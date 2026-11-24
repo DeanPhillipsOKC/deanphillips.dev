@@ -1,0 +1,105 @@
+---
+// Gradient descent with one dial, as four numbered still frames (a comic, read top to bottom). Each frame
+// is the same valley seen from the side. Across is the tilt dial (0 to 4), up is the total miss (the sum of
+// squared misses, the same quantity FitLine's scoreboard shows), with the start height held at its best
+// value (1.02) so the bottom of the valley is FitLine's best line. A ball is the actor, with an arrow under it
+// showing which way is down (the way to turn the dial) and a thought bubble saying what it feels. Frames 2 and 3 show a faded
+// ball where the last step started, so the shrinking steps are visible. Under each frame, a small chart of
+// the bean dots with the line at that tilt. Positions are the tiny-step run (step size 0.0008). Static SVG,
+// so there is no JavaScript and nothing moves.
+interface Frame { tilt: number; from: number | null; think: string; label: string }
+interface Props { beans: { weeks: number[]; heights: number[] }; start: number; frames: Frame[]; caption?: string }
+const { beans, start, frames, caption } = Astro.props;
+const { weeks, heights } = beans;
+const sse = (t: number) => weeks.reduce((s, w, i) => s + (t * w + start - heights[i]) ** 2, 0);
+const slope = (t: number) => weeks.reduce((s, w, i) => s + 2 * (t * w + start - heights[i]) * w, 0);
+const W = 300, H = 236, L = 40, R = 288, T = 60, B = 200;
+const ymax = Math.max(sse(0), sse(4)) * 1.02;
+const sx = (t: number) => L + (t / 4) * (R - L);
+const sy = (v: number) => B - (v / ymax) * (B - T);
+const curve = Array.from({ length: 81 }, (_, i) => i / 20).map((t, i) => `${i ? 'L' : 'M'}${sx(t).toFixed(1)} ${sy(sse(t)).toFixed(1)}`).join(' ');
+// A short arrow just above the dial's axis, under the ball, pointing the way the ground goes down
+// (which is the way to turn the dial).
+const arrow = (t: number) => {
+  const g = slope(t);
+  if (Math.abs(g) < 8) return null;
+  const dir = g > 0 ? -1 : 1, x = sx(t);
+  return { x1: x - dir * 4, y1: B - 12, x2: x + dir * 40, y2: B - 12 };
+};
+const thumbs = (t: number) => {
+  const tx = (w: number) => 10 + ((w - 0.5) / 8) * 180, ty = (h: number) => 84 - (h / 20) * 78;
+  return { tx, ty, line: { x1: tx(0.5), y1: ty(start + t * 0.5), x2: tx(8.5), y2: ty(start + t * 8.5) } };
+};
+const id = `mhl${Math.round(Math.random() * 1e6)}`;
+---
+<figure class="mhl panel bleed">
+  <p class="mhl-callout"><b>Two slopes, two jobs.</b> The line's slope is the dial. The hill's slope says which way to turn it.</p>
+  <ol class="mhl-grid">
+    {frames.map((f) => {
+      const bx = sx(f.tilt), by = sy(sse(f.tilt)) - 10;
+      const a = arrow(f.tilt);
+      const th = thumbs(f.tilt);
+      const bw = Math.max(120, f.think.length * 7.6 + 24);
+      const bxl = Math.min(R - bw, Math.max(L + 4, bx < 150 ? bx + 30 : bx - bw / 2));
+      const byy = Math.max(8, by - 110);
+      const gx = f.from == null ? null : sx(f.from), gy = f.from == null ? null : sy(sse(f.from)) - 10;
+      return (
+        <li class="mhl-frame">
+          <p class="mhl-label">{f.label}</p>
+          <svg class="mhl-pic" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${f.label} The ball sits at tilt ${f.tilt}. It thinks, ${f.think}`}>
+            <defs><marker id={`${id}a`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" class="mhl-head" /></marker></defs>
+            <line class="mhl-ax" x1={L} y1={B} x2={R} y2={B} />
+            <line class="mhl-ax" x1={L} y1={B} x2={L} y2={T - 6} />
+            {[0, 1, 2, 3, 4].map((t) => <text class="mhl-tk" x={sx(t)} y={B + 16} text-anchor="middle">{t}</text>)}
+            <text class="mhl-axl" x={(L + R) / 2} y={H - 2} text-anchor="middle">tilt dial</text>
+            <text class="mhl-axl" x="14" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 14 ${(T + B) / 2})`}>total miss</text>
+            <path class="mhl-hill" d={curve} />
+            {gx != null && <path class="mhl-hop" d={`M${gx} ${gy} Q${(gx + bx) / 2} ${Math.min(gy!, by) - 28} ${bx} ${by - 8}`} marker-end={`url(#${id}a)`} />}
+            {gx != null && <circle class="mhl-ghost" cx={gx} cy={gy!} r="9" />}
+            {a && <line class="mhl-ground" {...a} marker-end={`url(#${id}a)`} />}
+            <circle class="mhl-ball" cx={bx} cy={by} r="10" />
+            {[0.35, 0.65].map((u, i) => {
+              const tx = Math.min(bxl + bw - 16, Math.max(bxl + 16, bx)), ty = byy + 42;
+              return <circle class="mhl-puff" cx={bx + (tx - bx) * u} cy={by - 14 + (ty - (by - 14)) * u} r={i ? 4.5 : 3} />;
+            })}
+            <rect class="mhl-bubble" x={bxl} y={byy} width={bw} height="36" rx="18" />
+            <text class="mhl-think" x={bxl + bw / 2} y={byy + 23} text-anchor="middle">{f.think}</text>
+          </svg>
+          <svg class="mhl-thumb" viewBox="0 0 200 92" aria-hidden="true">
+            <defs><clipPath id={`${id}c${f.tilt}`}><rect x="6" y="2" width="188" height="86" /></clipPath></defs>
+            <rect class="mhl-tbg" x="6" y="2" width="188" height="86" rx="8" />
+            <line class="mhl-tline" {...th.line} clip-path={`url(#${id}c${f.tilt})`} />
+            {weeks.map((w, i) => <circle class="mhl-tdot" cx={th.tx(w)} cy={th.ty(heights[i])} r="3.5" />)}
+          </svg>
+        </li>
+      );
+    })}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .mhl p { margin: 0; }
+  .mhl-callout { font-size: 1.02rem; line-height: 1.45; padding: 10px 14px; margin-bottom: 14px !important; border-radius: 12px; color: var(--text); background: color-mix(in srgb, var(--violet) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--violet) 45%, transparent); }
+  .mhl-callout b { color: var(--violet); }
+  ol.mhl-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .mhl-frame { margin: 0 !important; padding: 12px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 6px; }
+  .mhl-label { font: 700 1.1rem/1.25 "Space Grotesk", sans-serif; }
+  .mhl-pic { width: 100%; max-width: 360px; height: auto; display: block; margin: 0 auto; }
+  .mhl-ax { stroke: var(--line); stroke-width: 2; }
+  .mhl-tk { font: 500 12px Inter, sans-serif; fill: var(--muted); }
+  .mhl-axl { font: 600 13px Inter, sans-serif; fill: var(--muted); }
+  .mhl-hill { fill: none; stroke: var(--warn); stroke-width: 3.5; }
+  .mhl-ball { fill: var(--violet); stroke: var(--card); stroke-width: 2; }
+  .mhl-ghost { fill: none; stroke: var(--violet); stroke-width: 2.5; stroke-dasharray: 3 3; }
+  .mhl-hop { fill: none; stroke: var(--violet); stroke-width: 2.5; }
+  .mhl-ground { stroke: var(--text); stroke-width: 3; stroke-linecap: round; }
+  .mhl-head { fill: var(--text); }
+  .mhl-bubble, .mhl-puff { fill: var(--card); stroke: var(--line); stroke-width: 2; }
+  .mhl-think { font: 600 15px Inter, sans-serif; fill: var(--text); }
+  .mhl-thumb { width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto; }
+  .mhl-tbg { fill: var(--card); stroke: var(--line); }
+  .mhl-tline { stroke: var(--teal); stroke-width: 3; }
+  .mhl-tdot { fill: var(--text); }
+  @media (min-width: 640px) { ol.mhl-grid { grid-template-columns: 1fr 1fr; } }
+</style>

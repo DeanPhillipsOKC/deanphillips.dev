@@ -1,0 +1,42 @@
+{
+  "beans": {
+    "weeks": [1, 2, 3, 4, 5, 6, 7, 8],
+    "heights": [3, 4.5, 7.5, 8, 11.5, 12, 15.5, 16],
+    "bad": { "tilt": 0.5, "start": 10 },
+    "best": { "tilt": 1.94, "start": 1.02 },
+    "step": 0.05,
+    "rounds": 40
+  },
+  "hill": {
+    "start": 1.02,
+    "frames": [
+      { "tilt": 0, "from": null, "think": "Ground tips down to the right.", "label": "1. Way off." },
+      { "tilt": 1.06, "from": 0.63, "think": "Still downhill. Step again.", "label": "2. Big slope, big step." },
+      { "tilt": 1.67, "from": 1.54, "think": "Flatter now.", "label": "3. Smaller slope, smaller step." },
+      { "tilt": 1.94, "from": null, "think": "Flat. Done.", "label": "4. Bottom of the valley." }
+    ],
+    "steps": [
+      { "name": "Tiny steps", "size": 0.0008, "tag": "5 steps. Not there yet.", "tone": "teal" },
+      { "name": "Good steps", "size": 0.0035, "tag": "Wobbles a little, then lands.", "tone": "teal" },
+      { "name": "Too big", "size": 0.0052, "tag": "Each jump lands higher. It flies off.", "tone": "pink" }
+    ]
+  },
+  "bend": {
+    "dots": [[1, 2], [2, 5], [3, 7.5], [4, 9], [5, 10], [6, 10.4], [7, 10.6]]
+  },
+  "wordMiss": {
+    "prompt": "The sky is ___",
+    "right": "blue",
+    "cards": [
+      { "bars": [["blue", 10], ["green", 60], ["black", 30]], "tag": "Gave the right word 10%. Big miss.", "tone": "warn" },
+      { "bars": [["blue", 90], ["green", 6], ["black", 4]], "tag": "Gave the right word 90%. Small miss.", "tone": "ok" }
+    ]
+  },
+  "quiz": [
+    { "prompt": "A dial below zero pulls instead of pushes.", "answer": "Fact", "why": "Below zero the stairs go downhill, so more of the clue means less push." },
+    { "prompt": "Training changes the dials in one big jump.", "answer": "Myth", "why": "It takes many small steps downhill. Big jumps fly off." },
+    { "prompt": "Bigger steps always learn faster.", "answer": "Myth", "why": "Too big and every jump lands higher up the hill." },
+    { "prompt": "Someone tells the model the right line.", "answer": "Myth", "why": "It only gets the dots and how far off it is." },
+    { "prompt": "Stacking straight lines with no bends lets a model fit curves.", "answer": "Myth", "why": "Straight lines in a row add up to one straight line." }
+  ]
+}

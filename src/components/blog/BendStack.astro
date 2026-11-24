@@ -1,0 +1,56 @@
+---
+// Why real models bend between layers, as a wrong-vs-right pair of stills. Both cards use the same
+// made-up dots that rise and then level off. Left, "line, then line" gives one straight line (the best
+// straight fit, worked out here), which cuts through the curve. Right, "line, bend, line" gives a line with
+// one corner (the simplest bend a layer can add), which follows the dots. Static SVG, no JavaScript.
+interface Props { dots: [number, number][]; caption?: string }
+const { dots, caption } = Astro.props;
+const W = 260, H = 170, L = 16, R = 248, T = 12, B = 158;
+const sx = (x: number) => L + ((x - 0.5) / 7) * (R - L);
+const sy = (y: number) => B - (y / 12) * (B - T);
+const n = dots.length, mx = dots.reduce((s, d) => s + d[0], 0) / n, my = dots.reduce((s, d) => s + d[1], 0) / n;
+const k = dots.reduce((s, d) => s + (d[0] - mx) * (d[1] - my), 0) / dots.reduce((s, d) => s + (d[0] - mx) ** 2, 0);
+const fit = (x: number) => my + k * (x - mx);
+const bend = (x: number) => (x < 4.3 ? 2 + 2.45 * (x - 1) : 10.1 + 0.18 * (x - 4.3));
+const cards = [
+  { title: 'Stack straight lines', recipe: ['line', 'line'], path: `M${sx(0.5)} ${sy(fit(0.5))} L${sx(7.5)} ${sy(fit(7.5))}`, stamp: 'Still just a line.', tone: 'bad' },
+  { title: 'Add a bend between them', recipe: ['line', 'bend', 'line'], path: `M${sx(0.6)} ${sy(bend(0.6))} L${sx(4.3)} ${sy(bend(4.3))} L${sx(7.5)} ${sy(bend(7.5))}`, stamp: 'Now it can curve.', tone: 'good' },
+];
+---
+<figure class="bst panel bleed">
+  <div class="bst-grid">
+    {cards.map((c) => (
+      <section class={`bst-card bst-${c.tone}`}>
+        <p class="bst-title">{c.title}</p>
+        <p class="bst-recipe">{c.recipe.map((r, i) => <>{i > 0 && <span class="bst-then" aria-hidden="true">→</span>}<span class={`bst-pill${r === 'bend' ? ' bst-bendpill' : ''}`}>{r}</span></>)}</p>
+        <svg class="bst-pic" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${c.title}. ${c.stamp}`}>
+          <line class="bst-ax" x1={L} y1={B} x2={R} y2={B} />
+          <line class="bst-ax" x1={L} y1={B} x2={L} y2={T} />
+          <path class="bst-line" d={c.path} />
+          {dots.map((d) => <circle class="bst-dot" cx={sx(d[0])} cy={sy(d[1])} r="5" />)}
+        </svg>
+        <p class="bst-stamp">{c.stamp}</p>
+      </section>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .bst p { margin: 0; }
+  .bst-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .bst-card { padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 10px; justify-items: center; text-align: center; align-content: start; }
+  .bst-bad { --bst-c: var(--pink); }
+  .bst-good { --bst-c: var(--ok); }
+  .bst-title { font: 700 1.15rem/1.25 "Space Grotesk", sans-serif; }
+  .bst-recipe { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+  .bst-pill { font: 700 0.95rem/1 "Space Grotesk", sans-serif; padding: 7px 12px; border-radius: 999px; border: 2px solid var(--teal); color: var(--teal); background: var(--card); }
+  .bst-bendpill { border-color: var(--violet); color: var(--violet); }
+  .bst-then { color: var(--muted); font-weight: 700; }
+  .bst-pic { width: 100%; max-width: 300px; height: auto; display: block; }
+  .bst-ax { stroke: var(--line); stroke-width: 2; }
+  .bst-line { fill: none; stroke: var(--teal); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+  .bst-dot { fill: var(--text); stroke: var(--card); stroke-width: 2; }
+  .bst-stamp { display: inline-block; font: 800 1rem/1.2 "Space Grotesk", sans-serif; text-transform: uppercase; letter-spacing: .04em; color: var(--bst-c); border: 3px solid var(--bst-c); border-radius: 8px; padding: 6px 10px; transform: rotate(-3deg); }
+  @media (max-width: 620px) { .bst-grid { grid-template-columns: 1fr; } }
+</style>

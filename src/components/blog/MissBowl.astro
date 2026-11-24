@@ -1,0 +1,74 @@
+---
+// Gradient descent with two dials, drawn as a hiking map seen from above. Oval contour rings (darker toward
+// the middle, which is the lowest spot) sit over "tilt dial" across and "start height dial" up. A dotted
+// trail of footprints curves in from an outer ring to a "best line" flag at the center, and a blindfolded
+// stick hiker on the trail wonders which way is down. A sketch, not to scale (the rings are tilted because
+// the two dials trade off against each other). A footer names gradient and descent in plain words.
+// Static SVG, no JavaScript, no motion.
+const cx = 190, cy = 160;
+const rings = [1, 0.82, 0.64, 0.47, 0.31, 0.16];
+const trail = Array.from({ length: 13 }, (_, i) => i / 12).map((u) => {
+  // a curve from the outer ring at the lower left into the center
+  const a = Math.PI * (1.05 + 0.6 * u), r = 150 * (1 - u) ** 1.2;
+  return { x: cx + Math.cos(a) * r * 1.0, y: cy - Math.sin(a) * r * 0.62 };
+});
+---
+<figure class="mbw panel bleed">
+  <p class="mbw-head">Two dials. The hill is a bowl.</p>
+  <svg class="mbw-pic" viewBox="0 0 360 330" role="img" aria-label="A map of the miss seen from above. Oval rings get darker toward the middle, the lowest spot, marked best line. A blindfolded hiker on a dotted trail of footsteps wonders which way is down.">
+    <g transform={`rotate(-24 ${cx} ${cy})`}>
+      {rings.map((k) => <ellipse class="mbw-ring" cx={cx} cy={cy} rx={160 * k} ry={98 * k} />)}
+    </g>
+    {trail.slice(0, -1).map((p, i) => <circle class="mbw-step" cx={p.x} cy={p.y} r={i % 2 ? 3 : 3.6} />)}
+    <g class="mbw-flag" transform={`translate(${cx} ${cy})`}>
+      <line x1="0" y1="0" x2="0" y2="-34" />
+      <path d="M0 -34 L34 -27 L0 -20 Z" />
+      <circle r="4" />
+    </g>
+    <text class="mbw-flagt" x={cx + 8} y={cy + 22}>best line</text>
+    <g class="mbw-hiker" transform={`translate(${trail[3].x} ${trail[3].y - 44})`}>
+      <circle cx="0" cy="0" r="9" />
+      <line class="mbw-blind" x1="-10" y1="-1" x2="10" y2="-1" />
+      <line x1="0" y1="9" x2="0" y2="30" />
+      <line x1="0" y1="15" x2="-11" y2="24" />
+      <line x1="0" y1="15" x2="11" y2="22" />
+      <line x1="0" y1="30" x2="-8" y2="44" />
+      <line x1="0" y1="30" x2="8" y2="44" />
+    </g>
+    <circle class="mbw-puff" cx={trail[3].x + 12} cy={trail[3].y - 62} r="3" />
+    <circle class="mbw-puff" cx={trail[3].x + 20} cy={trail[3].y - 72} r="4.5" />
+    <rect class="mbw-bubble" x="14" y="12" width="250" height="38" rx="19" />
+    <text class="mbw-think" x="139" y="37" text-anchor="middle">Which way is down from here?</text>
+    <line class="mbw-ax" x1="20" y1="300" x2="340" y2="300" />
+    <line class="mbw-ax" x1="20" y1="300" x2="20" y2="64" />
+    <text class="mbw-axl" x="340" y="320" text-anchor="end">tilt dial</text>
+    <text class="mbw-axl" x="12" y="190" text-anchor="middle" transform="rotate(-90 12 190)">start height dial</text>
+  </svg>
+  <div class="mbw-foot">
+    <p><b>Gradient</b> means the slope for every dial at once.</p>
+    <p><b>Descent</b> means going down.</p>
+  </div>
+  <figcaption>A sketch, not to scale. With two dials you can still draw the hill. With billions you can't, but the rule is the same. A real model's hill is lumpy, so going downhill finds a good low spot, not a perfect one.</figcaption>
+</figure>
+
+<style is:global>
+  .mbw p { margin: 0; }
+  .mbw-head { font: 700 clamp(1.3rem, 5vw, 1.7rem)/1.2 "Space Grotesk", sans-serif; margin-bottom: 8px !important; }
+  .mbw-pic { width: 100%; max-width: 480px; height: auto; display: block; margin: 0 auto; }
+  .mbw-ring { fill: color-mix(in srgb, var(--teal) 9%, transparent); stroke: color-mix(in srgb, var(--teal) 40%, var(--line)); stroke-width: 1.5; }
+  .mbw-step { fill: var(--violet); }
+  .mbw-flag line { stroke: var(--text); stroke-width: 2.5; }
+  .mbw-flag path { fill: var(--ok); }
+  .mbw-flag circle { fill: var(--text); }
+  .mbw-flagt { font: 700 15px "Space Grotesk", sans-serif; fill: var(--ok); }
+  .mbw-hiker circle { fill: var(--card); stroke: var(--text); stroke-width: 2.5; }
+  .mbw-hiker line { stroke: var(--text); stroke-width: 2.5; stroke-linecap: round; }
+  .mbw-hiker .mbw-blind { stroke: var(--pink); stroke-width: 5; }
+  .mbw-bubble, .mbw-puff { fill: var(--card); stroke: var(--line); stroke-width: 2; }
+  .mbw-think { font: 600 15px Inter, sans-serif; fill: var(--text); }
+  .mbw-ax { stroke: var(--line); stroke-width: 2; }
+  .mbw-axl { font: 600 13px Inter, sans-serif; fill: var(--muted); }
+  .mbw-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
+  .mbw-foot p { font-size: 1rem; padding: 8px 12px; border-radius: 10px; background: var(--bg-2); border: 1px solid var(--line); }
+  .mbw-foot b { color: var(--teal); }
+</style>

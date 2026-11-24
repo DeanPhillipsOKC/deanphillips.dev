@@ -1,0 +1,89 @@
+---
+// Step size (the learning rate) as three still rows. Each row is the same thin valley from MissHill (total
+// miss for the tilt dial, start height held at 1.02), with the ball's first five hops drawn as numbered arcs.
+// The hops are real downhill steps worked out here from the bean data (new tilt is the old tilt minus step
+// size times the hill's slope), starting from tilt 0. Tiny steps creep, good steps wobble and land, and too
+// big a step lands higher each time and leaves the frame (any step above about 0.0049 does that here).
+// A hop that lands off the top gets its number pinned to the top edge with an up arrow. Static SVG.
+interface Row { name: string; size: number; tag: string; tone: 'teal' | 'pink' }
+interface Props { beans: { weeks: number[]; heights: number[] }; start: number; rows: Row[]; caption?: string }
+const { beans, start, rows, caption } = Astro.props;
+const { weeks, heights } = beans;
+const sse = (t: number) => weeks.reduce((s, w, i) => s + (t * w + start - heights[i]) ** 2, 0);
+const slope = (t: number) => weeks.reduce((s, w, i) => s + 2 * (t * w + start - heights[i]) * w, 0);
+const W = 320, H = 150, L = 10, R = 310, T = 26, B = 138, X0 = -1.6, X1 = 5.5;
+const ymax = sse(1.94 + 2.9);
+const sx = (t: number) => L + ((t - X0) / (X1 - X0)) * (R - L);
+const sy = (v: number) => B - (v / ymax) * (B - T);
+const curve = Array.from({ length: 141 }, (_, i) => X0 + (i / 140) * (X1 - X0)).map((t, i) => `${i ? 'L' : 'M'}${sx(t).toFixed(1)} ${sy(sse(t)).toFixed(1)}`).join(' ');
+const hops = (size: number) => { let t = 0; const out = [0]; for (let k = 0; k < 5; k++) { t -= size * slope(t); out.push(t); } return out; };
+const id = `stz${Math.round(Math.random() * 1e6)}`;
+---
+<figure class="stz panel bleed">
+  <p class="stz-head">Step size <span>(people call it the learning rate)</span></p>
+  <ol class="stz-rows">
+    {rows.map((r, ri) => {
+      const ts = hops(r.size);
+      return (
+        <li class={`stz-row stz-${r.tone}`}>
+          <p class="stz-name">{r.name}</p>
+          <svg class="stz-pic" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${r.name}. ${r.tag} The ball lands at tilt ${ts.slice(1).map((t) => t.toFixed(2)).join(', ')}.`}>
+            <defs><clipPath id={`${id}c${ri}`}><rect x="0" y="0" width={W} height={H} /></clipPath></defs>
+            <line class="stz-base" x1={L} y1={B} x2={R} y2={B} />
+            <path class="stz-hill" d={curve} clip-path={`url(#${id}c${ri})`} />
+            <line class="stz-best" x1={sx(1.94)} y1={B - 2} x2={sx(1.94)} y2={B + 8} />
+            <g clip-path={`url(#${id}c${ri})`}>
+              {ts.slice(1).map((t, k) => {
+                const a = ts[k];
+                const x1 = sx(a), y1 = sy(sse(a)) - 6, x2 = sx(t), y2 = sy(sse(t)) - 6;
+                const top = Math.min(y1, y2) - 18 - Math.abs(x2 - x1) * 0.15;
+                return <path class="stz-hop" d={`M${x1} ${y1} Q${(x1 + x2) / 2} ${top} ${x2} ${y2}`} />;
+              })}
+            </g>
+            {(() => {
+              // Number each landing just above it, skipping a number that would sit on top of one already
+              // drawn. The first and last hops are always numbered.
+              const px = (t: number) => Math.min(R - 10, Math.max(L + 10, sx(t)));
+              const placed: number[] = [px(ts[1]), px(ts[5])];
+              return ts.slice(1).map((t, k) => {
+                const y = sy(sse(t)) - 6;
+                const x = Math.min(R - 10, Math.max(L + 10, sx(t)));
+                if (y < T - 6) return <text class="stz-n stz-off" x={x} y="16" text-anchor="middle">{`↑${k + 1}`}</text>;
+                const show = k === 0 || k === 4 || placed.every((p) => Math.abs(p - x) > 16);
+                if (show && k > 0 && k < 4) placed.push(x);
+                return <g><circle class="stz-land" cx={sx(t)} cy={y + 6} r="4" />{show && <text class="stz-n" x={x} y={y - 6} text-anchor="middle">{k + 1}</text>}</g>;
+              });
+            })()}
+            <circle class="stz-ball" cx={sx(0)} cy={sy(sse(0)) - 2} r="6" />
+          </svg>
+          <p class="stz-tag">{r.tag}</p>
+        </li>
+      );
+    })}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .stz p { margin: 0; }
+  .stz-head { font: 700 1.2rem/1.3 "Space Grotesk", sans-serif; margin-bottom: 12px !important; }
+  .stz-head span { color: var(--muted); font-weight: 500; font-size: 1rem; }
+  ol.stz-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .stz-row { margin: 0 !important; padding: 12px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); display: grid; grid-template-columns: 9em minmax(0, 1fr); grid-template-areas: "name pic" "tag pic"; gap: 4px 14px; align-items: center; }
+  .stz-teal { --stz-c: var(--teal); }
+  .stz-pink { --stz-c: var(--pink); }
+  .stz-name { grid-area: name; font: 700 1.15rem/1.2 "Space Grotesk", sans-serif; color: var(--stz-c); align-self: end; }
+  .stz-tag { grid-area: tag; font-size: 0.95rem; line-height: 1.35; align-self: start; }
+  .stz-pic { grid-area: pic; width: 100%; height: auto; display: block; }
+  .stz-base { stroke: var(--line); stroke-width: 1.5; }
+  .stz-hill { fill: none; stroke: var(--warn); stroke-width: 2.5; opacity: .85; }
+  .stz-best { stroke: var(--muted); stroke-width: 2; }
+  .stz-hop { fill: none; stroke: var(--stz-c); stroke-width: 2.5; }
+  .stz-land { fill: var(--stz-c); }
+  .stz-ball { fill: var(--violet); stroke: var(--card); stroke-width: 2; }
+  .stz-n { font: 700 14px "Space Grotesk", sans-serif; fill: var(--text); }
+  .stz-off { fill: var(--pink); }
+  @media (max-width: 560px) {
+    .stz-row { grid-template-columns: 1fr; grid-template-areas: "name" "pic" "tag"; }
+  }
+</style>
