@@ -1,12 +1,13 @@
 ---
 // Rows that flip between a "before" and an "after" state with one switch, so readers can watch a
-// whole list change at once. Without JavaScript both states show, stacked.
+// whole list change at once. Without JavaScript both states show, stacked. groupLabel names the switch
+// for screen readers (it defaults to the wording of the post it was made for).
 interface Row { label: string; before: string; after: string }
-interface Props { rows: Row[]; beforeLabel: string; afterLabel: string; beforeTag?: string; afterTag?: string; scoreLabel?: string; caption?: string }
-const { rows, beforeLabel, afterLabel, beforeTag = 'Trust', afterTag = 'Enforced', scoreLabel = 'enforced by GitHub', caption } = Astro.props;
+interface Props { rows: Row[]; beforeLabel: string; afterLabel: string; beforeTag?: string; afterTag?: string; scoreLabel?: string; groupLabel?: string; caption?: string }
+const { rows, beforeLabel, afterLabel, beforeTag = 'Trust', afterTag = 'Enforced', scoreLabel = 'enforced by GitHub', groupLabel = 'Show the pipeline as it was or as it is', caption } = Astro.props;
 ---
 <figure class="trust panel bleed">
-  <div class="switch" role="group" aria-label="Show the pipeline as it was or as it is">
+  <div class="switch" role="group" aria-label={groupLabel}>
     <button type="button" data-to="before" aria-pressed="true">{beforeLabel}</button>
     <button type="button" data-to="after" aria-pressed="false">{afterLabel}</button>
   </div>

@@ -1,0 +1,37 @@
+---
+// A quote, graded phrase by phrase. Each phrase is underlined in its mark's color and gets a tag under
+// it with a mark and a word ("Right", "Wrong", "Close"), so color is never the only cue. Static, so it
+// reads the same with or without JavaScript. At narrow widths each tag sits right under its phrase.
+interface Part { text: string; mark: 'right' | 'wrong' | 'close'; note: string }
+interface Props { head: string; parts: Part[]; caption?: string }
+const { head, parts, caption } = Astro.props;
+const SIGN = { right: '✓', wrong: '✗', close: '◐' };
+---
+<figure class="qc panel bleed">
+  <p class="qc-head">{head}</p>
+  <blockquote class="qc-quote">
+    {parts.map((p) => (
+      <p class={`qc-part qc-${p.mark}`}>
+        <span class="qc-text">{p.text}</span>
+        <span class="qc-note"><b aria-hidden="true">{SIGN[p.mark]}</b> {p.note}</span>
+      </p>
+    ))}
+  </blockquote>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .qc { padding: 18px; }
+  figure.qc p.qc-head { margin: 0 0 14px; font: 700 0.85rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .post-body .qc-quote, .qc-quote { margin: 0; padding: 0; border: 0; display: grid; gap: 16px; font-style: normal; }
+  figure.qc p.qc-part { margin: 0; display: grid; gap: 6px; }
+  .qc-text { font: 600 1.4rem/1.35 "Space Grotesk", sans-serif; color: var(--text); text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; text-decoration-color: var(--m); }
+  .qc-text::before { content: '“'; color: var(--muted); }
+  .qc-text::after { content: '”'; color: var(--muted); }
+  .qc-note { justify-self: start; font: 600 0.92rem/1.4 Inter, sans-serif; color: var(--text); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--m); background: color-mix(in srgb, var(--m) 12%, var(--card)); }
+  .qc-note b { color: var(--m); font-size: 1.05rem; }
+  .qc-right { --m: var(--ok); }
+  .qc-wrong { --m: var(--pink); }
+  .qc-close { --m: var(--warn); }
+  @media (max-width: 560px) { .qc-text { font-size: 1.2rem; } }
+</style>

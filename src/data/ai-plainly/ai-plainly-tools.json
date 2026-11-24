@@ -1,0 +1,369 @@
+{
+  "request": {
+    "question": "What's the weather in Tulsa right now?",
+    "steps": [
+      {
+        "pick": "search",
+        "options": [
+          [
+            "search",
+            58
+          ],
+          [
+            "It",
+            19
+          ],
+          [
+            "I",
+            13
+          ],
+          [
+            "Sorry",
+            6
+          ]
+        ]
+      },
+      {
+        "pick": "(",
+        "options": [
+          [
+            "(",
+            91
+          ],
+          [
+            ":",
+            5
+          ],
+          [
+            " the",
+            2
+          ],
+          [
+            " for",
+            1
+          ]
+        ]
+      },
+      {
+        "pick": "Tulsa",
+        "options": [
+          [
+            "Tulsa",
+            74
+          ],
+          [
+            "weather",
+            15
+          ],
+          [
+            "Oklahoma",
+            7
+          ],
+          [
+            "today",
+            2
+          ]
+        ]
+      },
+      {
+        "pick": " weather",
+        "options": [
+          [
+            " weather",
+            81
+          ],
+          [
+            " forecast",
+            11
+          ],
+          [
+            " now",
+            5
+          ],
+          [
+            " temp",
+            2
+          ]
+        ]
+      },
+      {
+        "pick": " now",
+        "options": [
+          [
+            " now",
+            63
+          ],
+          [
+            ")",
+            24
+          ],
+          [
+            " today",
+            9
+          ],
+          [
+            " OK",
+            2
+          ]
+        ]
+      },
+      {
+        "pick": ")",
+        "options": [
+          [
+            ")",
+            88
+          ],
+          [
+            " please",
+            4
+          ],
+          [
+            " and",
+            3
+          ],
+          [
+            " in",
+            2
+          ]
+        ]
+      }
+    ]
+  },
+  "relay": {
+    "toolList": "Tools you can use. search(…) looks things up on the web. run_code(…) runs a short program. read_file(…) opens a file the person shared.",
+    "questions": [
+      {
+        "chip": "What's the weather in Tulsa right now?",
+        "note": "search(Tulsa weather now)",
+        "status": "Searching the web…",
+        "programLabel": "Asks a search engine",
+        "icon": "search",
+        "result": "Tulsa now: 54°F, cloudy",
+        "answer": "It's 54°F and cloudy in Tulsa right now."
+      },
+      {
+        "chip": "What's 48,271 times 9,358?",
+        "note": "run_code(print(48271 * 9358))",
+        "status": "Running code…",
+        "programLabel": "Code runner does the multiplication",
+        "icon": "code",
+        "result": "451720018",
+        "answer": "48,271 × 9,358 = 451,720,018",
+        "extra": "A code runner can't slip on long math. A model guessing it can."
+      },
+      {
+        "chip": "What's on my packing list?",
+        "note": "read_file(packing-list.txt)",
+        "status": "Reading your file…",
+        "programLabel": "Opens the file",
+        "icon": "file",
+        "result": "socks, charger, rain jacket, passport",
+        "answer": "Your list has socks, a charger, a rain jacket, and your passport."
+      }
+    ]
+  },
+  "searchMap": {
+    "passages": [
+      {
+        "label": "Refunds",
+        "group": "help",
+        "x": 16,
+        "y": 6,
+        "text": "Refunds go back to your card within 5 business days."
+      },
+      {
+        "label": "Damaged in shipping",
+        "group": "help",
+        "x": 49,
+        "y": 12,
+        "text": "If it arrived damaged, send a photo and we'll replace or refund it."
+      },
+      {
+        "label": "Track my order",
+        "group": "help",
+        "x": 83,
+        "y": 6,
+        "text": "Your tracking link is in the email we sent when it shipped."
+      },
+      {
+        "label": "Return policy",
+        "group": "help",
+        "x": 16,
+        "y": 20,
+        "text": "Most items can be returned within 30 days."
+      },
+      {
+        "label": "Change my address",
+        "group": "help",
+        "x": 83,
+        "y": 20,
+        "text": "You can change the address until the order ships."
+      },
+      {
+        "label": "Gift cards",
+        "group": "help",
+        "x": 15,
+        "y": 36,
+        "text": "Gift cards never expire."
+      },
+      {
+        "label": "Warranty claims",
+        "group": "help",
+        "x": 49,
+        "y": 30,
+        "text": "Start a claim with your order number."
+      },
+      {
+        "label": "Reset my password",
+        "group": "help",
+        "x": 17,
+        "y": 54,
+        "text": "Tap Forgot password and check your email."
+      },
+      {
+        "label": "Model 5 blender warranty",
+        "group": "help",
+        "x": 49,
+        "y": 46,
+        "text": "Model 5 blenders are covered for 2 years."
+      },
+      {
+        "label": "Oven won't heat",
+        "group": "help",
+        "x": 83,
+        "y": 48,
+        "text": "Check that the oven isn't set to the clock-only mode."
+      },
+      {
+        "label": "Close my account",
+        "group": "help",
+        "x": 16,
+        "y": 68,
+        "text": "Closing your account deletes your order history."
+      },
+      {
+        "label": "Blender won't turn on",
+        "group": "help",
+        "x": 49,
+        "y": 62,
+        "text": "Check that the lid is locked."
+      },
+      {
+        "label": "Oven temperatures",
+        "group": "recipe",
+        "x": 83,
+        "y": 62,
+        "text": "Most quick breads bake at 350°F."
+      },
+      {
+        "label": "Pie crust",
+        "group": "recipe",
+        "x": 49,
+        "y": 80,
+        "text": "Keep the butter cold and don't overwork the dough."
+      },
+      {
+        "label": "Banana bread",
+        "group": "recipe",
+        "x": 83,
+        "y": 76,
+        "text": "Bake at 350°F for 55 to 65 minutes."
+      },
+      {
+        "label": "Chili",
+        "group": "recipe",
+        "x": 16,
+        "y": 93,
+        "text": "Simmer for at least an hour."
+      },
+      {
+        "label": "Pancakes",
+        "group": "recipe",
+        "x": 49,
+        "y": 94,
+        "text": "Flip when bubbles pop on top."
+      },
+      {
+        "label": "Muffins",
+        "group": "recipe",
+        "x": 83,
+        "y": 88,
+        "text": "Bake 18 to 22 minutes."
+      }
+    ],
+    "groups": [
+      {
+        "id": "help",
+        "label": "Help center",
+        "x": 83,
+        "y": 34
+      },
+      {
+        "id": "recipe",
+        "label": "Recipe box",
+        "x": 16,
+        "y": 82
+      }
+    ],
+    "queries": [
+      {
+        "chip": "My toaster arrived broken. Can I get my money back?",
+        "note": "search(money back for broken toaster)",
+        "x": 30,
+        "y": 13,
+        "callout": {
+          "label": "Refunds",
+          "text": "No words in common with your search. Close in meaning."
+        }
+      },
+      {
+        "chip": "How long does banana bread bake?",
+        "note": "search(banana bread bake time)",
+        "x": 74,
+        "y": 70
+      },
+      {
+        "chip": "Is my Model 7 blender under warranty?",
+        "note": "search(Model 7 blender warranty)",
+        "x": 54,
+        "y": 39,
+        "warn": "Close, but not the right page. Nothing here is about Model 7.",
+        "answer": "Yes, it's covered for 2 years.",
+        "answerTag": "Smooth and wrong. That's the Model 5 page."
+      }
+    ]
+  },
+  "quiz": [
+    {
+      "prompt": "The model visits the website itself.",
+      "answer": "Myth",
+      "why": "It writes a note. An ordinary program visits the site and pastes back what it found."
+    },
+    {
+      "prompt": "A tool request is text the model writes.",
+      "answer": "Fact",
+      "why": "It's guessed one token at a time, like any other words, in a shape a program can read."
+    },
+    {
+      "prompt": "While the tool runs, the model waits and keeps thinking.",
+      "answer": "Myth",
+      "why": "It isn't running. When the result comes back, it's run again and rereads the whole conversation."
+    },
+    {
+      "prompt": "The program that runs the tool is the same AI, thinking harder.",
+      "answer": "Myth",
+      "why": "It's usually ordinary code. Some tools use other models, but not the one you're talking to."
+    },
+    {
+      "prompt": "A search tool searches the model's training text.",
+      "answer": "Myth",
+      "why": "It searches pages someone stored on purpose. The model keeps no copy of what it trained on."
+    },
+    {
+      "prompt": "A pasted result can still be wrong.",
+      "answer": "Fact",
+      "why": "If the search grabs the wrong page, the model guesses from it just as smoothly."
+    }
+  ]
+}
