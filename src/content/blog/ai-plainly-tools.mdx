@@ -15,7 +15,7 @@ image: /img/og/ai-plainly-tools.jpg
 ---
 import TrustSwitch from '../../components/blog/TrustSwitch.astro';
 import NextWord from '../../components/blog/NextWord.astro';
-import RoundTrip from '../../components/blog/RoundTrip.astro';
+import ToolComic from '../../components/blog/ToolComic.astro';
 import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
@@ -69,18 +69,13 @@ How does it know the tools exist? The app slips in a hidden list of them (you'll
 
 **The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip for one question.
 
-<RoundTrip
-  question={d.relay.questions[0].chip}
-  note={d.relay.questions[0].note}
-  tool="A search engine looks it up."
-  result="Tulsa now 54°F, cloudy"
-  answer={d.relay.questions[0].answer}
-  toolList={d.relay.toolList}
+<ToolComic
+  panels={d.comic}
   others={[
     { label: 'Big math', note: 'run_code(print(48271 * 9358))' },
     { label: 'Your file', note: 'read_file(packing-list.txt)' },
   ]}
-  caption="The weather is made up. The app is the ordinary program you type into."
+  caption="Speech bubbles are messages. Thought bubbles are what each one is holding. The app keeps the conversation. The model keeps nothing between runs. The weather is made up."
 />
 
 Two things are easy to miss. While the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app runs it again, and it rereads the whole conversation from the top, result included.

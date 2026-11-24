@@ -65,6 +65,9 @@ over prose. Dean has ADHD and struggles with long prose, and so do many readers.
 - Add interaction only when doing it is the lesson (turning a dial to see the guess change, being
   the model in a game). Never add tabs, toggles, or step controls just to fit more examples in.
   Show one example well, and list the others as a line or two.
+- When a picture shows parts of a system talking to each other, draw them as actors in a comic
+  (the owner's idea, 2026-11-24). Speech bubbles are messages between them, and thought bubbles
+  are what each one is holding in memory. The tools post's ToolComic is the model to copy.
 - Plain and readable beats impressive. Nothing that makes a topic look mysterious or magical (a 3D
   token cloud was tried for `ai-plainly` and dropped for that reason).
 - Big type, few words per visual, one idea per visual, clear labels, and made-up numbers labeled as
