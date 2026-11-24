@@ -19,106 +19,122 @@ import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
 import SearchMap from '../../components/blog/SearchMap.astro';
+import FixSplit from '../../components/blog/FixSplit.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import d from '../../data/ai-plainly/ai-plainly-tools.json';
 
 This is part 1 of [AI, plainly](/blog/ai-plainly/), and it starts where the overview stopped. The overview said a model can only guess the next word. It can't look anything up. So how can a chatbot tell you it's searching the web?
 
-The overview answered that in one line at the very end. This post walks the whole trip, one step at a time. And my wrong first answer from the overview turns out to be real. It just lives somewhere else.
+This post walks the whole trip, one step at a time. And my half-wrong first answer from the overview? Half of it is real. It just describes a different part.
 
 <TrustSwitch
   beforeLabel="What it looks like"
   afterLabel="What actually happens"
   beforeTag="Looks like"
   afterTag="Really"
-  scoreLabel="shown as it really works"
+  scoreLabel=""
+  marks
   groupLabel="Show how it looks from the chat box, or what actually happens"
   rows={[
-    { label: 'Who visits the website?', before: 'The AI', after: 'An ordinary program' },
-    { label: 'Who does the math?', before: 'The AI', after: 'A code runner' },
+    { label: 'Who visits the website?', before: 'The AI', after: 'A tool (ordinary code, not the AI)' },
+    { label: 'Who does the long math, when it uses a tool?', before: 'The AI', after: 'A program that runs code the model wrote' },
     { label: 'What does the model do?', before: 'Browses and calculates', after: 'Writes a note, then reads the reply' },
   ]}
-  caption="Flip it. The left side is how it feels from the chat box."
+  caption="Flip it. “What it looks like” is how it feels from the chat box."
 />
 
 ## It writes a note
 
-A **tool** is a helper program the model can ask for, like a web search, a file reader, or a code runner. A **tool request** (people call it a tool call) is the note the model writes to ask for one. It isn't a special power. It's more guessed text, in a shape a program can read.
+A **tool** is a helper program the model can ask for, like a web search, a file reader, or a program that runs code. A **tool request** (people call it a tool call) is the note the model writes to ask for one. It isn't a special power. It's more guessed text, in a shape a program can read.
 
-**Guess first.** The model doesn't know today's weather. What's the most useful thing it could write?
+The model doesn't know today's weather. So what's the most useful thing it could write first? Make your guess in the picture.
 
 <NextWord
   question={d.request.question}
   steps={d.request.steps}
   whoLabel="The model writes"
   doneText="and the note is done. The model stops here."
-  reelTop="It can only guess words. So it writes a note."
-  reelEnd="A note is just more guessed text."
   mono
+  holdFirst
   answerNote="You normally never see this part."
   firstNote="Not a word of the answer. The start of a note."
-  caption="At the spot where it would start answering, the model's top guess is the start of a note. You normally never see this part. The percentages are made up to show the idea."
+  caption="At the spot where it would start answering, the model's top guess is the start of a note. The percentages are made up to show the idea."
 />
 
-How does it know the tools exist? The app around the model (the regular program you're actually typing into) quietly adds a list of them to the conversation. You never see it. (People call hidden instructions like this a system prompt.) And the second round of training from the overview included lots of example conversations where the assistant writes a request and then uses the result.
+How does it know the tools exist? The app slips in a hidden list of them (you'll see it in the next picture). And the second round of training from the overview, the one that made it an assistant, included lots of practice at writing notes and using what comes back.
 
 ## A regular program does the work
 
-Here's the whole round trip. Pick a question and step through it.
+**The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip. Pick a question and step through it.
 
 <ToolRelay
   questions={d.relay.questions}
   toolList={d.relay.toolList}
-  caption="Pick a question and step through it. The weather and the packing list are made up. The math is real."
+  caption="The weather and the packing list are made up. The math is real."
 />
 
-Two things are easy to miss. While the program works, the model isn't waiting. It isn't running at all. When the result comes back, the app runs it again, and it rereads the whole conversation from the top, result included.
+Two things are easy to miss. While the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app runs it again, and it rereads the whole conversation from the top, result included.
 
-And the result is just more text. The model can't tell a true result from a wrong one, or from a page that tells it what to do.
+And the result is just more text. Nothing checks whether it's true. And if a pasted page says “do this”, the model may do it.
 
 <Callout title="Picture it this way.">
-Someone in a closed room who can only pass notes under the door. A helper outside does the errands and slides the answer back. The odd part is that every time a note comes back, the person inside has forgotten everything and rereads the whole stack of paper from the top.
+Someone in a closed room who can only pass notes under the door. A helper outside does the errands and slides the answer back. The odd part is that every time a note comes back, the person inside has forgotten everything and rereads the whole stack of paper from the top. (Real systems save their work on the earlier part so they don't redo it. The model still has nothing except what's on the page.)
 </Callout>
 
 <NoDumbQuestions items={[
-  { q: 'Is the program AI too?', a: "Usually it's ordinary code. Some tools use other models (an image maker, or the map maker in the next section), but none of them is the model you're talking to, thinking harder." },
-  { q: 'Why not just let the model do the math?', a: "It can, and it's often right. But it's guessing, and long numbers are where guesses slip. Writing a one-line program costs it a few tokens. (The code usually runs in a closed-off box, called a sandbox.)" },
+  { q: 'Is the tool AI too?', a: "Usually it's ordinary code. Some tools use other models (an image maker, or the map maker in the next section), but none of them is the model you're talking to, thinking harder." },
+  { q: 'Why not just let the model do the math?', a: "It can, and it's often right. But it's guessing, and long numbers are where guesses slip. Writing a one-line program is only a few words, and the computer can't slip on the math." },
 ]} />
 
 ## Where my first answer was hiding
 
-Back in the overview, my first try at explaining AI went like this.
+Web search asks a regular search engine, the same kind you'd use. (Big ones use maps like the one below too, along with matching words.) For your own files and help docs, many tools build their own map. Here's that map.
 
-<QuoteCheck
-  head="My first try, graded"
-  parts={[
-    { text: 'Your words get turned into numbers.', mark: 'right', note: "Right. That's how many search tools work." },
-    { text: 'The AI searches through everything it learned from', mark: 'wrong', note: 'Wrong. A search tool searches pages someone stored on purpose. Never the training text.' },
-    { text: 'and finds what an answer should look like.', mark: 'close', note: 'Close. A search tool finds the passages nearest in meaning. Then the model still guesses.' },
-  ]}
-  caption="Half right. I had the right idea about the wrong part."
-/>
-
-The first half is real. It's just not how the model answers. It's how many search tools work.
-
-Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from the overview, but for whole passages, and it's a separate map. A small model of its own hands out the spots, and it never guesses words. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
+Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from the overview, but for whole passages, and it's a separate map. A separate model of its own hands out the spots. In this job it never writes a word. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
 
 <SearchMap
   passages={d.searchMap.passages}
   groups={d.searchMap.groups}
   queries={d.searchMap.queries}
-  caption="Every position and passage here is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How 'nearest' gets measured is part 4."
+  caption="Every position and passage here is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 4."
 />
 
-That's why it can paste real text back, and it's the part my first try got backwards. The model keeps no copy. The search tool keeps everything. (Sometimes the app runs a search on its own, before the model writes a thing. People call fetch first, then guess RAG, short for retrieval-augmented generation.)
+Now, back in the overview, my first try at explaining AI went like this.
 
-<Callout title="Web search is usually different.">
-The tool asks a regular search engine, the same kind you'd use, and pastes back what it finds. Maps like this are common for your own files and help docs. Some systems mix both.
-</Callout>
+<QuoteCheck
+  head="My first try, graded"
+  parts={[
+    { text: 'Your words get turned into numbers.', mark: 'right', note: 'Right, twice. The model turns words into numbers (the word map). So do many search tools.' },
+    { text: 'The AI searches through everything it learned from', mark: 'wrong', note: 'Wrong. The model has no copy to search. A search tool searches its own stored pages, kept separately on purpose.' },
+    { text: 'and finds what an answer should look like.', mark: 'close', note: 'Close. A search tool finds the passages nearest in meaning. Then the model still guesses.' },
+  ]}
+  caption="One right, one wrong, one close. Right idea, wrong part."
+/>
+
+Searching for the nearest match is real. It's just not how the model answers. It's how many search tools work. The model keeps no copy. The search tool keeps everything, word for word, which is why it can paste real text back.
+
+<NoDumbQuestions items={[
+  { q: 'Is this what people mean by RAG?', a: "Yes. Fetch some text, paste it in, then guess. People call that RAG, short for retrieval-augmented generation. Sometimes the app runs the search on its own, before the model writes a thing." },
+]} />
 
 ## Why it still gets things wrong
 
-Tools fix the missing fresh facts. They don't fix the guessing. Try the Model 7 question on the map. The closest pages aren't about Model 7, and the answer still comes out smooth. That's the overview's confidently wrong, with better sources.
+<FixSplit
+  yesTitle="Tools fix"
+  noTitle="Tools don't fix"
+  yes={[
+    { head: 'Stale facts', sub: "Studying ended months before you asked. A search is from today." },
+    { head: 'Long math', sub: 'The code does the sum exactly.' },
+    { head: 'Your own files', sub: 'It can read what you shared.' },
+  ]}
+  no={[
+    { head: 'The guessing', sub: 'The answer is still guessed, one token at a time.' },
+    { head: 'The wrong page', sub: 'If the search grabs it, the model uses it anyway.' },
+    { head: 'Sounding sure', sub: 'A made-up answer comes out just as smooth.' },
+  ]}
+/>
+
+The Model 7 question on the map got the Model 5 page, and the answer still came out smooth. It's the same confidently wrong from the overview. Now it has a source to be wrong from.
 
 ## Check yourself
 

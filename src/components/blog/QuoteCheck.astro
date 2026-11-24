@@ -2,13 +2,17 @@
 // A quote, graded phrase by phrase. Each phrase is underlined in its mark's color and gets a tag under
 // it with a mark and a word ("Right", "Wrong", "Close"), so color is never the only cue. Static, so it
 // reads the same with or without JavaScript. At narrow widths each tag sits right under its phrase.
+// One pair of quote marks wraps the whole sentence, and a score line under the header counts the marks.
 interface Part { text: string; mark: 'right' | 'wrong' | 'close'; note: string }
 interface Props { head: string; parts: Part[]; caption?: string }
 const { head, parts, caption } = Astro.props;
 const SIGN = { right: '✓', wrong: '✗', close: '◐' };
+const WORD = { right: 'right', close: 'close', wrong: 'wrong' };
+const score = (['right', 'close', 'wrong'] as const).map((m) => [m, parts.filter((p) => p.mark === m).length] as const).filter(([, n]) => n > 0);
 ---
 <figure class="qc panel bleed">
   <p class="qc-head">{head}</p>
+  <p class="qc-score">{score.map(([m, n], i) => <>{i > 0 && ' · '}<span class={`qc-${m}`}><b aria-hidden="true">{SIGN[m]}</b> {n} {WORD[m]}</span></>)}</p>
   <blockquote class="qc-quote">
     {parts.map((p) => (
       <p class={`qc-part qc-${p.mark}`}>
@@ -26,8 +30,11 @@ const SIGN = { right: '✓', wrong: '✗', close: '◐' };
   .post-body .qc-quote, .qc-quote { margin: 0; padding: 0; border: 0; display: grid; gap: 16px; font-style: normal; }
   figure.qc p.qc-part { margin: 0; display: grid; gap: 6px; }
   .qc-text { font: 600 1.4rem/1.35 "Space Grotesk", sans-serif; color: var(--text); text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 6px; text-decoration-color: var(--m); }
-  .qc-text::before { content: '“'; color: var(--muted); }
-  .qc-text::after { content: '”'; color: var(--muted); }
+  .qc-part:first-child .qc-text::before { content: '“'; color: var(--muted); }
+  .qc-part:last-child .qc-text::after { content: '”'; color: var(--muted); }
+  figure.qc p.qc-score { margin: -6px 0 16px; font: 600 1rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .qc-score span { color: var(--text); }
+  .qc-score b { color: var(--m); }
   .qc-note { justify-self: start; font: 600 0.92rem/1.4 Inter, sans-serif; color: var(--text); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--m); background: color-mix(in srgb, var(--m) 12%, var(--card)); }
   .qc-note b { color: var(--m); font-size: 1.05rem; }
   .qc-right { --m: var(--ok); }
