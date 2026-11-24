@@ -11,6 +11,7 @@ readMinutes: 5
 series: ai-plainly
 part: 4
 draft: true
+image: /img/og/ai-plainly-training-math.jpg
 ---
 import FitLine from '../../components/blog/FitLine.astro';
 import StairSlope from '../../components/blog/StairSlope.astro';
@@ -24,6 +25,7 @@ import WordMiss from '../../components/blog/WordMiss.astro';
 import TrainingReceipt from '../../components/blog/TrainingReceipt.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
+import TrainingReel from '../../components/blog/TrainingReel.astro';
 import d from '../../data/ai-plainly/ai-plainly-training-math.json';
 
 This is part 4 of AI, plainly. New to the series? Start with [part 1](/blog/ai-plainly/). [Part 3](/blog/ai-plainly-agents/) ended on a loose end. Every turn of an agent runs through the same dials, set during training. So how do they get set?
@@ -134,3 +136,5 @@ Five quick ones.
 So what are those thousands of chips doing all day? Mostly multiplying and adding. And they started out in video games. That's part 5, the math of inference, and why everyone talks about Nvidia.
 
 The bean plant kept growing the whole time. It didn't need a single nudge.
+
+<TrainingReel beans={d.beans} />
