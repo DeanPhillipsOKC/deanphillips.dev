@@ -1,14 +1,17 @@
 ---
 // The agents post's run picture. It's a still picture with no controls. It reads the same with or
 // without JavaScript, and the parts fade in once when they scroll into view unless the reader prefers less
-// motion. Colors: the model violet, the harness and its results teal, the surprise --warn, Done --ok.
+// motion. Colors: the model violet, the harness and its results teal, a result that rules
+// something out --warn, Done --ok.
 //
 // mode="run": one made-up run as a numbered strip, one card per turn. Each card shows what the model wrote
-// (its notes and the tool request) and what came back. Turn 2's card calls out the branch nobody wrote
+// (its notes and the tool request) and what came back, with a short note from the data (surpriseText).
+// A turn with also asks for two tools at once and gets both results. A turn with ok pauses for your OK (the harness stops and asks, you say yes), then shows what came after.
+// Turn 2's card calls out the branch nobody wrote
 // (script vs agent lines from the data), and the last card is the answer with no tool request, ending in
 // Done. The data is src/data/ai-plainly/ai-plainly-agents.json, which AgentsReel also reads.
 interface Step { title: string }
-interface Turn { wrote: string; tool: string | null; back: string | null; surprise?: boolean; branch?: boolean }
+interface Turn { wrote: string; tool: string | null; back: string | null; surprise?: boolean; surpriseText?: string; also?: { tool: string; back: string }; ok?: { ask: string; you: string }; after?: string; branch?: boolean }
 interface RunData { job: string; turns: Turn[]; branch: { script: string; agent: string } }
 interface Props { mode?: 'diagram' | 'run'; loop?: Step[]; run?: RunData; caption?: string }
 const { mode = 'run', loop = [], run, caption } = Astro.props;
@@ -30,8 +33,16 @@ const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden=
           ) : (
             <p class="lil-line"><span class="lil-k lil-k-m">Its answer</span><span class="lil-answer">{t.wrote}</span></p>
           )}
-          <p class="lil-line"><span class="lil-k lil-k-m">Tool request</span>{t.tool ? <span class="lil-chip lil-chip-tool">{t.tool}</span> : <span class="lil-chip lil-chip-none">none</span>}</p>
-          {t.back && <p class={`lil-line${t.surprise ? ' lil-surp' : ''}`}><span class="lil-k lil-k-h">Came back</span><span class="lil-chip lil-chip-back">{t.back}</span>{t.surprise && <em class="lil-surp-t">Saturday is out</em>}</p>}
+          <p class="lil-line"><span class="lil-k lil-k-m">{t.also ? 'Tool requests' : 'Tool request'}</span>{t.tool ? <span class="lil-chip lil-chip-tool">{t.tool}</span> : <span class="lil-chip lil-chip-none">none</span>}{t.also && <span class="lil-chip lil-chip-tool">{t.also.tool}</span>}</p>
+          {t.back && <p class={`lil-line${t.surprise ? ' lil-surp' : ''}`}><span class="lil-k lil-k-h">Came back</span><span class="lil-chip lil-chip-back">{t.back}</span>{t.also && <span class="lil-chip lil-chip-back">{t.also.back}</span>}{t.surprise && t.surpriseText && <em class="lil-surp-t">{t.surpriseText}</em>}</p>}
+          {t.ok && (
+            <div class="lil-ok">
+              <p class="lil-ok-h"><span class="lil-pause" aria-hidden="true"><i></i><i></i></span>The harness stops for your OK</p>
+              <p class="lil-ok-q">{t.ok.ask}</p>
+              <p class="lil-ok-you"><span class="lil-k">You</span><span class="lil-ok-a">{t.ok.you}</span></p>
+            </div>
+          )}
+          {t.after && <p class="lil-line"><span class="lil-k lil-k-h">Then</span><span class="lil-chip lil-chip-back">{t.after}</span></p>}
           {t.branch && (
             <div class="lil-branch">
               <p class="lil-branch-h">Nobody wrote this step</p>
@@ -130,6 +141,12 @@ const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden=
   .lil-answer { flex-basis: 100%; padding: 10px 14px; border-radius: 14px; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text); background: color-mix(in srgb, var(--violet) 16%, var(--card)); border: 1px solid color-mix(in srgb, var(--violet) 50%, transparent); }
   .lil-surp .lil-chip-back { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn); }
   .lil-surp-t { font: italic 600 0.9rem/1.3 Inter, sans-serif; color: var(--warn); }
+  .lil-ok { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 2px dashed var(--teal); background: color-mix(in srgb, var(--teal) 9%, var(--card)); }
+  .lil-ok-h { display: flex; align-items: center; gap: 8px; font: 700 1rem/1.3 "Space Grotesk", sans-serif; color: var(--teal); }
+  .lil-pause { display: inline-flex; gap: 3px; } .lil-pause i { display: block; width: 4px; height: 14px; border-radius: 2px; background: currentColor; }
+  .lil-ok-q { font: 600 1rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-ok-you { display: flex; align-items: center; gap: 8px; }
+  .lil-ok-a { font: 700 0.95rem/1 Inter, sans-serif; color: var(--bg); background: var(--ok); padding: 6px 12px; border-radius: 999px; }
   .lil-branch { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--card)); }
   .lil-branch-h { font: 700 1rem/1.3 "Space Grotesk", sans-serif; color: var(--warn); }
   .lil-vs { font: 500 0.95rem/1.4 Inter, sans-serif; color: var(--text); }

@@ -1,12 +1,14 @@
 ---
-// The silent social video for the agents post (part 2 of "AI, plainly"). It is never shown to readers:
+// The silent social video for the agents post (part 3 of "AI, plainly"). It is never shown to readers:
 // the figure stays display:none unless a recording script sets data-reel (or data-og) on it, and it is
-// aria-hidden. It retells LoopInLoop's made-up park run one idea per shot, with big words on top. Frame 0
+// aria-hidden. It retells LoopInLoop's made-up concert run one idea per shot, with big words on top. Frame 0
 // already shows the whole diagram with your job filled in, and the model starts writing at once. The model
 // (violet) writes a tool request, the request rides the down arrow to a regular program (teal, "the harness"
 // as a sublabel) while the model dims with a calm "waiting" tag, the result flies down into the conversation
-// bar, and the up arrow carries it back. Turn 1 takes about 6 seconds, turns 2 and 3 get quicker, the model
-// changes plan after the rain, and the last turn has no tool request (Done). An end card draws the three
+// bar, and the up arrow carries it back. Turn 1 takes about 6 seconds and the rest get quicker. The model
+// changes plan after the rain and again after "Sold out" (an "It changed plan" badge in its header), turn 5
+// asks for two tools at once (shown in its short reel form from the data) and the harness stops for your OK before booking, and the last turn has no tool
+// request (Done). An end card draws the three
 // steps with a big arrow back to the top, so it reads as a loop. Turn text, tool chips and results come from
 // src/data/ai-plainly/ai-plainly-agents.json, the same data the post's run uses, so the video can't drift
 // from the post. Only the headlines are extra. Colors follow the post: the model violet, the program and its
@@ -17,13 +19,13 @@
 // it frame by frame: it sets data-reel (or data-og for the link preview) and calls
 // window.__agentsReel.draw(seconds). There is no loop and no timer, so reduced motion has nothing to stop,
 // and without JavaScript nothing shows (the figure is hidden either way).
-interface Turn { wrote: string; tool: string | null; back: string | null; tag?: string; trips: number; wroteSize: number; backSize: number; surprise?: boolean }
-interface Props { run: { job: string; jobSize: number; turns: Turn[] } }
+interface Turn { wrote: string; tool: string | null; back: string | null; also?: { tool: string; back: string }; reel?: { tool: string; back: string }; ok?: { ask: string; you: string }; after?: string; adjust?: boolean; wroteSize: number; backSize: number; surprise?: boolean }
+interface Props { run: { job: string; jobShort?: string; jobSize: number; turns: Turn[] } }
 const { run } = Astro.props;
 const dial = '<svg class="arl-ico" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
 const clip = '<svg class="arl-ico arl-ico-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
 // The job is shown short in the bubble, so it fits two lines on a phone.
-const job = run.job.replace(', and draft a text I can send.', '. Draft a text.');
+const job = run.jobShort ?? run.job;
 ---
 <figure class="arl" aria-hidden="true" data-run={JSON.stringify({ ...run, job })}>
   <div class="arl-main">
@@ -34,12 +36,11 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
     <div class="arl-flow">
       <div class="arl-job"><span class="arl-tag">Your job</span><span class="arl-job-t">{job}</span></div>
       <section class="arl-box arl-model">
-        <div class="arl-bh"><Fragment set:html={dial} /><b>The model</b><span class="arl-wait"><i></i><i></i>waiting</span></div>
+        <div class="arl-bh"><Fragment set:html={dial} /><b>The model</b><span class="arl-wait"><i></i><i></i>waiting</span><span class="arl-plan">It changed plan</span></div>
         <div class="arl-wrote"><span class="arl-tag arl-tag-m">It writes</span><span class="arl-wrote-t"></span></div>
         <div class="arl-req">
           <span class="arl-chip arl-chip-req"><span class="arl-req-t"></span></span>
           <span class="arl-none">no tool request</span>
-          <span class="arl-plan">It changed plan</span>
           <span class="arl-done">Done</span>
         </div>
       </section>
@@ -52,6 +53,7 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
         <div class="arl-bh"><Fragment set:html={clip} /><b>A regular program</b><span class="arl-sub">the harness</span></div>
         <div class="arl-run"><span class="arl-tag">runs</span><span class="arl-chip arl-chip-run"><span class="arl-run-t"></span></span></div>
         <div class="arl-back"><span class="arl-tag arl-tag-h">got</span><span class="arl-chip arl-chip-back"><span class="arl-back-t"></span></span></div>
+        <div class="arl-ok"><span class="arl-ok-h"><span class="arl-ok-p"><i></i><i></i></span>Stops for your OK</span><span class="arl-ok-q"></span><span class="arl-ok-you">You: <b class="arl-ok-a"></b></span></div>
       </section>
       <div class="arl-conv">
         <div class="arl-cl">The conversation</div>
@@ -80,7 +82,7 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
 </figure>
 
 <script>
-  type Turn = { wrote: string; tool: string | null; back: string | null; trips: number; wroteSize: number; backSize: number; surprise?: boolean };
+  type Turn = { wrote: string; tool: string | null; back: string | null; also?: { tool: string; back: string }; reel?: { tool: string; back: string }; ok?: { ask: string; you: string }; after?: string; adjust?: boolean; wroteSize: number; backSize: number; surprise?: boolean };
   type Run = { job: string; jobSize: number; turns: Turn[] };
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const ease = (x: number) => 1 - (1 - clamp(x)) ** 3;
@@ -91,14 +93,18 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
 
   // Each turn: model starts (m), writing (w0 to w1), request chip or "no tool request" (c), the program takes
   // over (h, after the chip rides the arrow for 0.6 s), the result comes back (r), and the result flies down
-  // into the conversation bar (p). Turn 1 is the slow one, then each turn gets quicker.
-  const PLAN = [
+  // into the conversation bar (p). Turn 1 is the slow one, then each turn gets quicker. Turn 5 also has the
+  // harness stop for your OK (ok), you say yes (yes), and the booking comes back (bk).
+  type Plan = { m: number; w0: number; w1: number; c: number; h: number; r: number; p: number; ok?: number; yes?: number; bk?: number };
+  const PLAN: Plan[] = [
     { m: 0.0, w0: 0.15, w1: 1.1, c: 1.5, h: 2.8, r: 3.6, p: 4.8 },
-    { m: 6.0, w0: 6.2, w1: 7.0, c: 7.3, h: 8.4, r: 9.0, p: 9.7 },
-    { m: 10.8, w0: 11.0, w1: 11.6, c: 11.8, h: 12.4, r: 12.9, p: 13.4 },
-    { m: 14.5, w0: 14.7, w1: 16.1, c: 16.3, h: Infinity, r: Infinity, p: Infinity },
+    { m: 6.0, w0: 6.2, w1: 7.0, c: 7.3, h: 8.1, r: 8.6, p: 9.2 },
+    { m: 10.3, w0: 10.5, w1: 11.1, c: 11.4, h: 12.2, r: 12.7, p: 13.3 },
+    { m: 14.4, w0: 14.6, w1: 15.1, c: 15.3, h: 15.9, r: 16.4, p: 16.9 },
+    { m: 18.6, w0: 18.8, w1: 19.7, c: 20.0, h: 20.8, r: 21.3, ok: 22.0, yes: 23.2, bk: 23.9, p: 24.6 },
+    { m: 25.8, w0: 26.0, w1: 27.4, c: 27.6, h: Infinity, r: Infinity, p: Infinity },
   ];
-  const PLAN_AT = 7.0, DONE_AT = 16.9;
+  const DONE_AT = 28.2;
   // The shots: start time, headline, an optional second sentence and when it appears. Each headline
   // switches when its event starts.
   const SHOTS: [number, string, string?, number?][] = [
@@ -106,12 +112,15 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
     [PLAN[0].c, 'The AI writes a request.'],
     [PLAN[0].h - 0.3, 'A regular program does it.'],
     [PLAN[0].p, 'The result gets pasted in.'],
-    [PLAN[1].m, 'It reads what came back.', 'It changes plan.', PLAN_AT],
-    [PLAN[2].m, 'Then around it goes again.'],
-    [PLAN[3].c, 'No tool request.', 'So it stops.', DONE_AT],
-    [20, ''],
+    [PLAN[1].m, 'Then around it goes again.'],
+    [PLAN[2].m, 'It reads the rain.', 'It tries Sunday.', PLAN[2].w0 + 0.3],
+    [PLAN[3].m, 'Now it checks for seats.'],
+    [PLAN[3].r, 'Sold out.', 'So it adjusts again.', PLAN[4].m],
+    [PLAN[4].ok!, 'Booking needs your OK.', 'You say yes.', PLAN[4].yes],
+    [PLAN[5].c, 'No tool request.', 'So it stops.', DONE_AT],
+    [31, ''],
   ];
-  const END = 20, TOTAL = 25.5;
+  const END = 31, TOTAL = 36.5;
   const XF = 0.5; // headline change: out over the first half, in over the second
   const FLY = 0.6; // the result's trip down to the conversation bar
 
@@ -167,19 +176,23 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
       op('.arl-wait', off ? ease((t - P.h) / 0.3) : 0);
       $('.arl-wrote-t').textContent = type(T.wrote, t, P.w0, P.w1);
       const hasTool = !!T.tool;
-      $('.arl-req-t').textContent = T.tool ?? '';
+      // A turn with two requests shows its short reel form, so the chips stay one line on a phone.
+      const req = T.reel?.tool ?? T.tool ?? '';
+      $('.arl-req-t').textContent = req;
       op('.arl-req .arl-chip-req', hasTool ? ease((t - P.c) / 0.3) : 0);
       op('.arl-none', !hasTool ? ease((t - P.c) / 0.35) : 0);
-      op('.arl-plan', i === 1 ? win(t, PLAN_AT, PLAN[2].m - 0.4, 0.3) : 0);
-      $('.arl-plan').style.transform = `scale(${i === 1 ? 0.8 + 0.2 * ease((t - PLAN_AT) / 0.3) : 1})`;
-      const done = i === 3 ? ease((t - DONE_AT) / 0.35) : 0;
+      // The badge shows while the model writes a changed plan, until it hands over its request.
+      const planAt = P.w0 + 0.3;
+      op('.arl-plan', T.adjust ? win(t, planAt, P.h - 0.3, 0.3) : 0);
+      $('.arl-plan').style.transform = `scale(${T.adjust ? 0.8 + 0.2 * ease((t - planAt) / 0.3) : 1})`;
+      const done = i === PLAN.length - 1 ? ease((t - DONE_AT) / 0.35) : 0;
       op('.arl-done', done);
       model.classList.toggle('is-done', done > 0.5);
 
       // The request rides the down arrow for the 0.6 s before the program takes over.
       const fly = hasTool ? clamp((t - (P.h - 0.6)) / 0.6) : 0;
       const fl = $('.arl-fly');
-      $('.arl-fly-t').textContent = T.tool ?? '';
+      $('.arl-fly-t').textContent = req;
       fl.style.opacity = String(hasTool && t >= P.h - 0.6 && t < P.h + 0.15 ? 1 - clamp((t - P.h) / 0.15) : 0);
       fl.style.setProperty('--y', String(smooth(fly)));
       const downLit = hasTool && t >= P.c && t < P.h + 0.3;
@@ -195,11 +208,18 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
       const hOn = t >= P.h && t < P.p + FLY;
       harness.classList.toggle('is-on', hOn);
       const hv = hasTool && t >= P.h ? ease((t - P.h) / 0.3) : 0;
-      $('.arl-run-t').textContent = hv ? T.tool! : '';
+      $('.arl-run-t').textContent = hv ? req : '';
       op('.arl-run', hv);
       const bv = hasTool && t >= P.r ? ease((t - P.r) / 0.3) : 0;
-      $('.arl-back-t').textContent = bv ? T.back! : '';
+      const booked = P.bk !== undefined && t >= P.bk;
+      const back = T.reel?.back ?? T.back ?? '';
+      $('.arl-back-t').textContent = bv ? (booked ? T.after! : back) : '';
       op('.arl-back', bv);
+      // Your OK: the harness stops and asks, you say yes, then it books.
+      const okv = T.ok && P.ok !== undefined ? win(t, P.ok, P.bk! - 0.35, 0.3) : 0;
+      op('.arl-ok', okv);
+      if (T.ok) { $('.arl-ok-q').textContent = T.ok.ask; $('.arl-ok-a').textContent = T.ok.you; }
+      op('.arl-ok-you', T.ok && P.yes !== undefined ? ease((t - P.yes) / 0.3) : 0);
       harness.querySelector('.arl-chip-back')!.classList.toggle('is-surprise', !!T.surprise);
 
       // The bar grows: the model's writing as it writes, each result as it lands.
@@ -217,7 +237,7 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
       const ps = $('.arl-paste');
       const pf = hasTool ? (t - P.p) / FLY : -1;
       if (pf >= 0 && pf < 1.05) {
-        $('.arl-paste-t').textContent = T.back!;
+        $('.arl-paste-t').textContent = T.after ?? T.back!;
         ps.classList.toggle('is-surprise', !!T.surprise);
         const fr = flow.getBoundingClientRect();
         const src = harness.querySelector('.arl-chip-back')!.getBoundingClientRect();
@@ -292,12 +312,12 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
   .arl-wait i + i { margin-right: 1cqw; }
   .arl-wrote { min-height: 11.6cqw; font-weight: 600; font-size: 4.6cqw; line-height: 1.25; }
   .arl-req { position: relative; display: flex; align-items: center; gap: 2cqw; min-height: 8cqw; }
-  .arl-chip { display: inline-flex; align-items: baseline; gap: 1.6cqw; padding: 1.2cqw 2.4cqw; border-radius: 1.4cqw; background: var(--card); border: 0.4cqw solid var(--line); font: 600 4.4cqw/1.25 ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; }
+  .arl-chip { display: inline-flex; align-items: baseline; gap: 1.6cqw; padding: 1.2cqw 2.4cqw; border-radius: 1.4cqw; background: var(--card); border: 0.4cqw solid var(--line); font: 600 4.2cqw/1.25 ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; }
   .arl-chip-req { border: 0.4cqw dashed var(--violet); }
   .arl-none { position: absolute; left: 0; top: 50%; transform: translateY(-50%); padding: 1.4cqw 3cqw; border-radius: 1.4cqw; border: 0.4cqw dashed var(--text); color: var(--text); font: 700 4.2cqw/1.2 Inter, sans-serif; }
-  .arl-plan, .arl-done { position: absolute; right: 0; top: 50%; translate: 0 -50%; font: 800 4.4cqw/1 Inter, sans-serif; padding: 1.8cqw 3cqw; border-radius: 99px; }
-  .arl-plan { background: var(--warn); color: var(--bg); transform-origin: right center; }
-  .arl-done { background: var(--ok); color: var(--bg); font-size: 4.8cqw; padding: 1.8cqw 4cqw; }
+  .arl-done { position: absolute; right: 0; top: 50%; translate: 0 -50%; font: 800 4.8cqw/1 Inter, sans-serif; padding: 1.8cqw 4cqw; border-radius: 99px; background: var(--ok); color: var(--bg); }
+  .arl-bh { position: relative; }
+  .arl-plan { position: absolute; right: 0; top: 50%; translate: 0 -50%; font: 800 4.2cqw/1 Inter, sans-serif; padding: 1.6cqw 3cqw; border-radius: 99px; background: var(--warn); color: var(--bg); transform-origin: right center; opacity: 0; white-space: nowrap; }
   .arl-arrows { position: relative; height: 11cqw; margin: -0.6cqw 0; }
   .arl-down, .arl-up { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; gap: 2cqw; font: 700 4cqw/1.15 Inter, sans-serif; opacity: 0.5; }
   .arl-down.is-lit, .arl-up.is-lit { opacity: 1; }
@@ -308,11 +328,18 @@ const job = run.job.replace(', and draft a text I can send.', '. Draft a text.')
   .arl-down i::after { bottom: -1.2cqw; border-top: 2.8cqw solid currentColor; border-bottom: 0; }
   .arl-up i::after { top: -1.2cqw; border-bottom: 2.8cqw solid currentColor; border-top: 0; }
   .arl-fly { position: absolute; left: 10cqw; top: 0; translate: 0 calc(-60% + var(--y, 0) * 11cqw); background: var(--card); box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, .35); }
-  .arl-run, .arl-back { display: flex; align-items: center; gap: 2cqw; min-height: 7cqw; }
+  .arl-run, .arl-back { display: flex; align-items: center; gap: 2cqw; min-height: 8.3cqw; }
   .arl-run .arl-tag, .arl-back .arl-tag { min-width: 11cqw; }
   .arl-chip-run { border: 0.4cqw dashed var(--violet); }
   .arl-chip-back { border: 0.4cqw solid var(--teal); }
   .arl-chip-back.is-surprise { border-left: 1.4cqw solid var(--warn); }
+  /* Your OK: covers the program's box while the harness waits on you. */
+  .arl-ok { position: absolute; inset: -0.4cqw; display: grid; align-content: center; gap: 1.4cqw; padding: 2cqw 3cqw; border-radius: 2.4cqw; border: 0.5cqw dashed var(--teal); background: var(--card); opacity: 0; }
+  .arl-ok-h { display: flex; align-items: center; gap: 1.6cqw; font: 700 5cqw/1.1 "Space Grotesk", sans-serif; color: var(--teal); }
+  .arl-ok-p { display: inline-flex; gap: 0.8cqw; } .arl-ok-p i { display: block; width: 1cqw; height: 4cqw; border-radius: 0.3cqw; background: currentColor; }
+  .arl-ok-q { font: 700 5cqw/1.2 Inter, sans-serif; color: var(--text); }
+  .arl-ok-you { font: 700 4.4cqw/1 Inter, sans-serif; color: var(--muted); opacity: 0; }
+  .arl-ok-a { display: inline-block; margin-left: 1cqw; padding: 1.4cqw 3.4cqw; border-radius: 99px; background: var(--ok); color: var(--bg); }
   .arl-paste { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; z-index: 2; box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, .35); pointer-events: none; }
   .arl-conv { display: grid; gap: 1.2cqw; margin-top: 0.6cqw; }
   .arl-cl { font: 700 4.4cqw/1.2 "Space Grotesk", sans-serif; }
