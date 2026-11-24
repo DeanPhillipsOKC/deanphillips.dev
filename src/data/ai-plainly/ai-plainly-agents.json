@@ -1,48 +1,73 @@
 {
-  "job": "Find a dry morning this weekend when the park is open, and draft a text I can send.",
+  "job": "Book me two tickets to the outdoor concert in Tulsa on a weekend day when it isn't raining.",
   "jobSize": 300,
   "turns": [
     {
-      "wrote": "Need the weather for Saturday morning.",
-      "tool": "weather, Saturday",
-      "back": "Rain 7 to 11 am",
-      "trips": 40,
+      "wrote": "First, when is the concert?",
+      "tool": "search(Tulsa concert dates)",
+      "back": "Every weekend this month",
+      "wroteSize": 120,
+      "backSize": 350
+    },
+    {
+      "wrote": "Any weekend works. Check Saturday's weather.",
+      "tool": "weather(Tulsa, Saturday)",
+      "back": "Rain all day",
       "wroteSize": 150,
-      "backSize": 450,
+      "backSize": 300,
       "surprise": true,
-      "tag": "rain Sat"
+      "surpriseText": "Saturday is out"
     },
     {
-      "wrote": "Rain Saturday. Check Sunday instead.",
-      "tool": "weather, Sunday",
-      "back": "Dry until noon",
-      "trips": 50,
-      "wroteSize": 200,
-      "backSize": 500,
-      "tag": "dry Sun",
-      "branch": true
+      "wrote": "Rain Saturday. Try Sunday instead.",
+      "tool": "weather(Tulsa, Sunday)",
+      "back": "Dry",
+      "wroteSize": 150,
+      "backSize": 300,
+      "branch": true,
+      "adjust": true
     },
     {
-      "wrote": "Sunday works. Is the park open?",
-      "tool": "search, park hours",
-      "back": "Opens 9 am Sundays",
-      "trips": 45,
-      "wroteSize": 200,
-      "backSize": 500,
-      "tag": "opens 9"
+      "wrote": "Sunday is dry. Look for tickets.",
+      "tool": "tickets(concert, Sunday)",
+      "back": "Sold out",
+      "wroteSize": 150,
+      "backSize": 300,
+      "surprise": true,
+      "surpriseText": "Sunday is out too"
     },
     {
-      "wrote": "Park Sunday morning? It's dry until noon and opens at 9.",
+      "wrote": "Sold out. Check next Saturday, weather and seats together.",
+      "tool": "weather(Tulsa, next Saturday)",
+      "back": "Dry",
+      "also": {
+        "tool": "tickets(concert, next Saturday, 2 seats)",
+        "back": "2 seats, $30 each"
+      },
+      "wroteSize": 180,
+      "backSize": 400,
+      "adjust": true,
+      "ok": {
+        "ask": "Book 2 seats for $60?",
+        "you": "Yes"
+      },
+      "after": "Booked",
+      "reel": {
+        "tool": "weather + tickets(next Sat)",
+        "back": "Dry, 2 seats at $30"
+      }
+    },
+    {
+      "wrote": "You're booked for next Saturday. It should be dry. 2 seats, $60.",
       "tool": null,
       "back": null,
-      "trips": 90,
       "wroteSize": 300,
       "backSize": 0
     }
   ],
   "branch": {
-    "script": "Checks Sunday only if someone thought to write that step ahead of time.",
-    "agent": "Read the rain and wrote the Sunday step itself."
+    "script": "Tries only the days and fallbacks someone wrote ahead of time.",
+    "agent": "Read the rain and picked Sunday itself. Later it read “Sold out” and picked next Saturday."
   },
   "meter": {
     "title": "A longer made-up job, same loop",
@@ -188,5 +213,26 @@
       "answer": "Fact",
       "why": "The context window has a limit, and the fixes can lose details."
     }
-  ]
+  ],
+  "jobShort": "Two concert tickets, on a weekend day with no rain.",
+  "laps": {
+    "tools": {
+      "label": "Part 2's question",
+      "text": "What's the weather in Tulsa right now?",
+      "tools": [
+        "weather"
+      ]
+    },
+    "agent": {
+      "label": "This post's job",
+      "text": "Two concert tickets, on a weekend day with no rain.",
+      "tools": [
+        "search",
+        "weather",
+        "weather",
+        "tickets",
+        "weather + tickets"
+      ]
+    }
+  }
 }
