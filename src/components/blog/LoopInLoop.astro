@@ -1,13 +1,7 @@
 ---
-// The agents post's two loop pictures. Both are still pictures with no controls. They read the same with or
+// The agents post's run picture. It's a still picture with no controls. It reads the same with or
 // without JavaScript, and the parts fade in once when they scroll into view unless the reader prefers less
 // motion. Colors: the model violet, the harness and its results teal, the surprise --warn, Done --ok.
-//
-// mode="diagram": the bigger loop. The model box (with part 0's small loop as one line of pills, titles
-// read from inference.json so they match part 0) and the harness box, joined by two labeled arrows. A tool
-// request goes right, the whole conversation with the result added comes back. The model box ends in the
-// Done exit, the harness box in its own way to stop. Under 620px the boxes stack and the arrows point down
-// and up between them.
 //
 // mode="run": one made-up run as a numbered strip, one card per turn. Each card shows what the model wrote
 // (its notes and the tool request) and what came back. Turn 2's card calls out the branch nobody wrote
@@ -17,43 +11,11 @@ interface Step { title: string }
 interface Turn { wrote: string; tool: string | null; back: string | null; surprise?: boolean; branch?: boolean }
 interface RunData { job: string; turns: Turn[]; branch: { script: string; agent: string } }
 interface Props { mode?: 'diagram' | 'run'; loop?: Step[]; run?: RunData; caption?: string }
-const { mode = 'diagram', loop = [], run, caption } = Astro.props;
+const { mode = 'run', loop = [], run, caption } = Astro.props;
 const titles = loop.map((s) => s.title);
 const dial = '<svg class="lil-ico" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
 const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
 ---
-{mode === 'diagram' && (
-<figure class="lil lil-diagram panel bleed">
-  <div class="lil-ring">
-    <section class="lil-box lil-model lil-fade" style="--i:0" aria-label="The model">
-      <p class="lil-head"><Fragment set:html={dial} /><b>The model</b><span class="lil-own lil-own-m">uses the dials</span></p>
-      <div class="lil-small">
-        <p class="lil-strip" aria-label={`The small loop from part 1: ${titles.join(', ')}, then again`}>
-          {titles.map((t, i) => (<span class="lil-step"><span class="lil-pip">{t}</span><span class="lil-to" aria-hidden="true">{i < titles.length - 1 ? '→' : '↺'}</span></span>))}
-        </p>
-        <p class="lil-per">The part 1 loop. One lap per token, about 140 laps a turn (made up).</p>
-      </div>
-      <p class="lil-writes"><span class="lil-k">It writes</span><span class="lil-pill lil-pill-think">notes to itself</span><span class="lil-then">then maybe</span><span class="lil-pill lil-pill-req">a tool request</span></p>
-      <p class="lil-exit"><span class="lil-exit-t">No tool request?</span><span class="lil-exit-a" aria-hidden="true">→</span><span class="lil-done">Done</span></p>
-    </section>
-    <div class="lil-arrows lil-fade" style="--i:1">
-      <p class="lil-arrow lil-arrow-go"><span>a tool request</span><i aria-hidden="true"></i></p>
-      <p class="lil-arrow lil-arrow-back"><span>the whole conversation, result added</span><i aria-hidden="true"></i></p>
-    </div>
-    <section class="lil-box lil-harness lil-fade" style="--i:2" aria-label="The harness">
-      <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b><span class="lil-own lil-own-h">regular program</span></p>
-      <p class="lil-aka">the app from part 2</p>
-      <p class="lil-eg"><span class="lil-chip lil-chip-tool">weather, Saturday</span><span class="lil-eg-a" aria-hidden="true">↓</span><span class="lil-chip lil-chip-back">Rain 7 to 11 am</span></p>
-      <p class="lil-does">Runs the tool and pastes the result onto the end of the conversation.</p>
-      <p class="lil-stamp">The model isn't running here</p>
-      <p class="lil-stop">It can also stop the run (too many turns, too much time or money, or it needs your OK).</p>
-    </section>
-  </div>
-  <p class="lil-foot">One trip around = one turn</p>
-  {caption && <figcaption>{caption}</figcaption>}
-</figure>
-)}
-
 {mode === 'run' && run && (
 <figure class="lil lil-run panel bleed">
   <p class="lil-job lil-fade" style="--i:0"><span class="lil-k">Your job</span><span>{run.job}</span></p>
