@@ -7,7 +7,7 @@
 // A still picture. Threads fade in once on scroll unless the reader prefers less motion, and everything
 // shows without JavaScript.
 type Who = 'you' | 'app' | 'model' | 'tool';
-interface Line { tag?: string; text: string; code?: boolean; fresh?: boolean }
+interface Line { tag?: string; text: string; code?: boolean; fresh?: boolean; dim?: boolean }
 interface Thread {
   me: Who; them: Who; sub: string; hidden?: boolean; link?: string; banner?: string; end?: string;
   msgs: { who: Who; lines: Line[] }[];
@@ -40,7 +40,7 @@ const av = (w: Who) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[w]}</
             {t.banner && <p class="tt-banner">{t.banner}</p>}
             {t.msgs.map((m) => (
               <div class={`tt-msg tt-c-${m.who}${m.who === t.me ? ' tt-mine' : ''}`}>
-                {m.lines.map((l) => <p class={`tt-line${l.fresh ? ' tt-fresh' : ''}`}>{l.tag && <span class="tt-tag">{l.tag}</span>}{l.code ? <code>{l.text}</code> : l.text}</p>)}
+                {m.lines.map((l) => <p class={`tt-line${l.fresh ? ' tt-fresh' : ''}${l.dim ? ' tt-dim' : ''}`}>{l.tag && <span class="tt-tag">{l.tag}</span>}{l.code ? <code>{l.text}</code> : l.text}</p>)}
               </div>
             ))}
             {t.end && <p class="tt-end">{t.end}</p>}
@@ -95,6 +95,7 @@ const av = (w: Who) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[w]}</
   .tt-mine { justify-self: end; border-radius: 16px 16px 4px 16px; background: color-mix(in srgb, var(--c) 28%, var(--card)); }
   .tt-line { font-size: 0.97rem; line-height: 1.4; overflow-wrap: anywhere; }
   .tt-fresh { background: color-mix(in srgb, var(--warn) 18%, transparent); outline: 1px solid color-mix(in srgb, var(--warn) 60%, transparent); border-radius: 6px; padding: 2px 6px; }
+  .tt-dim { color: var(--muted); font-style: italic; font-size: 0.9rem; }
   .tt-tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 5px; font: 700 0.64rem/1.5 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); vertical-align: 1px; }
   .tt code { font: 600 0.93rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
   .tt-banner { justify-self: center; text-align: center; font: 600 0.82rem/1.4 Inter, sans-serif; color: var(--text); padding: 6px 12px; border-radius: 12px; background: color-mix(in srgb, var(--violet) 14%, var(--card)); border: 1px dashed color-mix(in srgb, var(--violet) 60%, transparent); max-width: 92%; }

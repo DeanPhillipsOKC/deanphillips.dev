@@ -13,7 +13,7 @@ part: 3
 draft: true
 image: /img/og/ai-plainly-agents.jpg
 ---
-import LoopInLoop from '../../components/blog/LoopInLoop.astro';
+import TextThreads from '../../components/blog/TextThreads.astro';
 import AgentLoop from '../../components/blog/AgentLoop.astro';
 import SameLoop from '../../components/blog/SameLoop.astro';
 import ContextMeter from '../../components/blog/ContextMeter.astro';
@@ -57,17 +57,16 @@ One trip around is a **turn**. People call this the agentic loop. (Sometimes the
 
 ## One run, turn by turn
 
-Six made-up turns, read top to bottom. Each card is one trip around the loop. It finds the dates, checks the weather and the seats, and adjusts each time something rules a day out.
+Here's the whole job as texts. Every turn, the app opens a brand new chat with the model and pastes in everything so far, plus the newest result.
 
-<LoopInLoop
-  mode="run"
-  run={d}
-  caption="A made-up run with a made-up concert, weather, and prices. Real ones often run many more turns."
+<TextThreads
+  threads={d.threads}
+  caption="You only see your own chats. Everything in between happens out of sight. The concert, weather, and prices are made up. Real jobs often run many more turns."
 />
 
-Turn 3 is the one to watch. Nothing in the job said to check Sunday. A script only tries the days and fallbacks someone wrote ahead of time, and nobody wrote this one. The model read the rain and picked the next thing to try. It does it again in turn 5, after “Sold out.”
+Turn 3 is the one to watch. Nothing in the job said to check Sunday. A script only tries the days and fallbacks someone wrote ahead of time, and nobody wrote this one. The model read the rain and picked the next thing to try. It does it again in turn 5, after “sold out.”
 
-It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first). Turn 5 shows the OK kind. The harness paused before spending your money, and the run went on once you said yes.
+It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first). The OK kind is in there too. The app paused before spending your money, and the run went on once you said yes.
 
 ## A real one, and why checks matter
 
