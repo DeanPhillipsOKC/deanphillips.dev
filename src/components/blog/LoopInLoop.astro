@@ -1,0 +1,541 @@
+---
+// The agents post's main picture: the bigger loop. Two stations take turns. On the left, the model (violet,
+// "uses the dials") holds part 0's small loop as five tiny pills (titles read from inference.json, so they
+// match part 0 exactly) and a trip counter. It writes thinking text and maybe a tool request, one token at
+// a time. On the right, the harness (teal, "no AI") runs the tool and pastes the result onto the end of the
+// conversation, with a stamp that says the model isn't running there at all. A top arrow (a tool request)
+// and a bottom arrow (the whole conversation, result added) make the ring. Exits: a green "Done" off the
+// model (an answer with no tool request), and a grey one off the harness (it stops the run).
+//
+// mode="diagram": tap a station for a one-line explanation. When it scrolls into view the trip counter
+// ticks to about 140 and the small-loop pills light in turn (no spinning). Reduced motion shows the final
+// count. Without JavaScript the diagram is the same, with an ordered list under it.
+//
+// mode="run": the same stations, compact, above a "conversation tape" that grows one block per piece of
+// text, a "who's working" strip, and a turn card. Next turn plays a turn (about 2.5 s). Turn 2 pauses for
+// a guess first. Every frame is drawn by render(turn, p), a pure function of the turn and its progress p,
+// so a reel can drive it later. Reduced motion jumps to the end of each turn. Without JavaScript all four
+// turns are listed, with the final tape and the guess's answer in a <details>.
+interface Step { title: string }
+interface Turn { wrote: string; tool: string | null; back: string | null; trips: number; wroteSize: number; backSize: number; surprise?: boolean; brainPower?: boolean }
+interface BP { question: string; options: string[]; answer: string; callout: string; script: string; agent: string }
+interface RunData { job: string; jobSize: number; turns: Turn[]; brainPower: BP }
+interface Props { mode?: 'diagram' | 'run'; loop: Step[]; run?: RunData; caption?: string }
+const { mode = 'diagram', loop, run, caption } = Astro.props;
+const titles = loop.map((s) => s.title);
+const dial = '<svg class="lil-dial" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
+const clip = '<svg class="lil-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
+// Five pills around a small ring, starting at the top and going clockwise.
+const orbit = titles.map((t, i) => {
+  const a = (-90 + i * 72) * Math.PI / 180;
+  return { t, x: 50 + 36 * Math.cos(a), y: 50 + 38 * Math.sin(a) };
+});
+const SCALE = run ? run.jobSize + run.turns.reduce((s, t) => s + t.wroteSize + t.backSize, 0) + 200 : 1;
+const fmt = (n: number) => n.toLocaleString('en-US');
+let total = run?.jobSize ?? 0;
+const sizes = run ? run.turns.map((t) => (total += t.wroteSize + t.backSize)) : [];
+---
+{mode === 'diagram' && (
+<figure class="lil lil-diagram panel bleed">
+  <div class="lil-ring">
+    <p class="lil-arc lil-arc-top"><span>a tool request</span></p>
+    <section class="lil-box lil-model" data-explain="model" aria-label="The model">
+      <p class="lil-head"><Fragment set:html={dial} /><b>The model</b><span class="lil-own lil-own-m">uses the dials</span></p>
+      <div class="lil-small">
+        <div class="lil-orbit" aria-label={`The small loop from part 0: ${titles.join(', ')}`}>
+          <svg class="lil-track" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="50" cy="50" rx="36" ry="38" vector-effect="non-scaling-stroke" /></svg>
+          {orbit.map((o, i) => <span class="lil-pip" data-i={i} style={`left:${o.x.toFixed(1)}%;top:${o.y.toFixed(1)}%`}>{o.t}</span>)}
+        </div>
+        <p class="lil-count"><span>trips</span><b class="lil-n">about 140</b><em>made up</em></p>
+      </div>
+      <p class="lil-per">One trip per token. Dozens to hundreds per turn.</p>
+      <p class="lil-out"><span class="lil-pill lil-pill-think">thinking text</span><span class="lil-then">then maybe</span><span class="lil-pill lil-pill-req">tool request?</span></p>
+      <p class="lil-note">Both written one token at a time.</p>
+    </section>
+    <section class="lil-box lil-harness" data-explain="harness" aria-label="The harness">
+      <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b><span class="lil-own lil-own-h">no AI</span></p>
+      <ul class="lil-does">
+        <li>runs the tool</li>
+        <li>pastes the result onto the end of the conversation</li>
+      </ul>
+      <p class="lil-stamp">The model isn't running here at all</p>
+      <p class="lil-hand">↑ No background thinking. Between calls, nothing is running.</p>
+    </section>
+    <p class="lil-arc lil-arc-bot"><span>the whole conversation, result added</span></p>
+    <p class="lil-mdown" aria-hidden="true"><span>↓</span> a tool request</p>
+    <p class="lil-mret" aria-hidden="true"><span>result added, call again</span></p>
+    <p class="lil-exit lil-exit-done"><i class="lil-exit-line"></i><span class="lil-done" data-explain="done">Done</span><span class="lil-exit-t">Wrote an answer with no tool request</span></p>
+    <p class="lil-exit lil-exit-stop"><i class="lil-exit-line"></i><span class="lil-exit-t">or the harness says stop (too many turns, too long, too costly, or it needs to ask you)</span></p>
+  </div>
+  <p class="lil-foot">One trip around this big ring = one turn</p>
+  <p class="lil-explain" aria-live="polite" hidden></p>
+  <ol class="lil-nojs">
+    <li>The model writes thinking and maybe a tool request, one token at a time.</li>
+    <li>The harness runs the tool and pastes the result in.</li>
+    <li>Repeat until the model writes an answer with no tool request, or the harness stops it.</li>
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+)}
+
+{mode === 'run' && run && (
+<figure class="lil lil-run panel bleed" data-lil-run={JSON.stringify({ ...run, scale: SCALE })}>
+  <div class="lil-live" hidden>
+    <div class="lil-st">
+      <section class="lil-mini lil-mini-m">
+        <p class="lil-head"><Fragment set:html={dial} /><b>The model</b></p>
+        <p class="lil-mc"><b class="lil-rn">0</b> trips</p>
+        <p class="lil-rdone">Done</p>
+      </section>
+      <section class="lil-mini lil-mini-h">
+        <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b></p>
+        <p class="lil-mstamp">model not running</p>
+      </section>
+      <div class="lil-lane lil-lane-top" aria-hidden="true"><i>tool request →</i><span class="lil-chip lil-chip-tool"></span></div>
+      <div class="lil-lane lil-lane-bot" aria-hidden="true"><i>← result added</i><span class="lil-chip lil-chip-back"></span></div>
+    </div>
+    <p class="lil-lab">The conversation <span class="lil-size"></span></p>
+    <div class="lil-tape" aria-hidden="true">
+      <i class="lil-tb lil-tb-job" style={`width:${(100 * run.jobSize / SCALE).toFixed(2)}%`}></i>
+      {run.turns.map((_, i) => (<><i class="lil-tb lil-tb-m" data-w={i}></i><i class="lil-tb lil-tb-h" data-b={i}></i></>))}
+    </div>
+    <p class="lil-legend"><span><i class="lil-sw lil-sw-job"></i>your job</span><span><i class="lil-sw lil-sw-m"></i>the model wrote</span><span><i class="lil-sw lil-sw-h"></i>tool result</span></p>
+    <p class="lil-lab">Who's working</p>
+    <div class="lil-who" aria-hidden="true">
+      {run.turns.map((t, i) => (<><i class="lil-ws lil-ws-m" data-wm={i}></i>{t.tool && <i class="lil-ws lil-ws-h" data-wh={i}><span class="lil-ws-long">model not running</span><span class="lil-ws-short">model off</span></i>}</>))}
+    </div>
+    <div class="lil-card" aria-live="polite">
+      <p class="lil-tn"></p>
+      <p class="lil-row lil-row-job"><span class="lil-k lil-k-job">your job</span><span class="lil-v">{run.job}</span></p>
+      <p class="lil-row lil-row-w"><span class="lil-k lil-k-m">the model wrote</span><span class="lil-v"></span></p>
+      <p class="lil-row lil-row-t"><span class="lil-k lil-k-m">tool request</span><span class="lil-v"></span></p>
+      <p class="lil-row lil-row-b"><span class="lil-k lil-k-h">came back</span><span class="lil-v"></span></p>
+      <div class="lil-bp" hidden>
+        <p class="lil-bp-q"><b>Brain power.</b> {run.brainPower.question}</p>
+        <p class="lil-bp-o">{run.brainPower.options.map((o) => <button type="button" data-pick={o}>{o}</button>)}</p>
+        <p class="lil-bp-r"></p>
+      </div>
+      <p class="lil-warn" hidden>{run.brainPower.callout}</p>
+      <div class="lil-vs" hidden>
+        <p class="lil-vs-no"><b>Script</b>{run.brainPower.script}</p>
+        <p class="lil-vs-yes"><b>Agent</b>{run.brainPower.agent}</p>
+      </div>
+      <p class="lil-fin" hidden>Done. No tool request, so the harness stops.</p>
+    </div>
+    <div class="lil-ctrl">
+      <button type="button" class="lil-back">Back</button>
+      <span class="lil-cnt"></span>
+      <button type="button" class="lil-next">Next turn</button>
+    </div>
+  </div>
+  <div class="lil-static">
+    <p class="lil-row lil-row-job"><span class="lil-k lil-k-job">your job</span><span class="lil-v">{run.job}</span></p>
+    <ol class="lil-scards">
+      {run.turns.map((t, i) => (
+        <li>
+          <p class="lil-tn">Turn {i + 1} of {run.turns.length} <span class="lil-size">conversation size {fmt(sizes[i])}</span></p>
+          <p class="lil-row"><span class="lil-k lil-k-m">the model wrote</span><span class="lil-v">{t.wrote}</span></p>
+          <p class="lil-row"><span class="lil-k lil-k-m">tool request</span><span class="lil-v">{t.tool ?? 'none'}</span></p>
+          {t.back && <p class="lil-row"><span class="lil-k lil-k-h">came back</span><span class="lil-v">{t.back}</span></p>}
+          {t.brainPower && <details><summary>Brain power. {run.brainPower.question}</summary><p>{run.brainPower.answer}. {run.brainPower.callout} {run.brainPower.script}</p></details>}
+          {!t.tool && <p class="lil-fin">Done. No tool request, so the harness stops.</p>}
+        </li>
+      ))}
+    </ol>
+    <p class="lil-lab">The conversation at the end (made-up sizes)</p>
+    <div class="lil-tape" aria-hidden="true">
+      <i class="lil-tb lil-tb-job" style={`width:${(100 * run.jobSize / SCALE).toFixed(2)}%`}></i>
+      {run.turns.map((t) => (<><i class="lil-tb lil-tb-m" style={`width:${(100 * t.wroteSize / SCALE).toFixed(2)}%`}></i>{t.backSize > 0 && <i class="lil-tb lil-tb-h" style={`width:${(100 * t.backSize / SCALE).toFixed(2)}%`}></i>}</>))}
+    </div>
+    <p class="lil-legend"><span><i class="lil-sw lil-sw-job"></i>your job</span><span><i class="lil-sw lil-sw-m"></i>the model wrote</span><span><i class="lil-sw lil-sw-h"></i>tool result</span></p>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+)}
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp = (x: number) => Math.max(0, Math.min(1, x));
+  const ease = (x: number) => 1 - Math.pow(1 - clamp(x), 3);
+
+  // Diagram mode: tap to explain, and one counter that ticks when the figure scrolls into view.
+  const EXPLAIN: Record<string, string> = {
+    model: 'One call. It writes its thinking and maybe a tool request, token by token.',
+    harness: 'A regular program. It does the job and pastes the result in, then calls the model again.',
+    done: "No tool request means there's nothing for the harness to do, so it stops.",
+  };
+  for (const root of document.querySelectorAll<HTMLElement>('.lil-diagram')) {
+    root.classList.add('lil-js');
+    const say = root.querySelector<HTMLElement>('.lil-explain')!;
+    say.hidden = false;
+    say.textContent = 'Tap the model, the harness, or Done.';
+    const hits = [...root.querySelectorAll<HTMLElement>('[data-explain]')];
+    for (const el of hits) {
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-pressed', 'false');
+      const pick = () => {
+        for (const h of hits) { const on = h === el; h.classList.toggle('lil-on', on); h.setAttribute('aria-pressed', String(on)); }
+        say.textContent = EXPLAIN[el.dataset.explain!];
+      };
+      el.addEventListener('click', (e) => { e.stopPropagation(); pick(); });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    }
+    if (reduce) continue;
+    const n = root.querySelector<HTMLElement>('.lil-n')!;
+    const pips = [...root.querySelectorAll<HTMLElement>('.lil-pip')];
+    n.textContent = '0';
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const u = clamp((now - t0) / 2000);
+        const k = Math.floor(140 * ease(u));
+        n.textContent = u < 1 ? String(k) : 'about 140';
+        pips.forEach((p, i) => p.classList.toggle('lil-lit', u < 1 && Math.floor(u * 40) % pips.length === i));
+        if (u < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }, { threshold: 0.45 });
+    io.observe(root);
+  }
+
+  // Run mode.
+  type Turn = { wrote: string; tool: string | null; back: string | null; trips: number; wroteSize: number; backSize: number; surprise?: boolean; brainPower?: boolean };
+  type Run = { job: string; jobSize: number; turns: Turn[]; scale: number; brainPower: { answer: string } };
+  for (const root of document.querySelectorAll<HTMLElement>('.lil-run')) {
+    const R = JSON.parse(root.dataset.lilRun!) as Run;
+    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
+    const $$ = <T extends Element = HTMLElement>(s: string) => [...root.querySelectorAll(s)] as T[];
+    $('.lil-live').hidden = false;
+    $('.lil-static').hidden = true;
+    const N = R.turns.length;
+    const mini = { m: $('.lil-mini-m'), h: $('.lil-mini-h') };
+    const rn = $('.lil-rn'), rdone = $('.lil-rdone');
+    const chipT = $('.lil-chip-tool'), chipB = $('.lil-chip-back');
+    const laneT = $('.lil-lane-top'), laneB = $('.lil-lane-bot');
+    const size = $('.lil-live .lil-size');
+    const wBlocks = $$('.lil-live [data-w]'), bBlocks = $$('.lil-live [data-b]');
+    const wm = $$('[data-wm]'), wh = $$('[data-wh]');
+    const tn = $('.lil-card .lil-tn');
+    const row = (k: string) => $(`.lil-card .lil-row-${k}`);
+    const val = (k: string) => row(k).querySelector<HTMLElement>('.lil-v')!;
+    const bp = $('.lil-bp'), bpR = $('.lil-bp-r'), warn = $('.lil-warn'), vs = $('.lil-vs'), fin = $('.lil-fin');
+    const bpButtons = $$<HTMLButtonElement>('.lil-bp-o button');
+    const back = $<HTMLButtonElement>('.lil-back'), next = $<HTMLButtonElement>('.lil-next'), cnt = $('.lil-cnt');
+    const pct = (n: number) => `${(100 * n / R.scale).toFixed(2)}%`;
+    const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
+    const slide = (el: HTMLElement, x: number) => { el.style.left = `${x * 100}%`; el.style.transform = `translateX(${-x * 100}%)`; };
+
+    let turn = 0, p = 1, picked = '', asking = false, raf = 0;
+
+    // Everything on screen comes from (turn, p). Turn 0 is the start. In a turn with a tool, the model
+    // writes for p in 0 to 0.4, the request travels 0.4 to 0.55, the harness works 0.55 to 0.8, and the
+    // result travels back and lands 0.8 to 1. The last turn has no tool, so it only writes, then stops.
+    function render(k: number, q: number) {
+      const T = R.turns[k - 1];
+      const hasTool = !!T?.tool;
+      const write = k === 0 ? 1 : hasTool ? clamp(q / 0.4) : clamp(q / 0.7);
+      const go = hasTool ? clamp((q - 0.4) / 0.15) : 0;
+      const work = hasTool ? q >= 0.55 && q < 0.8 : false;
+      const ret = hasTool ? clamp((q - 0.8) / 0.2) : 0;
+      const modelOn = k > 0 && !asking && (hasTool ? q < 0.4 : q < 0.7);
+      const done = k === N && q >= 0.7;
+
+      mini.m.classList.toggle('lil-act', modelOn);
+      mini.m.classList.toggle('lil-dim', hasTool && !asking && q >= 0.4 && q < 1);
+      mini.h.classList.toggle('lil-act', work);
+      rn.textContent = k === 0 || asking ? '0' : String(Math.floor(T.trips * ease(write)));
+      rdone.classList.toggle('lil-show', done);
+
+      laneT.classList.toggle('lil-show', hasTool && !asking && q >= 0.4);
+      chipT.textContent = T?.tool ?? '';
+      slide(chipT, ease(go));
+      laneB.classList.toggle('lil-show', hasTool && !asking && q >= 0.8);
+      chipB.textContent = T?.back ?? '';
+      chipB.classList.toggle('lil-surp', !!T?.surprise);
+      slide(chipB, 1 - ease(ret));
+
+      // The tape: earlier turns are full, this one grows.
+      let s = R.jobSize;
+      R.turns.forEach((t, i) => {
+        const w = i < k - 1 ? 1 : i === k - 1 && !asking ? ease(write) : 0;
+        const b = i < k - 1 ? 1 : i === k - 1 && !asking ? ease(ret) : 0;
+        wBlocks[i].style.width = pct(t.wroteSize * w);
+        bBlocks[i].style.width = pct(t.backSize * b);
+        s += t.wroteSize * w + t.backSize * b;
+      });
+      size.innerHTML = `size ${fmt(s)} <em>made-up sizes</em>`;
+
+      // Who's working.
+      R.turns.forEach((t, i) => {
+        const past = i < k - 1, cur = i === k - 1 && !asking;
+        wm[i].classList.toggle('lil-show', past || (cur && q > 0));
+        wm[i].classList.toggle('lil-act', cur && modelOn);
+      });
+      let j = 0;
+      R.turns.forEach((t, i) => {
+        if (!t.tool) return;
+        const el = wh[j++];
+        const past = i < k - 1, cur = i === k - 1 && !asking;
+        el.classList.toggle('lil-show', past || (cur && q >= 0.55));
+        el.classList.toggle('lil-act', cur && work);
+      });
+
+      // The turn card.
+      tn.innerHTML = k === 0 ? 'Before turn 1' : `Turn ${k} of ${N}`;
+      row('job').hidden = k !== 0;
+      row('w').hidden = k === 0 || asking;
+      val('w').textContent = T ? T.wrote.slice(0, Math.ceil(T.wrote.length * write)) : '';
+      row('t').hidden = k === 0 || asking || (hasTool ? q < 0.4 : q < 0.7);
+      val('t').innerHTML = hasTool ? `<span class="lil-chip">${T.tool}</span>` : '<span class="lil-chip lil-chip-none">none</span>';
+      row('b').hidden = k === 0 || !hasTool || asking || q < 0.95;
+      val('b').textContent = T?.back ?? '';
+      row('b').classList.toggle('lil-surp', !!T?.surprise);
+      const bpTurn = !!T?.brainPower;
+      bp.hidden = !bpTurn;
+      warn.hidden = !(bpTurn && picked);
+      vs.hidden = !(bpTurn && picked);
+      fin.hidden = !done;
+      cnt.textContent = k === 0 ? 'Press Start' : `${k} of ${N}`;
+      back.disabled = k === 0;
+      next.disabled = asking;
+      next.textContent = k === N ? 'Start over' : k === 0 ? 'Start' : 'Next turn';
+    }
+
+    function play(k: number) {
+      cancelAnimationFrame(raf);
+      turn = k;
+      asking = !!R.turns[k - 1]?.brainPower && !picked;
+      if (asking || reduce || k === 0) { p = asking ? 0 : 1; render(turn, p); return; }
+      const t0 = performance.now();
+      const step = (now: number) => {
+        p = clamp((now - t0) / 2600);
+        render(turn, p);
+        if (p < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }
+
+    for (const b of bpButtons) {
+      b.addEventListener('click', () => {
+        picked = b.dataset.pick!;
+        for (const x of bpButtons) {
+          x.disabled = true;
+          x.classList.toggle('lil-right', x.dataset.pick === R.brainPower.answer);
+          x.classList.toggle('lil-chosen', x === b);
+        }
+        bpR.textContent = picked === R.brainPower.answer ? 'Same as the agent.' : `You picked "${picked}". The agent picked "${R.brainPower.answer}".`;
+        play(turn);
+      });
+    }
+    next.addEventListener('click', () => play(turn === N ? 0 : turn + 1));
+    back.addEventListener('click', () => { cancelAnimationFrame(raf); asking = false; turn = Math.max(0, turn - 1); p = 1; render(turn, p); });
+    render(0, 1);
+  }
+</script>
+
+<style is:global>
+  .lil [hidden] { display: none !important; }
+  .lil p { margin: 0; }
+  .lil-dial { width: 22px; height: 22px; flex: none; }
+  .lil-dial circle { fill: none; stroke: currentColor; stroke-width: 2; }
+  .lil-dial line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+  .lil-clip { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .lil-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .lil-head b { font: 700 1.3rem/1.15 "Space Grotesk", sans-serif; color: var(--text); }
+  .lil-model .lil-head, .lil-mini-m .lil-head { color: var(--violet); }
+  .lil-harness .lil-head, .lil-mini-h .lil-head { color: var(--teal); }
+  .lil-own { font: 600 0.75rem/1 Inter, sans-serif; padding: 5px 9px; border-radius: 999px; }
+  .lil-own-m { color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); }
+  .lil-own-h { color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, transparent); }
+
+  /* Diagram: a five-column grid so the arrows can start and end at the middle of each box. */
+  .lil-ring { display: grid; grid-template-columns: 1fr 1fr 44px 1fr 1fr; align-items: stretch; }
+  .lil-box { position: relative; border-radius: 16px; padding: 16px; background: var(--bg-2); border: 3px solid var(--line); display: flex; flex-direction: column; gap: 10px; outline: none; }
+  .lil-js .lil-box { cursor: pointer; }
+  .lil-model { grid-column: 1 / 3; grid-row: 2; border-color: var(--violet); }
+  .lil-harness { grid-column: 4 / 6; grid-row: 2; border-color: var(--teal); }
+  .lil-box:focus-visible, .lil-done:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .lil-model.lil-on { background: color-mix(in srgb, var(--violet) 10%, var(--bg-2)); }
+  .lil-harness.lil-on { background: color-mix(in srgb, var(--teal) 10%, var(--bg-2)); }
+  .lil-arc { position: relative; grid-column: 2 / 5; height: 26px; border: 3px solid; }
+  .lil-arc span { position: absolute; left: 50%; transform: translateX(-50%); padding: 0 10px; background: var(--card); font: 600 0.88rem/1.5 Inter, sans-serif; white-space: nowrap; }
+  .lil-arc-top { grid-row: 1; margin-top: 14px; border-color: var(--violet); border-bottom: 0; border-radius: 18px 18px 0 0; }
+  .lil-arc-top span { top: -0.85rem; color: var(--violet); }
+  .lil-arc-top::after { content: ''; position: absolute; right: -9.5px; bottom: -4px; border: 8px solid transparent; border-top: 10px solid var(--violet); border-bottom: 0; }
+  .lil-arc-bot { grid-row: 3; border-color: var(--teal); border-top: 0; border-radius: 0 0 18px 18px; margin-bottom: 14px; }
+  .lil-arc-bot span { bottom: -0.85rem; color: var(--teal); }
+  .lil-arc-bot::after { content: ''; position: absolute; left: -9.5px; top: -4px; border: 8px solid transparent; border-bottom: 10px solid var(--teal); border-top: 0; }
+  .lil-exit { grid-row: 3 / 5; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding-bottom: 4px; }
+  .lil-exit-done { grid-column: 1; }
+  .lil-exit-stop { grid-column: 5; }
+  .lil-exit-line { display: block; width: 3px; height: 26px; position: relative; }
+  .lil-exit-line::after { content: ''; position: absolute; left: -6.5px; bottom: -6px; border: 8px solid transparent; border-top: 9px solid; border-top-color: inherit; border-bottom: 0; }
+  .lil-exit-done .lil-exit-line { background: var(--ok); border-top-color: var(--ok); }
+  .lil-exit-stop .lil-exit-line { background: var(--muted); border-top-color: var(--muted); opacity: .7; }
+  .lil-done { margin-top: 4px; font: 700 1rem/1 "Space Grotesk", sans-serif; color: var(--bg); background: var(--ok); padding: 8px 18px; border-radius: 999px; }
+  .lil-js .lil-done { cursor: pointer; }
+  .lil-done.lil-on { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ok); }
+  .lil-exit-t { font: 600 0.8rem/1.35 Inter, sans-serif; color: var(--ok); }
+  .lil-exit-stop .lil-exit-t { color: var(--muted); font-weight: 500; }
+  .lil-mdown, .lil-mret { display: none; }
+
+  .lil-small { display: flex; align-items: center; gap: 10px; }
+  .lil-orbit { position: relative; flex: 1 1 auto; min-width: 0; max-width: 200px; aspect-ratio: 1.15; }
+  .lil-track { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lil-track ellipse { fill: none; stroke: color-mix(in srgb, var(--violet) 45%, var(--line)); stroke-width: 2; stroke-dasharray: 5 4; }
+  .lil-pip { position: absolute; transform: translate(-50%, -50%); font: 600 0.72rem/1 Inter, sans-serif; padding: 5px 7px; border-radius: 999px; white-space: nowrap; color: var(--violet); background: var(--card); border: 1.5px solid color-mix(in srgb, var(--violet) 55%, var(--line)); transition: background .1s; }
+  .lil-pip.lil-lit { color: var(--bg); background: var(--violet); }
+  .lil-count { display: flex; flex-direction: column; align-items: flex-start; min-width: 76px; }
+  .lil-count span { font: 600 0.75rem/1 Inter, sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .lil-count b { font: 700 1.5rem/1.15 "Space Grotesk", sans-serif; color: var(--violet); font-variant-numeric: tabular-nums; }
+  .lil-count em { font: italic 500 0.72rem/1.2 Inter, sans-serif; color: var(--muted); }
+  .lil-per { font: 500 0.85rem/1.35 Inter, sans-serif; color: var(--muted); }
+  .lil-out { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .lil-pill { font: 600 0.85rem/1 Inter, sans-serif; padding: 7px 11px; border-radius: 999px; }
+  .lil-pill-think { color: var(--violet); background: color-mix(in srgb, var(--violet) 16%, transparent); border: 1.5px solid var(--violet); }
+  .lil-pill-req { color: var(--violet); border: 1.5px dashed var(--violet); }
+  .lil-then { font: 500 0.78rem/1 Inter, sans-serif; color: var(--muted); }
+  .lil-note { font: 500 0.82rem/1.35 Inter, sans-serif; color: var(--muted); }
+  .lil-does { margin: 0 !important; padding: 0 0 0 1.1em !important; display: grid; gap: 6px; }
+  .lil-does li { margin: 0 !important; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text) !important; }
+  .lil-stamp { margin-top: auto !important; text-align: center; font: 700 1.1rem/1.25 "Space Grotesk", sans-serif; color: var(--muted); border: 2.5px dashed var(--muted); border-radius: 12px; padding: 10px 12px; }
+  .lil-hand { font: italic 500 0.85rem/1.35 Inter, sans-serif; color: var(--muted); text-align: center; }
+  .lil-foot { margin: 16px auto 0 !important; width: fit-content; max-width: 100%; text-align: center; font: 600 0.9rem/1.3 Inter, sans-serif; color: var(--muted); background: var(--bg-2); border-radius: 999px; padding: 8px 16px; }
+  .lil-explain { margin-top: 12px !important; min-height: 3em; text-align: center; font: 600 1rem/1.45 Inter, sans-serif; color: var(--text); }
+  .lil-nojs { margin: 16px 0 0 !important; font-size: 0.95rem; }
+  .lil-js .lil-nojs { display: none; }
+
+  @media (max-width: 620px) {
+    .lil-ring { grid-template-columns: 30px minmax(0, 1fr); }
+    .lil-model { grid-column: 2; grid-row: 1; }
+    .lil-exit-done { grid-column: 2; grid-row: 2; flex-direction: row; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 8px 0 2px; }
+    .lil-mdown { display: block; grid-column: 2; grid-row: 3; padding: 4px 0 6px 18%; font: 600 0.9rem/1.3 Inter, sans-serif; color: var(--violet); }
+    .lil-mdown span { font-size: 1.4rem; line-height: 1; margin-right: 6px; }
+    .lil-harness { grid-column: 2; grid-row: 4; }
+    .lil-exit-stop { grid-column: 2; grid-row: 5; flex-direction: row; text-align: left; gap: 8px; padding-top: 8px; }
+    .lil-exit-done .lil-exit-line, .lil-exit-stop .lil-exit-line { width: 22px; height: 3px; flex: none; }
+    .lil-exit-line::after { left: auto; right: -7px; bottom: -6.5px; border: 7.5px solid transparent; border-left: 9px solid; border-left-color: inherit; border-right: 0; }
+    .lil-exit-done .lil-exit-line { border-left-color: var(--ok); }
+    .lil-exit-stop .lil-exit-line { border-left-color: var(--muted); }
+    .lil-exit-done .lil-exit-t { order: -1; flex: 1 1 140px; text-align: right; }
+    .lil-exit-stop .lil-exit-t { flex: 1; }
+    .lil-done { margin: 0; }
+    .lil-arc { display: none; }
+    .lil-mret { display: block; position: relative; grid-column: 1; grid-row: 1 / 5; margin: 46px 0 54px; border: 3px solid var(--teal); border-right: 0; border-radius: 16px 0 0 16px; }
+    .lil-mret::after { content: ''; position: absolute; right: -4px; top: -9.5px; border: 8px solid transparent; border-left: 10px solid var(--teal); border-right: 0; }
+    .lil-mret span { position: absolute; left: 3px; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; font: 600 0.78rem/1 Inter, sans-serif; color: var(--teal); white-space: nowrap; }
+    .lil-small { flex-direction: column; align-items: stretch; }
+    .lil-orbit { max-width: none; aspect-ratio: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+    .lil-track { display: none; }
+    .lil-pip { position: static; transform: none; font-size: 0.8rem; }
+    .lil-pip:not(:last-child)::after { content: ' →'; }
+    .lil-count { flex-direction: row; align-items: baseline; gap: 8px; }
+    .lil-head b { font-size: 1.2rem; }
+  }
+
+  /* Run mode. */
+  .lil-st { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .lil-mini { position: relative; border-radius: 14px; padding: 10px 12px; background: var(--bg-2); border: 3px solid var(--line); transition: opacity .2s, background .2s; display: flex; flex-direction: column; gap: 6px; }
+  .lil-mini .lil-head b { font-size: 1.1rem; }
+  .lil-mini-m { border-color: var(--violet); }
+  .lil-mini-h { border-color: var(--teal); }
+  .lil-mini-m.lil-act { background: color-mix(in srgb, var(--violet) 16%, var(--bg-2)); }
+  .lil-mini-h.lil-act { background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
+  .lil-mini.lil-dim { opacity: .45; filter: grayscale(1); }
+  .lil-mc { font: 600 0.9rem/1 Inter, sans-serif; color: var(--muted); }
+  .lil-mc b { font: 700 1.35rem/1 "Space Grotesk", sans-serif; color: var(--violet); font-variant-numeric: tabular-nums; }
+  .lil-mstamp { font: 700 0.9rem/1.2 "Space Grotesk", sans-serif; color: var(--muted); border: 2px dashed var(--muted); border-radius: 10px; padding: 5px 8px; text-align: center; opacity: 0; transition: opacity .2s; }
+  .lil-mini-h.lil-act .lil-mstamp { opacity: 1; }
+  .lil-rdone { position: absolute; right: 8px; bottom: 8px; font: 700 0.85rem/1 "Space Grotesk", sans-serif; color: var(--bg); background: var(--ok); padding: 6px 12px; border-radius: 999px; opacity: 0; transition: opacity .2s; }
+  .lil-rdone.lil-show { opacity: 1; }
+  .lil-lane { grid-column: 1 / 3; position: relative; height: 38px; margin-top: 8px; border-radius: 999px; border: 2px dashed var(--line); opacity: .35; transition: opacity .2s; }
+  .lil-lane.lil-show { opacity: 1; }
+  .lil-lane i { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font: italic 600 0.8rem/1 Inter, sans-serif; color: var(--muted); white-space: nowrap; }
+  .lil-lane-top { border-color: color-mix(in srgb, var(--violet) 50%, var(--line)); }
+  .lil-lane-bot { border-color: color-mix(in srgb, var(--teal) 50%, var(--line)); }
+  .lil-lane .lil-chip { position: absolute; top: 3px; visibility: hidden; }
+  .lil-lane.lil-show .lil-chip { visibility: visible; }
+  .lil-chip { display: inline-block; font: 600 0.85rem/1 Inter, sans-serif; padding: 8px 12px; border-radius: 999px; white-space: nowrap; }
+  .lil-chip-tool, .lil-row-t .lil-chip { color: var(--violet); background: var(--card); border: 1.5px dashed var(--violet); }
+  .lil-chip-back { color: var(--teal); background: var(--card); border: 1.5px solid var(--teal); }
+  .lil-chip-back.lil-surp { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn); }
+  .lil-chip-none { color: var(--muted) !important; border: 1.5px dashed var(--muted) !important; background: none !important; }
+  .lil-lab { margin-top: 16px !important; font: 600 0.8rem/1.3 Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; }
+  .lil-size { text-transform: none; letter-spacing: 0; font: 600 0.85rem/1.3 Inter, sans-serif; color: var(--text); }
+  .lil-size em { font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .lil-tape { display: flex; height: 30px; margin-top: 6px; border-radius: 8px; background: var(--bg-2); overflow: hidden; gap: 0; }
+  .lil-tb { display: block; height: 100%; flex: none; }
+  .lil-tb + .lil-tb { box-shadow: inset 2px 0 0 var(--card); }
+  .lil-tb-job { background: color-mix(in srgb, var(--muted) 45%, var(--bg-2)); }
+  .lil-tb-m { background: var(--violet); }
+  .lil-tb-h { background: var(--teal); }
+  .lil-legend { margin-top: 8px !important; display: flex; flex-wrap: wrap; gap: 6px 14px; font: 500 0.82rem/1.2 Inter, sans-serif; color: var(--muted); }
+  .lil-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lil-sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
+  .lil-sw-job { background: color-mix(in srgb, var(--muted) 45%, var(--bg-2)); }
+  .lil-sw-m { background: var(--violet); }
+  .lil-sw-h { background: var(--teal); }
+  .lil-who { display: flex; gap: 4px; height: 30px; margin-top: 6px; }
+  .lil-ws { flex: 2 1 0; min-width: 0; border-radius: 6px; background: var(--bg-2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .lil-ws-h { flex-grow: 3; }
+  .lil-ws span { font: 600 0.68rem/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; opacity: 0; }
+  .lil-ws-short { display: none; }
+  .lil-ws-m.lil-show { background: color-mix(in srgb, var(--violet) 55%, var(--bg-2)); }
+  .lil-ws-h.lil-show { background: color-mix(in srgb, var(--teal) 55%, var(--bg-2)); }
+  .lil-ws.lil-show span { opacity: 1; }
+  .lil-ws-m.lil-act { background: var(--violet); }
+  .lil-ws-h.lil-act { background: var(--teal); }
+  .lil-card { margin-top: 16px; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); min-height: 220px; display: flex; flex-direction: column; gap: 10px; }
+  .lil-tn { font: 700 1.35rem/1.2 "Space Grotesk", sans-serif; color: var(--text); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .lil-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 500 1.02rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-k { flex: none; font: 600 0.72rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .06em; padding: 5px 8px; border-radius: 6px; }
+  .lil-k-job { color: var(--muted); background: var(--card); border: 1px solid var(--line); }
+  .lil-k-m { color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); }
+  .lil-k-h { color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, transparent); }
+  .lil-row-b.lil-surp .lil-v { box-shadow: inset 4px 0 0 var(--warn); padding-left: 10px; }
+  .lil-bp { padding: 12px; border-radius: 12px; border: 2px solid var(--violet); background: var(--card); display: grid; gap: 10px; }
+  .lil-bp-q { font: 600 1.05rem/1.35 Inter, sans-serif; color: var(--text); }
+  .lil-bp-q b { color: var(--violet); }
+  .lil-bp-o { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lil-bp-o button, .lil-ctrl button { font: 600 0.92rem/1 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 12px 16px; min-height: 44px; cursor: pointer; }
+  .lil-bp-o button:disabled { cursor: default; opacity: .5; }
+  .lil-bp-o button.lil-right { opacity: 1; color: var(--bg); background: var(--ok); border-color: var(--ok); }
+  .lil-bp-o button.lil-chosen:not(.lil-right) { opacity: 1; border-color: var(--warn); color: var(--warn); }
+  .lil-bp-r { font: 500 0.92rem/1.4 Inter, sans-serif; color: var(--muted); }
+  .lil-warn { font: 700 1.02rem/1.4 Inter, sans-serif; color: var(--text); padding: 10px 12px; border-radius: 10px; border-left: 5px solid var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--card)); }
+  .lil-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lil-vs p { padding: 10px 12px; border-radius: 10px; font: 500 0.92rem/1.4 Inter, sans-serif; display: flex; flex-direction: column; gap: 4px; }
+  .lil-vs b { font: 700 0.75rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+  .lil-vs-no { color: var(--muted); background: var(--card); border: 1px solid var(--line); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 70%, transparent); }
+  .lil-vs-no b { text-decoration: none; }
+  .lil-vs-yes { color: var(--text); border: 2px solid var(--violet); background: color-mix(in srgb, var(--violet) 10%, var(--card)); }
+  .lil-vs-yes b { color: var(--violet); }
+  .lil-fin { font: 700 1.05rem/1.35 "Space Grotesk", sans-serif; color: var(--ok); padding: 10px 12px; border-radius: 10px; border: 2px solid var(--ok); }
+  .lil-ctrl { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+  .lil-ctrl .lil-next:not(:disabled) { color: var(--bg); background: var(--grad); border-color: transparent; }
+  .lil-ctrl button:disabled { opacity: .45; cursor: default; }
+  .lil-ctrl button:focus-visible, .lil-bp-o button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .lil-cnt { font: 500 0.88rem/1 Inter, sans-serif; color: var(--muted); }
+  .lil-scards { list-style: none; margin: 12px 0 0 !important; padding: 0 !important; display: grid; gap: 10px; }
+  .lil-scards > li { margin: 0 !important; padding: 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 8px; }
+  .lil-scards .lil-tn { font-size: 1.1rem; }
+  .lil-static details { font-size: 0.92rem; }
+  .lil-static details summary { cursor: pointer; color: var(--violet); font-weight: 600; }
+  @media (max-width: 620px) {
+    .lil-vs { grid-template-columns: 1fr; }
+    .lil-ws-long { display: none; }
+    .lil-ws-short { display: inline; }
+    .lil-mini .lil-head b { font-size: 1rem; }
+    .lil-mini .lil-dial, .lil-mini .lil-clip { width: 18px; height: 18px; }
+    .lil-rdone { position: static; align-self: flex-start; }
+    .lil-rdone:not(.lil-show) { display: none; }
+    .lil-chip { font-size: 0.8rem; padding: 8px 10px; }
+    .lil-lane.lil-show i { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lil-mini, .lil-mstamp, .lil-rdone, .lil-lane { transition: none; }
+  }
+</style>

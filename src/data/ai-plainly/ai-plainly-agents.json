@@ -1,0 +1,195 @@
+{
+  "job": "Find a dry morning this weekend when the park is open, and draft a text I can send.",
+  "jobSize": 300,
+  "turns": [
+    {
+      "wrote": "Need the weather for Saturday morning.",
+      "tool": "weather, Saturday",
+      "back": "Rain 7 to 11 am",
+      "trips": 40,
+      "wroteSize": 150,
+      "backSize": 450,
+      "surprise": true
+    },
+    {
+      "wrote": "Rain Saturday. Check Sunday instead.",
+      "tool": "weather, Sunday",
+      "back": "Dry until noon",
+      "trips": 50,
+      "wroteSize": 200,
+      "backSize": 500,
+      "brainPower": true
+    },
+    {
+      "wrote": "Sunday works. Is the park open?",
+      "tool": "search, park hours",
+      "back": "Opens 9 am Sundays",
+      "trips": 45,
+      "wroteSize": 200,
+      "backSize": 500
+    },
+    {
+      "wrote": "Park Sunday morning? It's dry until noon and opens at 9.",
+      "tool": null,
+      "back": null,
+      "trips": 90,
+      "wroteSize": 300,
+      "backSize": 0
+    }
+  ],
+  "brainPower": {
+    "question": "Rain Saturday. What should it do next?",
+    "options": [
+      "Go ahead anyway",
+      "Check Sunday",
+      "Give up"
+    ],
+    "answer": "Check Sunday",
+    "callout": "It read the result and changed plan. That's what makes it an agent.",
+    "script": "A script (a fixed list of steps written ahead of time) would draft the text for Saturday anyway.",
+    "agent": "The agent checks Sunday."
+  },
+  "meter": {
+    "track": 68,
+    "limit": 62,
+    "setup": 6,
+    "job": 3,
+    "summary": 7,
+    "turns": [
+      {
+        "wrote": 2,
+        "result": 12,
+        "kind": "search"
+      },
+      {
+        "wrote": 2,
+        "result": 4,
+        "kind": "weather"
+      },
+      {
+        "wrote": 2,
+        "result": 10,
+        "kind": "search"
+      },
+      {
+        "wrote": 2,
+        "result": 4,
+        "kind": "map"
+      },
+      {
+        "wrote": 2,
+        "result": 9,
+        "kind": "search"
+      },
+      {
+        "wrote": 2,
+        "result": 12,
+        "kind": "search"
+      },
+      {
+        "wrote": 2,
+        "result": 5,
+        "kind": "weather"
+      }
+    ],
+    "squeezeAt": 5
+  },
+  "reviewer": {
+    "maker": [
+      {
+        "kind": "setup",
+        "size": 6,
+        "label": "setup notes"
+      },
+      {
+        "kind": "job",
+        "size": 3,
+        "label": "your job"
+      },
+      {
+        "kind": "wrote",
+        "size": 6,
+        "label": "its own reasoning"
+      },
+      {
+        "kind": "result",
+        "size": 7,
+        "label": "result"
+      },
+      {
+        "kind": "wrote",
+        "size": 7,
+        "label": "its own reasoning"
+      },
+      {
+        "kind": "result",
+        "size": 6,
+        "label": "result"
+      },
+      {
+        "kind": "wrote",
+        "size": 8,
+        "label": "its own reasoning"
+      },
+      {
+        "kind": "work",
+        "size": 8,
+        "label": "the work to check"
+      },
+      {
+        "kind": "job",
+        "size": 2,
+        "label": "check it"
+      }
+    ],
+    "fresh": [
+      {
+        "kind": "setup",
+        "size": 6,
+        "label": "setup notes"
+      },
+      {
+        "kind": "work",
+        "size": 8,
+        "label": "the work to check"
+      },
+      {
+        "kind": "job",
+        "size": 2,
+        "label": "find problems"
+      }
+    ]
+  },
+  "quiz": [
+    {
+      "prompt": "An agent runs on a different kind of AI than a chatbot.",
+      "answer": "Myth",
+      "why": "It's the same kind of word-guessing model, often the very same one."
+    },
+    {
+      "prompt": "An agent keeps thinking between turns.",
+      "answer": "Myth",
+      "why": "While the harness works, the model isn't running at all."
+    },
+    {
+      "prompt": "An agent remembers your last job with nothing written down.",
+      "answer": "Myth",
+      "why": "Memory features work by pasting saved notes back into the conversation."
+    },
+    {
+      "prompt": "One way it stops is writing an answer with no tool request.",
+      "answer": "Fact",
+      "why": "There's nothing left for the harness to run."
+    },
+    {
+      "prompt": "More loops means it double-checks itself.",
+      "answer": "Myth",
+      "why": "Only if someone builds a check into the loop."
+    },
+    {
+      "prompt": "A very long job can push early details out of what it can read.",
+      "answer": "Fact",
+      "why": "The context window has a limit, and the fixes can lose details."
+    }
+  ]
+}
