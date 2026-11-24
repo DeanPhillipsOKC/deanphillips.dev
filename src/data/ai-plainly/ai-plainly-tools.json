@@ -264,5 +264,182 @@
         "verdict": "The closest passage is about Model 5. Nothing here is about Model 7. It gets pasted in anyway, and the model answers “Yes, it's covered for 2 years.” Smooth, and made up."
       }
     ]
-  }
+  },
+  "comic": [
+    {
+      "a": "you",
+      "b": "app",
+      "caption": "You ask the app.",
+      "msgs": [
+        {
+          "from": "a",
+          "lines": [
+            {
+              "text": "What's the weather in Tulsa right now?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "app",
+      "b": "model",
+      "hidden": true,
+      "caption": "The app hands your question to the model, with a list of tools it can ask for.",
+      "think": {
+        "who": "a",
+        "lines": [
+          {
+            "tag": "You",
+            "text": "What's the weather in Tulsa right now?"
+          }
+        ]
+      },
+      "msgs": [
+        {
+          "from": "a",
+          "lines": [
+            {
+              "tag": "Tools",
+              "text": "search the web, run code, read a shared file"
+            },
+            {
+              "tag": "You",
+              "text": "What's the weather in Tulsa right now?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "app",
+      "b": "model",
+      "hidden": true,
+      "caption": "The model guesses. Its best guess isn't an answer. It's a note asking for a tool.",
+      "think": {
+        "who": "b",
+        "lines": [
+          {
+            "text": "Only what it was just handed. The tool list and your question."
+          }
+        ]
+      },
+      "msgs": [
+        {
+          "from": "b",
+          "lines": [
+            {
+              "tag": "Note",
+              "text": "search(Tulsa weather now)",
+              "code": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "app",
+      "b": "tool",
+      "hidden": true,
+      "caption": "The app runs the tool. The model isn't running at all now.",
+      "msgs": [
+        {
+          "from": "a",
+          "lines": [
+            {
+              "text": "search(Tulsa weather now)",
+              "code": true
+            }
+          ]
+        },
+        {
+          "from": "b",
+          "lines": [
+            {
+              "tag": "Result",
+              "text": "Tulsa now 54°F, cloudy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "app",
+      "b": "model",
+      "hidden": true,
+      "caption": "The app pastes the result into the conversation and sends the whole thing again.",
+      "think": {
+        "who": "a",
+        "lines": [
+          {
+            "tag": "Tools",
+            "text": "search the web, run code, read a shared file"
+          },
+          {
+            "tag": "You",
+            "text": "What's the weather in Tulsa right now?"
+          },
+          {
+            "tag": "Note",
+            "text": "search(Tulsa weather now)",
+            "code": true
+          },
+          {
+            "tag": "Result",
+            "text": "Tulsa now 54°F, cloudy",
+            "fresh": true
+          }
+        ]
+      },
+      "msgs": [
+        {
+          "from": "a",
+          "lines": [
+            {
+              "text": "The whole conversation, from the top."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "app",
+      "b": "model",
+      "hidden": true,
+      "caption": "The model starts from nothing and reads it all. This time its best guess is the answer.",
+      "think": {
+        "who": "b",
+        "lines": [
+          {
+            "text": "Only what it was just handed. Tools, question, note, and result."
+          }
+        ]
+      },
+      "msgs": [
+        {
+          "from": "b",
+          "lines": [
+            {
+              "text": "It's 54°F and cloudy in Tulsa right now."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "a": "you",
+      "b": "app",
+      "caption": "The app shows you the answer. You only ever see panels 1 and 7.",
+      "msgs": [
+        {
+          "from": "b",
+          "lines": [
+            {
+              "text": "It's 54°F and cloudy in Tulsa right now."
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
