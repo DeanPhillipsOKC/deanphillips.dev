@@ -1,0 +1,36 @@
+---
+// Two columns side by side: what something fixes (green ✓) and what it doesn't (pink ✗). Each item is
+// a short bold line with an optional plain line under it. The mark and the column title both say which
+// side an item is on, so color is never the only cue. Static, so it reads the same without JavaScript,
+// and there's no motion. Under 560px the columns stack.
+interface Item { head: string; sub?: string }
+interface Props { yesTitle: string; noTitle: string; yes: Item[]; no: Item[]; caption?: string }
+const { yesTitle, noTitle, yes, no, caption } = Astro.props;
+---
+<figure class="fxs panel bleed">
+  <div class="fxs-cols">
+    {[{ t: yesTitle, items: yes, k: 'yes', sign: '✓' }, { t: noTitle, items: no, k: 'no', sign: '✗' }].map((c) => (
+      <section class={`fxs-col fxs-${c.k}`} aria-label={c.t}>
+        <p class="fxs-title"><b aria-hidden="true">{c.sign}</b> {c.t}</p>
+        <ul class="fxs-list">
+          {c.items.map((it) => <li><b>{it.head}</b>{it.sub && <span>{it.sub}</span>}</li>)}
+        </ul>
+      </section>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .fxs { padding: 18px; }
+  .fxs-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fxs-col { --m: var(--ok); padding: 14px; border-radius: 12px; border: 1.5px solid color-mix(in srgb, var(--m) 55%, var(--line)); background: color-mix(in srgb, var(--m) 8%, var(--card)); }
+  .fxs-no { --m: var(--pink); }
+  figure.fxs p.fxs-title { margin: 0 0 10px; font: 700 1.15rem/1.2 "Space Grotesk", sans-serif; color: var(--text); }
+  .fxs-title b { color: var(--m); }
+  .post-body .fxs-list, .fxs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .fxs-list li { margin: 0; display: grid; gap: 2px; padding-left: 10px; border-left: 3px solid var(--m); }
+  .fxs-list b { font: 600 1.02rem/1.3 Inter, sans-serif; color: var(--text); }
+  .fxs-list span { font-size: 0.92rem; line-height: 1.4; color: var(--muted); }
+  @media (max-width: 560px) { .fxs { padding: 12px; } .fxs-cols { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,26 @@
+---
+// A "there are no dumb questions" aside, after the Head First books. Short question and answer pairs
+// a reader might be too shy to ask. Static, so it reads the same with or without JavaScript.
+interface Item { q: string; a: string }
+interface Props { items: Item[]; title?: string }
+const { items, title = 'No dumb questions' } = Astro.props;
+---
+<aside class="ndq">
+  <p class="ndq-title">{title}</p>
+  <dl class="ndq-list">
+    {items.map((it) => (
+      <div class="ndq-item">
+        <dt>Q. {it.q}</dt>
+        <dd>A. {it.a}</dd>
+      </div>
+    ))}
+  </dl>
+</aside>
+
+<style is:global>
+  .ndq { margin: 30px 0; padding: 16px 20px; border-left: 4px solid var(--violet); background: var(--bg-2); border-radius: 0 14px 14px 0; }
+  aside.ndq p.ndq-title { margin: 0 0 10px; font: 700 0.85rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--violet); }
+  .ndq-list { margin: 0; display: grid; gap: 14px; }
+  .ndq-item dt { font: 700 1.05rem/1.35 "Space Grotesk", sans-serif; color: var(--text); }
+  .ndq-item dd { margin: 4px 0 0; font-size: 1rem; line-height: 1.55; color: color-mix(in srgb, var(--text) 88%, var(--muted)); }
+</style>

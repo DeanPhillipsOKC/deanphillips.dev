@@ -1,0 +1,362 @@
+---
+// The silent social video for the tools post (part 1 of "AI, plainly"). It is never shown to readers:
+// the figure stays display:none unless a recording script sets data-reel on it, and it is aria-hidden.
+// It retells ToolRelay's weather round trip one idea per shot, with big words on top: the question on
+// your screen, the model's guesses turning into a note, the app spotting the note while the model stops,
+// a tool doing the errand, the result pasted into the conversation, the model rereading and answering,
+// your screen alone ("you only ever see this part"), and an end card that lines up the note, the tool, and the result. Bands come
+// in only when their beat needs them, so the frame never holds more than it has to. It uses the post's
+// colors (your screen teal, the model violet, the conversation as a card strip, the app and its tools
+// gray and dashed, results amber). Text is sized for a phone feed (body about 45px at 1080 wide, tags
+// about 31px), and the headline crossfades from one shot to the next with no blank gap.
+//
+// Everything is drawn as a pure function of time, so scripts/video/ai-plainly-tools-reel.mjs can record
+// it frame by frame: it sets data-reel (or data-og for the link preview) and calls
+// window.__toolsReel.draw(seconds). There is no loop and no timer, so reduced motion has nothing to stop,
+// and without JavaScript nothing shows (the figure is hidden either way).
+interface Q { chip: string; note: string; status: string; programLabel: string; result: string; answer: string }
+interface Props { q: Q; guesses: [string, number][] }
+const { q, guesses } = Astro.props;
+---
+<figure class="trl" aria-hidden="true" data-q={JSON.stringify(q)} data-guesses={JSON.stringify(guesses.slice(0, 3))}>
+  <div class="trl-main">
+    <div class="trl-head">
+      <p class="trl-hl" data-layer="a"><span class="trl-h1"></span> <span class="trl-h2"></span></p>
+      <p class="trl-hl" data-layer="b"><span class="trl-h1"></span> <span class="trl-h2"></span></p>
+    </div>
+    <div class="trl-stage">
+      <div class="trl-bwrap" data-wrap="you">
+        <section class="trl-band trl-you" data-band="you">
+          <p class="trl-name"><b>Your screen</b><em class="trl-now">Now</em></p>
+          <div class="trl-slot" data-slot="ask"><p class="trl-bubble"><span class="trl-ask-text"></span></p></div>
+          <div class="trl-slot" data-slot="status"><p class="trl-status">{q.status}</p></div>
+          <div class="trl-slot" data-slot="answer"><p class="trl-reply"><span class="trl-tag trl-tag-model">The model</span><span class="trl-answer-text"></span></p></div>
+        </section>
+      </div>
+      <div class="trl-bwrap" data-wrap="model">
+        <section class="trl-band trl-model" data-band="model">
+          <p class="trl-name"><b>The model</b><span>guesses text</span><em class="trl-now">Now</em></p>
+          <div class="trl-slot" data-slot="bars">
+            <p class="trl-ask">Its next word, best guesses <span>(made-up odds)</span></p>
+            <ul class="trl-bars"></ul>
+          </div>
+          <div class="trl-slot" data-slot="note"><p class="trl-note"><span class="trl-tag trl-tag-note">Note <span class="trl-gloss">a request</span></span><code class="trl-note-text"></code></p></div>
+          <div class="trl-slot" data-slot="off"><p class="trl-state trl-off">Stopped. Nothing is thinking.</p></div>
+          <div class="trl-slot" data-slot="reread"><p class="trl-state trl-on">Running again. Rereading from the top.</p></div>
+        </section>
+      </div>
+      <div class="trl-bwrap" data-wrap="conv">
+        <section class="trl-band trl-conv" data-band="conv">
+          <p class="trl-name"><b>The conversation</b><span class="trl-view">what the model reads</span><em class="trl-move trl-move-note">↓ the note</em><em class="trl-move trl-move-paste">↑ the result</em><em class="trl-move trl-move-read">rereading…</em></p>
+          <div class="trl-strip">
+            <div class="trl-slot" data-slot="c-hidden"><p class="trl-line trl-line-hidden"><span class="trl-tag">Hidden</span>Tools it can ask for, listed by the app</p></div>
+            <div class="trl-slot" data-slot="c-q"><p class="trl-line"><span class="trl-tag trl-tag-you">You</span>{q.chip}</p></div>
+            <div class="trl-slot" data-slot="c-note"><p class="trl-line trl-line-note"><span class="trl-tag trl-tag-note">Note</span><code>{q.note}</code></p></div>
+            <div class="trl-slot" data-slot="c-paste"><p class="trl-line trl-line-paste"><span class="trl-tag trl-tag-paste">Result</span><code>{q.result}</code></p></div>
+            <div class="trl-slot" data-slot="c-answer"><p class="trl-line"><span class="trl-tag trl-tag-model">The model</span><span class="trl-c-answer"></span></p></div>
+          </div>
+        </section>
+      </div>
+      <div class="trl-bwrap" data-wrap="app">
+        <section class="trl-band trl-app" data-band="app">
+          <p class="trl-name"><b>The app and its tools</b><span>ordinary code</span><em class="trl-now">Now</em></p>
+          <div class="trl-slot" data-slot="spot"><p class="trl-state trl-act">Spotted the note. Hands it to a search tool.</p></div>
+          <div class="trl-slot" data-slot="work">
+            <p class="trl-plabel">{q.programLabel}</p>
+            <p class="trl-fill"><i></i></p>
+          </div>
+          <div class="trl-slot" data-slot="result"><p class="trl-result"><span class="trl-tag trl-tag-paste">Result</span><code>{q.result}</code></p></div>
+          <div class="trl-slot" data-slot="adone"><p class="trl-state">Done. Result pasted in.</p></div>
+        </section>
+      </div>
+    </div>
+    <p class="trl-foot">Weather and odds made up for the demo</p>
+  </div>
+  <div class="trl-end">
+    <div class="trl-trip">
+      <p class="trl-card trl-card-note"><span class="trl-tag trl-tag-note">Note</span><code>{q.note}</code></p>
+      <span class="trl-arrow">↓</span>
+      <p class="trl-card trl-card-tool"><span class="trl-tag">Tool</span><span>ordinary code</span></p>
+      <span class="trl-arrow">↓</span>
+      <p class="trl-card trl-card-result"><span class="trl-tag trl-tag-paste">Result</span><code>{q.result}</code></p>
+    </div>
+    <p class="trl-end-1">Yes. But the model never touched the internet.</p>
+    <p class="trl-end-2">It wrote a note. Ordinary code did the search.</p>
+    <p class="trl-end-3">Part 1 of AI, plainly<br /><b>deanphillips.dev</b></p>
+  </div>
+</figure>
+
+<script>
+  type Q = { chip: string; note: string; status: string; programLabel: string; result: string; answer: string };
+  const clamp = (x: number) => Math.max(0, Math.min(1, x));
+  const ease = (x: number) => 1 - (1 - clamp(x)) ** 3;
+  // Fades in over [a, a + d] and, when b is given, out over [b, b + d].
+  const win = (t: number, a: number, b = Infinity, d = 0.35) => Math.min(ease((t - a) / d), 1 - ease((t - b) / d));
+  const type = (s: string, t: number, a: number, b: number) => s.slice(0, Math.round(s.length * clamp((t - a) / (b - a))));
+
+  // The shots: start time, headline, an optional second headline sentence and when it appears.
+  const SHOTS: [number, string, string?, number?][] = [
+    [0, 'Can a chatbot really search the web?'],
+    [2.2, 'It can only guess words.', 'So it writes a note.', 4.1],
+    [7.5, 'The app spots the note. The model stops.'],
+    [11, 'A tool does the actual errand.'],
+    [14.5, 'The result gets pasted into the conversation.'],
+    [18, 'The model runs again. It rereads everything.'],
+    [24.5, 'You only ever see this part.'],
+    [28.5, ''],
+  ];
+  const TOTAL = 34;
+  const XF = 0.4; // headline crossfade
+
+  const root = document.querySelector<HTMLElement>('.trl');
+  if (root) {
+    const q: Q = JSON.parse(root.dataset.q!);
+    const guesses: [string, number][] = JSON.parse(root.dataset.guesses!);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const main = $('.trl-main'), end = $('.trl-end'), head = $('.trl-head');
+    const layers = [...root.querySelectorAll<HTMLElement>('.trl-hl')];
+    const bars = $('.trl-bars');
+    // The bars show their final made-up odds from the start (no count-up), so nobody catches a passing number.
+    const rows = guesses.map(([tok, p], i) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="trl-tok"></span><span class="trl-bar"><i></i></span><span class="trl-pct"></span>';
+      li.querySelector('.trl-tok')!.textContent = tok;
+      li.querySelector<HTMLElement>('i')!.style.width = `${p}%`;
+      li.querySelector('.trl-pct')!.textContent = `${p}%`;
+      bars.append(li);
+      return { li, win: i === 0 };
+    });
+    const slots = new Map<string, HTMLElement>();
+    for (const el of root.querySelectorAll<HTMLElement>('.trl-slot')) slots.set(el.dataset.slot!, el);
+    const wraps = new Map<string, HTMLElement>();
+    for (const el of root.querySelectorAll<HTMLElement>('.trl-bwrap')) wraps.set(el.dataset.wrap!, el);
+    const bands = new Map<string, HTMLElement>();
+    for (const el of root.querySelectorAll<HTMLElement>('.trl-band')) bands.set(el.dataset.band!, el);
+    let natural = new Map<string, number>();
+    let measuredAt = -1;
+    function measure() {
+      measuredAt = root!.clientWidth;
+      natural = new Map();
+      // Measure with everything fully typed, so the slots open to their full height.
+      for (const el of root!.querySelectorAll<HTMLElement>('.trl-answer-text, .trl-c-answer')) el.textContent = q.answer;
+      $('.trl-note-text').textContent = q.note;
+      $('.trl-ask-text').textContent = q.chip;
+      for (const [k, el] of slots) { el.style.height = 'auto'; natural.set(k, el.scrollHeight); }
+    }
+    // A slot opens to its natural height as v goes from 0 to 1, and fades with it.
+    function slot(k: string, v: number) {
+      const el = slots.get(k)!;
+      el.style.height = `${natural.get(k)! * v}px`;
+      el.style.opacity = String(v);
+    }
+    // A whole band comes in (or leaves) the same way. Its inner slots are set first, so scrollHeight is current.
+    function wrap(k: string, v: number) {
+      const el = wraps.get(k)!;
+      el.style.height = v >= 1 ? 'auto' : `${el.scrollHeight * v}px`;
+      el.style.opacity = String(v);
+    }
+    function band(k: string, now: boolean, lit: boolean) {
+      const el = bands.get(k)!;
+      el.classList.toggle('is-now', now);
+      el.style.opacity = now || lit ? '1' : '0.6';
+    }
+    function headline(el: HTMLElement, s: number, v: number) {
+      const [, head, second, at] = SHOTS[s];
+      el.querySelector('.trl-h1')!.textContent = head;
+      el.querySelector('.trl-h2')!.textContent = second ?? '';
+      el.classList.toggle('is-hook', s === 0);
+      el.style.opacity = String(v);
+      return { second, at };
+    }
+
+    function draw(t: number) {
+      if (measuredAt !== root!.clientWidth) measure();
+      t = Math.max(0, Math.min(TOTAL, t));
+      let s = 0;
+      while (s + 1 < SHOTS.length && t >= SHOTS[s + 1][0]) s++;
+      const a = SHOTS[s][0];
+
+      // Headline: the new line fades in over the old one, so the top never goes blank.
+      const into = s ? ease((t - a) / XF) : 1;
+      const cur = headline(layers[0], s, into);
+      const h2 = layers[0].querySelector<HTMLElement>('.trl-h2')!;
+      h2.style.opacity = String(cur.second ? ease((t - cur.at!) / 0.35) : 0);
+      if (s && into < 1) {
+        headline(layers[1], s - 1, 1 - into);
+        layers[1].querySelector<HTMLElement>('.trl-h2')!.style.opacity = '1';
+      } else layers[1].style.opacity = '0';
+      // The hook's bigger two lines shrink to the normal size as the next headline comes in.
+      head.style.minHeight = `${s === 0 ? 18.6 : s === 1 ? 18.6 - 3.8 * into : 14.8}cqw`;
+
+      // Which band is acting. While the model writes its answer, your screen shows it but the model has the Now.
+      const now = t < 2.2 ? 'you' : t < 7.5 ? 'model' : t < 14.5 ? 'app' : t < 18 ? 'conv' : t < 24.5 ? 'model' : 'you';
+      const typing = t >= 20.6 && t < 24.5;
+      for (const k of bands.keys()) band(k, k === now && k !== 'conv', k === 'conv' || (k === 'you' && typing));
+      bands.get('conv')!.classList.toggle('is-lit', now === 'conv');
+
+      // Your screen: the question types in, the status line while the tool works, then the model's reply.
+      slot('ask', Math.max(win(t, 0.15, 2.2, 0.3), win(t, 24.7, Infinity, 0.4)));
+      $('.trl-ask-text').textContent = type(q.chip, t, 0.2, 1.3);
+      slot('status', win(t, 8.6, 20.2));
+      slot('answer', win(t, 20.5));
+      $('.trl-answer-text').textContent = type(q.answer, t, 20.7, 22.9);
+
+      // The model: the best guesses, the note typing out, switched off, running again.
+      slot('bars', win(t, 1.35, 7.0, 0.35));
+      rows.forEach((r, i) => {
+        r.li.style.opacity = String(ease((t - 1.45 - i * 0.15) / 0.3) * (t > 3.2 && !r.win ? 0.4 : 1));
+        r.li.classList.toggle('trl-win', t > 3.2 && r.win);
+      });
+      slot('note', win(t, 4.1, 7.0, 0.35));
+      $('.trl-note-text').textContent = type(q.note, t, 4.3, 5.6);
+      slot('off', win(t, 7.4, 17.9, 0.35));
+      slot('reread', win(t, 18.2, 24.5));
+      bands.get('model')!.classList.toggle('is-off', t >= 7.5 && t < 18);
+
+      // The conversation grows downward. In the "what you see" shot the lines you never see fold away.
+      slot('c-hidden', win(t, 4.6));
+      slot('c-q', win(t, 1.4));
+      slot('c-note', win(t, 7.2));
+      slot('c-paste', win(t, 15.0));
+      slot('c-answer', win(t, 20.5));
+      $('.trl-c-answer').textContent = type(q.answer, t, 20.7, 22.9);
+      $<HTMLElement>('.trl-move-note').style.opacity = String(win(t, 6.8, 8.8, 0.3));
+      $<HTMLElement>('.trl-move-paste').style.opacity = String(win(t, 14.8, 17.6, 0.3));
+      $<HTMLElement>('.trl-move-read').style.opacity = String(win(t, 18.3, 20.4, 0.3));
+      // Rereading: a soft highlight moves down the lines one at a time.
+      const order = ['c-hidden', 'c-q', 'c-note', 'c-paste'];
+      const step = Math.floor((t - 18.5) / 0.5);
+      order.forEach((k, i) => slots.get(k)!.classList.toggle('is-read', t >= 18.5 && step === i));
+      // The newest line gets a highlight for a moment.
+      for (const [k, from] of [['c-note', 7.2], ['c-paste', 15.0], ['c-answer', 20.5]] as const) {
+        slots.get(k)!.classList.toggle('is-new', t >= from && t < from + 2.4);
+      }
+
+      // The app and its tools: only there while it has a job. Spotting the note, doing the errand, done.
+      slot('spot', win(t, 7.9, 10.9, 0.3));
+      slot('work', win(t, 11.1, 14.9, 0.35));
+      $<HTMLElement>('.trl-fill i').style.width = `${ease((t - 11.4) / 1.6) * 100}%`;
+      slot('result', win(t, 13.1, 14.9, 0.35));
+      slot('adone', win(t, 15.6, 17.6, 0.35));
+
+      // Bands come in when their beat starts.
+      // Your screen steps aside while the model guesses, and the conversation steps aside for "what you see".
+      wrap('you', Math.max(win(t, 0.05, 2.3, 0.3), win(t, 8.3, Infinity, 0.4)));
+      wrap('model', win(t, 1.2, Infinity, 0.35));
+      wrap('conv', win(t, 1.3, 24.6, 0.45));
+      wrap('app', win(t, 7.6, 17.9, 0.4));
+
+      // The end card replaces the stage.
+      const e = ease((t - 28.4) / 0.6);
+      main.style.opacity = String(1 - e);
+      end.style.opacity = String(ease((t - 28.8) / 0.6));
+      const cards = root!.querySelectorAll<HTMLElement>('.trl-trip > *');
+      cards.forEach((c, i) => { c.style.opacity = String(ease((t - 28.9 - i * 0.25) / 0.4)); });
+      $<HTMLElement>('.trl-end-1').style.opacity = String(ease((t - 30.2) / 0.5));
+      $<HTMLElement>('.trl-end-2').style.opacity = String(ease((t - 31.0) / 0.5));
+      $<HTMLElement>('.trl-end-3').style.opacity = String(ease((t - 31.8) / 0.5));
+    }
+    (window as any).__toolsReel = { draw, total: TOTAL };
+  }
+</script>
+
+<style is:global>
+  .trl { display: none; }
+  body:has(.trl[data-reel], .trl[data-og]) header.top { display: none; }
+  .trl[data-reel], .trl[data-og] {
+    position: fixed; inset: 0; z-index: 2147483647; margin: 0 !important; max-width: none !important; width: 100vw; height: 100vh; box-sizing: border-box;
+    padding: 5vh 4.5vw; display: flex; flex-direction: column; justify-content: center; overflow: hidden; container-type: inline-size;
+    color: var(--text); font: 500 4.2vw/1.3 Inter, sans-serif;
+    background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--violet) 18%, transparent), transparent 60%),
+      radial-gradient(100% 70% at 100% 100%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 60%), var(--bg);
+  }
+  .trl p { margin: 0; }
+  .trl-main { display: flex; flex-direction: column; }
+  .trl-head { display: grid; align-items: end; min-height: 14.8cqw; margin-bottom: 2.4cqw; }
+  .trl-hl { grid-area: 1 / 1; font: 700 6.6cqw/1.12 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .trl-hl.is-hook { font-size: 8.2cqw; }
+  .trl-hl span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .trl-stage { display: flex; flex-direction: column; }
+  .trl-bwrap { overflow: hidden; }
+  .trl-bwrap + .trl-bwrap > .trl-band { margin-top: 2cqw; }
+  .trl-band { border: 1px solid var(--line); border-left: 1.2cqw solid var(--line); border-radius: 2cqw; padding: 2cqw 2.8cqw 2.4cqw; background: color-mix(in srgb, var(--card) 80%, transparent); }
+  .trl-name { position: relative; display: flex; align-items: baseline; gap: 1.8cqw; flex-wrap: wrap; font-size: 3cqw; font-weight: 600; color: var(--muted); }
+  .trl-name b { font: 700 4.4cqw/1.2 "Space Grotesk", sans-serif; color: var(--text); }
+  .trl-now { margin-left: auto; font: 800 2.9cqw/1 Inter, sans-serif; font-style: normal; letter-spacing: .08em; text-transform: uppercase; padding: 0.9cqw 1.6cqw; border-radius: 99px; background: var(--line); color: var(--text); visibility: hidden; }
+  .trl-band.is-now .trl-now { visibility: visible; }
+  .trl-you.is-now { border-left-color: var(--teal); } .trl-you.is-now .trl-now { background: var(--teal); color: var(--bg); }
+  .trl-model.is-now { border-left-color: var(--violet); } .trl-model.is-now .trl-now { background: var(--violet); color: var(--bg); }
+  .trl-app { background: var(--bg-2); border: 0.3cqw dashed var(--muted); border-left: 1.2cqw dashed var(--muted); }
+  .trl-app.is-now { border-left: 1.2cqw solid var(--muted); } .trl-app.is-now .trl-now { background: var(--muted); color: var(--bg); }
+  .trl-model.is-off { filter: grayscale(1); }
+  .trl-slot { overflow: hidden; }
+  .trl-slot > * { margin-top: 1.6cqw !important; }
+  .trl-bubble { display: inline-block; padding: 1.4cqw 2.6cqw; border-radius: 2.6cqw; background: color-mix(in srgb, var(--teal) 18%, var(--card)); border: 0.3cqw solid var(--teal); min-height: 1.3em; }
+  .trl-status { color: var(--muted); font-style: italic; }
+  .trl-reply { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 2cqw; padding: 1.4cqw 2.6cqw; border-radius: 2.6cqw; background: color-mix(in srgb, var(--violet) 14%, var(--card)); border: 0.3cqw solid var(--violet); font-weight: 600; min-height: 1.3em; }
+  .trl-state { color: var(--muted); }
+  .trl-off { color: var(--text); font-weight: 600; }
+  .trl-on { color: var(--violet); font-weight: 600; }
+  .trl-act { color: var(--text); font-weight: 600; }
+  .trl-ask { font-size: 3.4cqw; font-weight: 600; color: var(--text); } .trl-ask span { color: var(--muted); }
+  .trl-bars { list-style: none; margin: 1cqw 0 0; padding: 0; display: grid; gap: 1cqw; }
+  .trl-bars li { display: grid; grid-template-columns: 19cqw 1fr 11cqw; align-items: center; gap: 2cqw; }
+  .trl-tok { font: 600 4.2cqw/1.2 ui-monospace, Menlo, Consolas, monospace; }
+  .trl-bar { height: 3.6cqw; background: var(--bg-2); border-radius: 99px; overflow: hidden; }
+  .trl-bar i { display: block; height: 100%; background: var(--violet); border-radius: 99px; }
+  .trl-pct { text-align: right; font-weight: 700; }
+  .trl-bars li.trl-win .trl-tok, .trl-bars li.trl-win .trl-pct { color: var(--violet); }
+  .trl-note, .trl-result { display: inline-grid; gap: 1cqw; padding: 1.6cqw 5cqw 1.8cqw 2.4cqw; background: var(--card); border: 0.4cqw solid var(--violet); border-radius: 1cqw; position: relative; clip-path: polygon(0 0, calc(100% - 3.4cqw) 0, 100% 3.4cqw, 100% 100%, 0 100%); }
+  .trl-note::after { content: ''; position: absolute; top: 0; right: 0; width: 3.4cqw; height: 3.4cqw; background: linear-gradient(45deg, var(--violet) 50%, transparent 50%); }
+  .trl-result { display: inline-flex; align-items: baseline; gap: 2cqw; border-color: var(--warn); clip-path: none; padding: 1.2cqw 2.4cqw; }
+  .trl code { font: 600 4cqw/1.3 ui-monospace, Menlo, Consolas, monospace; background: none; border: 0; padding: 0; color: var(--text); min-height: 1.3em; }
+  .trl-tag { display: inline-block; font: 800 2.9cqw/1.2 Inter, sans-serif; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .trl-gloss { margin-left: 1cqw; text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--muted); }
+  .trl-tag-note { color: var(--violet); } .trl-tag-paste { color: var(--warn); } .trl-tag-you { color: var(--teal); } .trl-tag-model { color: var(--violet); }
+  .trl-view.is-you { color: var(--teal); }
+  .trl-move { position: absolute; right: 0; top: 0.4cqw; font: 800 3.2cqw/1 Inter, sans-serif; font-style: normal; color: var(--violet); }
+  .trl-move-paste { color: var(--warn); }
+  .trl-conv { background: var(--card); }
+  .trl-conv.is-lit { border-left-color: var(--text); }
+  .trl-strip { display: flex; flex-direction: column; }
+  .trl-line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 2cqw; row-gap: 0; padding: 0.9cqw 2.2cqw; border-radius: 1.2cqw; background: var(--bg-2); border: 1px solid var(--line); }
+  .trl-strip .trl-slot > * { margin-top: 1cqw !important; }
+  .trl-line-hidden { background: transparent; border: 0.3cqw dashed var(--muted); color: var(--muted); font-size: 3.8cqw; }
+  .trl-line-note { border: 0.4cqw solid var(--violet); }
+  .trl-line-paste { border-left: 1.2cqw solid var(--warn); }
+  .trl-slot.is-new .trl-line { background: color-mix(in srgb, var(--warn) 16%, var(--bg-2)); }
+  .trl-slot.is-read .trl-line { background: color-mix(in srgb, var(--violet) 30%, var(--bg-2)); box-shadow: 0 0 0 0.5cqw color-mix(in srgb, var(--violet) 45%, transparent); }
+  .trl-plabel { font-weight: 600; }
+  .trl-fill { height: 2.8cqw; margin-top: 1.4cqw !important; border-radius: 99px; background: var(--card); overflow: hidden; border: 1px solid var(--line); }
+  .trl-fill i { display: block; height: 100%; background: var(--muted); }
+  .trl-foot { margin-top: 2.4cqw !important; font-size: 3cqw; font-weight: 600; color: var(--text); opacity: 0.85; }
+  .trl-end { position: absolute; inset: 0; display: grid; align-content: center; gap: 3.4cqw; padding: 0 5.5cqw; opacity: 0; pointer-events: none; }
+  .trl-trip { display: grid; justify-items: start; gap: 0.6cqw; margin-bottom: 3cqw; }
+  .trl-card { display: flex; align-items: baseline; gap: 2cqw; padding: 1.6cqw 2.6cqw; border-radius: 1.4cqw; background: var(--card); border: 0.4cqw solid var(--line); font-size: 4.2cqw; font-weight: 600; }
+  .trl-card code { font-size: 4cqw; }
+  .trl-card-note { border-color: var(--violet); }
+  .trl-card-tool { border: 0.4cqw dashed var(--muted); background: var(--bg-2); }
+  .trl-card-result { border-color: var(--warn); }
+  .trl-arrow { margin-left: 4cqw; font: 700 5cqw/1 Inter, sans-serif; color: var(--muted); }
+  .trl-end-1 { font: 700 7.6cqw/1.1 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .trl-end-2 { font: 700 6.2cqw/1.15 "Space Grotesk", sans-serif; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .trl-end-3 { margin-top: 3cqw !important; font: 600 4cqw/1.4 Inter, sans-serif; color: var(--muted); }
+  .trl-end-3 b { font: 700 5.4cqw/1.3 "Space Grotesk", sans-serif; color: var(--text); }
+  /* The link preview: the headline, then only the model band at a size that fits 1200x630. */
+  .trl[data-og] { padding: 0 5cqw; font-size: 2.6cqw; }
+  .trl[data-og] .trl-main { display: grid; grid-template-columns: 1fr 1.15fr; grid-template-rows: 1fr auto; align-items: center; column-gap: 4cqw; height: 100%; padding: 3.4cqw 0 2.6cqw; box-sizing: border-box; }
+  .trl[data-og] .trl-head { min-height: 0; margin: 0; grid-row: 1; }
+  .trl[data-og] .trl-hl { font-size: 4.6cqw; }
+  .trl[data-og] .trl-hl .trl-h2 { display: block; margin-top: 2cqw; }
+  .trl[data-og] .trl-stage { grid-row: 1; }
+  .trl[data-og] .trl-bwrap:not([data-wrap="model"]) { display: none; }
+  .trl[data-og] .trl-end { display: none; }
+  .trl[data-og] .trl-foot { grid-column: 1 / -1; font-size: 1.7cqw; margin: 0 !important; }
+  .trl[data-og] .trl-name { font-size: 2cqw; } .trl[data-og] .trl-name b { font-size: 2.6cqw; }
+  .trl[data-og] .trl-bars li { grid-template-columns: 10cqw 1fr 6cqw; }
+  .trl[data-og] .trl-tok, .trl[data-og] code { font-size: 2.6cqw; white-space: nowrap; }
+  .trl[data-og] .trl-bar { height: 2cqw; }
+  .trl[data-og] .trl-ask { font-size: 2.1cqw; }
+  .trl[data-og] .trl-tag, .trl[data-og] .trl-now { font-size: 1.6cqw; }
+  .trl[data-og] .trl-band { padding: 1.6cqw 2.2cqw 2cqw; border-left-width: 0.8cqw; }
+</style>
