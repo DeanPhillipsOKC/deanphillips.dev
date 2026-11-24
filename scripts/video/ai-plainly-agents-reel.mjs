@@ -29,7 +29,7 @@ async function open(width, height, mode) {
   return page;
 }
 
-// The video: the whole made-up run once, ending on the takeaway.
+// The video: the whole made-up run once, as text chats, ending on the takeaway.
 const page = await open(1080, 1350, 'reel');
 const total = await page.evaluate(() => window.__agentsReel.total);
 if (process.env.REEL_STILLS) {
@@ -52,15 +52,9 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-agents-reel.mp4']);
 
-// The link preview: the regular program doing the job while the model waits, under the title.
+// The link preview: the hook, next to turn 3's chat, where the model reads the rain and picks Sunday itself.
 const og = await open(1200, 630, 'og');
-await og.evaluate(() => {
-  window.__agentsReel.draw(4.2);
-  const hl = document.querySelectorAll('.arl-hl');
-  hl[0].querySelector('.arl-h1').textContent = 'What makes an AI an agent?';
-  hl[0].querySelector('.arl-h2').innerHTML = 'The model writes a request.<br>A regular program does it.';
-  hl[0].querySelector('.arl-h2').style.opacity = '1';
-});
+await og.evaluate(() => window.__agentsReel.draw(17));
 await og.screenshot({ path: join(work, 'og.png') });
 await og.close();
 mkdirSync('public/img/og', { recursive: true });
