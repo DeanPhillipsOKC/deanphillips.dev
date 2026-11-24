@@ -9,8 +9,8 @@ const { tools, agent, caption } = Astro.props;
 // Each tool trip is a model chip then the tool's chip (named by the tool), and every row ends model, Done.
 const chain = (tools: string[]) => [...tools.flatMap((t) => [{ k: 'model', n: 'model' }, { k: 'tool', n: t }]), { k: 'model', n: 'model' }, { k: 'done', n: 'Done' }];
 const rows = [
-  { ...tools, cls: 'sl-row-one', note: 'One lap. One trip to a tool, then the answer.' },
-  { ...agent, cls: 'sl-row-many', note: `Many laps. The same trip, ${agent.tools.length} times, then the answer.` },
+  { ...tools, cls: 'sl-row-one', note: 'One turn. One trip to a tool, then the answer.' },
+  { ...agent, cls: 'sl-row-many', note: `Many turns. The same trip, ${agent.tools.length} times, then the answer.` },
 ];
 ---
 <figure class="sl panel bleed">

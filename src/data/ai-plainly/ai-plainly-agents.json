@@ -224,5 +224,299 @@
         "weather + tickets"
       ]
     }
-  }
+  },
+  "threads": [
+    {
+      "me": "you",
+      "them": "app",
+      "sub": "your chat",
+      "msgs": [
+        {
+          "who": "you",
+          "lines": [
+            {
+              "text": "Book me two tickets to the outdoor concert in Tulsa on a weekend day when it isn't raining."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 1",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Tools",
+              "text": "search the web, check the weather, find and book tickets"
+            },
+            {
+              "tag": "You",
+              "text": "Book me two tickets to the outdoor concert in Tulsa on a weekend day when it isn't raining."
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "First, when is the concert?"
+            },
+            {
+              "tag": "Note",
+              "text": "search(Tulsa concert dates)",
+              "code": true
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. The model keeps nothing.",
+      "link": "The app opens a new chat with the model."
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 2",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Earlier",
+              "text": "Tools, your job, and every note and result so far",
+              "dim": true
+            },
+            {
+              "tag": "Result",
+              "text": "Every weekend this month",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "Any weekend works. Check Saturday's weather."
+            },
+            {
+              "tag": "Note",
+              "text": "weather(Tulsa, Saturday)",
+              "code": true
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. The model keeps nothing.",
+      "link": "The app runs the search, then opens another new chat and pastes everything in."
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 3",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Earlier",
+              "text": "Tools, your job, and every note and result so far",
+              "dim": true
+            },
+            {
+              "tag": "Result",
+              "text": "Saturday, rain all day",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "Rain Saturday. Try Sunday instead."
+            },
+            {
+              "tag": "Note",
+              "text": "weather(Tulsa, Sunday)",
+              "code": true
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. The model keeps nothing.",
+      "banner": "Nobody wrote this step. It read the rain and picked Sunday itself.",
+      "link": "The app checks the weather. New chat, everything pasted in again."
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 4",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Earlier",
+              "text": "Tools, your job, and every note and result so far",
+              "dim": true
+            },
+            {
+              "tag": "Result",
+              "text": "Sunday, dry",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "Sunday is dry. Look for tickets."
+            },
+            {
+              "tag": "Note",
+              "text": "tickets(concert, Sunday)",
+              "code": true
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. The model keeps nothing.",
+      "link": "Weather again. New chat."
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 5",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Earlier",
+              "text": "Tools, your job, and every note and result so far",
+              "dim": true
+            },
+            {
+              "tag": "Result",
+              "text": "Sunday, sold out",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "Sold out. Check next Saturday, weather and seats together."
+            },
+            {
+              "tag": "Note",
+              "text": "weather(Tulsa, next Saturday)",
+              "code": true
+            },
+            {
+              "tag": "Note",
+              "text": "tickets(concert, next Saturday, 2 seats)",
+              "code": true
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. The model keeps nothing.",
+      "banner": "Nobody wrote this one either. It read “sold out” and moved on.",
+      "link": "The app checks tickets. New chat."
+    },
+    {
+      "link": "The app runs both. Dry, and 2 seats at $30 each. Spending your money needs your OK, so it asks first.",
+      "me": "you",
+      "them": "app",
+      "sub": "your chat",
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "text": "Book 2 seats for $60?"
+            }
+          ]
+        },
+        {
+          "who": "you",
+          "lines": [
+            {
+              "text": "Yes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, turn 6",
+      "hidden": true,
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Earlier",
+              "text": "Tools, your job, and every note and result so far",
+              "dim": true
+            },
+            {
+              "tag": "Result",
+              "text": "Next Saturday dry. 2 seats booked, $60",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Thinks",
+              "text": "Booked. Tell them."
+            },
+            {
+              "text": "You're booked for next Saturday. It should be dry. 2 seats, $60."
+            }
+          ]
+        }
+      ],
+      "end": "No tool request this time. Done.",
+      "link": "The app books the seats. New chat, everything pasted in."
+    },
+    {
+      "link": "The app texts you back.",
+      "me": "you",
+      "them": "app",
+      "sub": "your chat",
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "text": "You're booked for next Saturday. It should be dry. 2 seats, $60."
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
