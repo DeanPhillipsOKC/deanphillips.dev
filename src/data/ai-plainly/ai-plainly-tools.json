@@ -166,152 +166,6 @@
       }
     ]
   },
-  "searchMap": {
-    "passages": [
-      {
-        "label": "Refunds",
-        "group": "help",
-        "x": 13,
-        "y": 22,
-        "text": "Refunds land on your card within 5 business days."
-      },
-      {
-        "label": "Returns",
-        "group": "help",
-        "x": 42,
-        "y": 14,
-        "text": "Most items can be returned within 30 days."
-      },
-      {
-        "label": "Damaged",
-        "group": "help",
-        "x": 30,
-        "y": 32,
-        "text": "If it arrived damaged, send a photo and we will replace it."
-      },
-      {
-        "label": "Track order",
-        "group": "help",
-        "x": 64,
-        "y": 20,
-        "text": "Your tracking link is in the email we sent when it shipped."
-      },
-      {
-        "label": "Model 5 warranty",
-        "group": "help",
-        "x": 42,
-        "y": 44,
-        "text": "Model 5 blenders are covered for 2 years."
-      },
-      {
-        "label": "Warranty claims",
-        "group": "help",
-        "x": 18,
-        "y": 54,
-        "text": "Start a claim with your order number."
-      },
-      {
-        "label": "Won't turn on",
-        "group": "help",
-        "x": 48,
-        "y": 58,
-        "text": "If your blender won't turn on, check that the lid is locked."
-      },
-      {
-        "label": "Passwords",
-        "group": "help",
-        "x": 12,
-        "y": 70,
-        "text": "Tap Forgot password and check your email."
-      },
-      {
-        "label": "Oven won't heat",
-        "group": "help",
-        "x": 62,
-        "y": 74,
-        "text": "Check that the oven isn't set to the clock-only mode."
-      },
-      {
-        "label": "Oven temps",
-        "group": "recipe",
-        "x": 86,
-        "y": 55,
-        "text": "Most quick breads bake at 350°F."
-      },
-      {
-        "label": "Banana bread",
-        "group": "recipe",
-        "x": 86,
-        "y": 68,
-        "text": "Bake at 350°F for 55 to 65 minutes."
-      },
-      {
-        "label": "Muffins",
-        "group": "recipe",
-        "x": 86,
-        "y": 81,
-        "text": "Bake 18 to 22 minutes."
-      },
-      {
-        "label": "Pie crust",
-        "group": "recipe",
-        "x": 86,
-        "y": 93,
-        "text": "Keep the butter cold and don't overwork the dough."
-      }
-    ],
-    "groups": [
-      {
-        "id": "help",
-        "label": "Help center",
-        "x": 2,
-        "y": 2,
-        "w": 70,
-        "h": 78
-      },
-      {
-        "id": "recipe",
-        "label": "Recipe box",
-        "x": 73,
-        "y": 45,
-        "w": 26,
-        "h": 54
-      }
-    ],
-    "queries": [
-      {
-        "chip": "My toaster arrived broken. Can I get my money back?",
-        "note": "search(money back for broken toaster)",
-        "x": 21,
-        "y": 26,
-        "callout": {
-          "label": "Refunds",
-          "text": "No words in common with your search. Close in meaning.",
-          "tag": "no shared words"
-        }
-      },
-      {
-        "chip": "How long does banana bread bake?",
-        "note": "search(banana bread bake time)",
-        "x": 76,
-        "y": 63,
-        "callout": {
-          "label": "Oven won't heat",
-          "text": "Near the border. Same kitchen, different question.",
-          "tag": "near the border"
-        }
-      },
-      {
-        "chip": "Is my Model 7 blender under warranty?",
-        "note": "search(Model 7 blender warranty)",
-        "x": 37,
-        "y": 52,
-        "warn": "Close, but not the right page. Nothing here is about Model 7.",
-        "answer": "Yes, it's covered for 2 years.",
-        "answerTag": "Smooth, and made up. Nothing here says anything about Model 7. It borrowed the Model 5 page."
-      }
-    ]
-  },
   "quiz": [
     {
       "prompt": "The model visits the website itself.",
@@ -348,5 +202,67 @@
       "answer": "Myth",
       "why": "To the model it’s more words on the page, and it may follow them. (A made-up example.)"
     }
-  ]
+  ],
+  "nearMatch": {
+    "passages": [
+      {
+        "label": "Refunds",
+        "x": 14,
+        "y": 16
+      },
+      {
+        "label": "Returns",
+        "x": 46,
+        "y": 10
+      },
+      {
+        "label": "Damaged",
+        "x": 32,
+        "y": 32
+      },
+      {
+        "label": "Track order",
+        "x": 90,
+        "y": 14
+      },
+      {
+        "label": "Passwords",
+        "x": 90,
+        "y": 36
+      },
+      {
+        "label": "Model 5 warranty",
+        "x": 58,
+        "y": 46
+      },
+      {
+        "label": "Warranty claims",
+        "x": 10,
+        "y": 58
+      },
+      {
+        "label": "Won't turn on",
+        "x": 90,
+        "y": 62
+      }
+    ],
+    "panels": [
+      {
+        "title": "A good match",
+        "note": "search(money back for broken toaster)",
+        "x": 19,
+        "y": 23,
+        "tone": "ok",
+        "verdict": "The closest passage is Refunds, and it shares no words with the search. Close in meaning is what counts."
+      },
+      {
+        "title": "The wrong page",
+        "note": "search(Model 7 blender warranty)",
+        "x": 52,
+        "y": 54,
+        "tone": "warn",
+        "verdict": "The closest passage is about Model 5. Nothing here is about Model 7. It gets pasted in anyway, and the model answers “Yes, it's covered for 2 years.” Smooth, and made up."
+      }
+    ]
+  }
 }

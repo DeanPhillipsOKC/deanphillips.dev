@@ -57,8 +57,14 @@ over prose. Dean has ADHD and struggles with long prose, and so do many readers.
 - Think O'Reilly's Head First books. The pictures carry the explanation, with labels and callouts
   right on them, and the prose is short glue between them. If a paragraph explains something a
   picture could show, make the picture and cut the paragraph.
-- Every main idea gets a visual that teaches it. Decoration doesn't count. Prefer visuals the reader
-  can do something with (drag, pick, press play) over ones they only look at.
+- Every main idea gets a visual that teaches it. Decoration doesn't count.
+- Default to a still picture read top to bottom, like a numbered comic strip: one example, one idea
+  per step, labels right on it. The owner's feedback on the tools post (2026-11-24): a step-through
+  with tabs, a view toggle, Back/Next, and several panels was busy and hard to follow, and a map
+  with question tabs was hard to work out. Both were replaced with still strips.
+- Add interaction only when doing it is the lesson (turning a dial to see the guess change, being
+  the model in a game). Never add tabs, toggles, or step controls just to fit more examples in.
+  Show one example well, and list the others as a line or two.
 - Plain and readable beats impressive. Nothing that makes a topic look mysterious or magical (a 3D
   token cloud was tried for `ai-plainly` and dropped for that reason).
 - Big type, few words per visual, one idea per visual, clear labels, and made-up numbers labeled as
