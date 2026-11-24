@@ -11,12 +11,14 @@ readMinutes: 5
 series: ai-plainly
 part: 2
 draft: true
+image: /img/og/ai-plainly-agents.jpg
 ---
 import LoopInLoop from '../../components/blog/LoopInLoop.astro';
 import ContextMeter from '../../components/blog/ContextMeter.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import StatRow from '../../components/blog/StatRow.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
+import AgentsReel from '../../components/blog/AgentsReel.astro';
 import story from '../../data/ai-plainly/inference.json';
 import d from '../../data/ai-plainly/ai-plainly-agents.json';
 import day2 from '../../data/gesso/day2.json';
@@ -120,3 +122,5 @@ Quick check before the next part.
 Every word the agent writes comes out of the same dials, set during training. That goes for its thinking, its tool requests and its answers alike. Nobody set them by hand. So how does nudging them a little at a time ever land on the right settings? It's math, but nothing past arithmetic. That's the next post.
 
 The weather tool, for the record, has no idea any of this happened.
+
+<AgentsReel run={d} />

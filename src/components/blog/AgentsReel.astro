@@ -1,0 +1,392 @@
+---
+// The silent social video for the agents post (part 2 of "AI, plainly"). It is never shown to readers:
+// the figure stays display:none unless a recording script sets data-reel (or data-og) on it, and it is
+// aria-hidden. It retells LoopInLoop's made-up park run one idea per shot, with big words on top: your
+// job typing in, the model (violet, "uses the dials") writing a tool request, the request riding the down
+// arrow to the harness (teal, "regular program") while the model greys out under a "Model not running"
+// stamp, the result landing on the conversation tape, the model changing plan after the rain, a fast
+// third turn, a last turn with no tool request (Done), the whole tape with its page limit, and an end card
+// with the takeaway. Turn text, tool chips and results come from src/data/ai-plainly/ai-plainly-agents.json,
+// the same data the post's run uses, so the video can't drift from the post. Only the headlines are extra.
+// Colors follow the post: the model violet, the harness and its results teal, your job muted on --bg-2,
+// the surprise result and the page limit --warn, Done --ok. Text is sized for a phone feed (body about
+// 43px at 1080 wide, labels at least 3.2cqw).
+//
+// Everything is drawn as a pure function of time, so scripts/video/ai-plainly-agents-reel.mjs can record
+// it frame by frame: it sets data-reel (or data-og for the link preview) and calls
+// window.__agentsReel.draw(seconds). There is no loop and no timer, so reduced motion has nothing to stop,
+// and without JavaScript nothing shows (the figure is hidden either way).
+interface Turn { wrote: string; tool: string | null; back: string | null; tag?: string; trips: number; wroteSize: number; backSize: number; surprise?: boolean }
+interface Props { run: { job: string; jobSize: number; turns: Turn[] } }
+const { run } = Astro.props;
+const dial = '<svg class="arl-ico" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
+const clip = '<svg class="arl-ico arl-ico-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
+// The job is shown short in the bubble, so it fits two lines on a phone.
+const job = run.job.replace(', and draft a text I can send.', '. Draft a text.');
+---
+<figure class="arl" aria-hidden="true" data-run={JSON.stringify({ ...run, job })}>
+  <div class="arl-main">
+    <div class="arl-head">
+      <div class="arl-hl" data-layer="a"><span class="arl-h1"></span> <span class="arl-h2"></span></div>
+      <div class="arl-hl" data-layer="b"><span class="arl-h1"></span> <span class="arl-h2"></span></div>
+    </div>
+    <div class="arl-stage">
+      <div class="arl-flow">
+        <div class="arl-job"><span class="arl-tag">Your job</span><span class="arl-job-t"></span></div>
+        <section class="arl-box arl-model">
+          <div class="arl-bh"><Fragment set:html={dial} /><b>The model</b><span class="arl-own arl-own-m">uses the dials</span><span class="arl-cnt"><b class="arl-n">0</b><small>word pieces<br />guessed</small></span></div>
+          <div class="arl-wrote"><span class="arl-tag arl-tag-m">It writes</span><span class="arl-wrote-t"></span></div>
+          <div class="arl-req">
+            <span class="arl-chip arl-chip-req"><span class="arl-req-t"></span></span>
+            <span class="arl-none">no tool request</span>
+            <span class="arl-plan">It changed plan</span>
+            <span class="arl-done">Done</span>
+          </div>
+          <div class="arl-off">Model not running</div>
+        </section>
+        <div class="arl-arrows">
+          <div class="arl-down"><i></i><span>a tool request</span></div>
+          <div class="arl-up"><i></i><span>the whole conversation, result added</span></div>
+          <span class="arl-fly arl-chip arl-chip-req"><span class="arl-fly-t"></span></span>
+        </div>
+        <section class="arl-box arl-harness">
+          <div class="arl-bh"><Fragment set:html={clip} /><b>The harness</b><span class="arl-own arl-own-h">regular program</span></div>
+          <div class="arl-run"><span class="arl-tag">runs the tool</span><span class="arl-chip arl-chip-run"><span class="arl-run-t"></span></span></div>
+          <div class="arl-back"><span class="arl-tag arl-tag-h">came back</span><span class="arl-chip arl-chip-back"><span class="arl-back-t"></span></span></div>
+        </section>
+        <div class="arl-conv">
+          <div class="arl-cl">The conversation <span>what the model reads</span></div>
+          <div class="arl-tape">
+            <i class="arl-tb arl-tb-job"></i>
+            {run.turns.map((t, i) => (<><i class="arl-tb arl-tb-m" data-w={i}></i>{t.back && <i class="arl-tb arl-tb-h" data-b={i} data-surprise={t.surprise ? '1' : undefined}></i>}</>))}
+          </div>
+        </div>
+      </div>
+      <div class="arl-mem">
+        <div class="arl-mem-in">↑ handed to the model, all of it, every turn</div>
+        <div class="arl-mtape">
+          <i class="arl-mb arl-tb-job"><span>your job</span></i>
+          {run.turns.map((t) => (<><i class="arl-mb arl-tb-m"></i>{t.back && <i class="arl-mb arl-tb-h" data-surprise={t.surprise ? '1' : undefined}><span>{t.tag}</span></i>}</>))}
+          <b class="arl-limit"><span>page limit</span></b>
+        </div>
+        <div class="arl-legend"><span><i class="arl-sw arl-tb-job"></i>your job</span><span><i class="arl-sw arl-tb-m"></i>the model wrote</span><span><i class="arl-sw arl-tb-h"></i>tool results</span></div>
+        <div class="arl-mem-note">And it has a page limit.</div>
+      </div>
+    </div>
+    <div class="arl-foot"><span>Made-up example</span><span class="arl-turn"></span></div>
+  </div>
+  <div class="arl-end">
+    <div class="arl-trip">
+      <div class="arl-card arl-card-m"><span class="arl-tag arl-tag-m">The model</span>writes a request</div>
+      <span class="arl-arrow">↓</span>
+      <div class="arl-card arl-card-h"><span class="arl-tag arl-tag-h">A regular program</span>does the job</div>
+      <span class="arl-arrow">↓</span>
+      <div class="arl-card arl-card-c"><span class="arl-tag">The result</span>is pasted in. Repeat.</div>
+    </div>
+    <div class="arl-end-1">An agent is the same AI,<br />in a loop.</div>
+    <div class="arl-end-2">It stops when it writes<br />no tool request.</div>
+    <div class="arl-end-3">Part 2 of AI, plainly<br /><b>deanphillips.dev</b></div>
+  </div>
+</figure>
+
+<script>
+  type Turn = { wrote: string; tool: string | null; back: string | null; trips: number; wroteSize: number; backSize: number; surprise?: boolean };
+  type Run = { job: string; jobSize: number; turns: Turn[] };
+  const clamp = (x: number) => Math.max(0, Math.min(1, x));
+  const ease = (x: number) => 1 - (1 - clamp(x)) ** 3;
+  const smooth = (x: number) => { x = clamp(x); return x * x * (3 - 2 * x); };
+  // Fades in over [a, a + d] and, when b is given, out over [b, b + d].
+  const win = (t: number, a: number, b = Infinity, d = 0.35) => Math.min(ease((t - a) / d), 1 - ease((t - b) / d));
+  const type = (s: string, t: number, a: number, b: number) => s.slice(0, Math.round(s.length * clamp((t - a) / (b - a))));
+
+  // The shots: start time, headline, an optional second sentence and when it appears.
+  const SHOTS: [number, string, string?, number?][] = [
+    [0, 'What makes an AI an agent?'],
+    [3, 'The AI writes a request.'],
+    [7, 'A regular program does the job.'],
+    [10.5, 'The result gets pasted in.'],
+    [13.5, 'It reads what came back.', 'It changes plan.', 14.9],
+    [18, 'Then around it goes again.'],
+    [22, 'No tool request.', 'So it stops.', 24.1],
+    [25.5, 'Its only memory is this conversation.'],
+    [30, ''],
+  ];
+  // Each turn: model starts (m), writing (w0 to w1), request chip (c), the harness takes over (h, after the
+  // chip rides the arrow for 0.6 s), the result comes back (r), and the result lands on the tape (p).
+  const PLAN = [
+    { m: 3.0, w0: 3.4, w1: 4.9, c: 5.2, h: 7.4, r: 9.0, p: 10.6 },
+    { m: 13.5, w0: 13.8, w1: 14.9, c: 15.2, h: 16.0, r: 16.8, p: 17.3 },
+    { m: 18.0, w0: 18.2, w1: 19.0, c: 19.2, h: 19.8, r: 20.3, p: 20.8 },
+    { m: 22.0, w0: 22.3, w1: 23.9, c: 24.1, h: Infinity, r: Infinity, p: Infinity },
+  ];
+  const TOTAL = 34;
+  const XF = 0.5; // headline change: out over the first half, in over the second
+  const MEM = 25.5, END = 30;
+
+  const root = document.querySelector<HTMLElement>('.arl');
+  if (root) {
+    const run: Run = JSON.parse(root.dataset.run!);
+    const $ = <T extends HTMLElement = HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const $$ = (s: string) => [...root.querySelectorAll<HTMLElement>(s)];
+    const head = $('.arl-head');
+    const layers = $$('.arl-hl');
+    const model = $('.arl-model'), harness = $('.arl-harness');
+    const total = run.jobSize + run.turns.reduce((s, x) => s + x.wroteSize + x.backSize, 0);
+    const SCALE = total * 1.08; // the tape ends a little short of the full width
+    const pct = (n: number) => `${(100 * n / SCALE).toFixed(3)}%`;
+    $('.arl-tb-job').style.width = pct(run.jobSize);
+    // The big tape in the memory shot is scaled to end just before the page limit.
+    const mpct = (n: number) => `${(88 * n / total).toFixed(3)}%`;
+    const mbs = $$('.arl-mb');
+    let k = 0;
+    mbs[k++].style.width = mpct(run.jobSize);
+    run.turns.forEach((x) => { mbs[k++].style.width = mpct(x.wroteSize); if (x.back) mbs[k++].style.width = mpct(x.backSize); });
+    const cum: number[] = [];
+    run.turns.reduce((s, x, i) => (cum[i] = s + x.trips), 0);
+
+    function headline(el: HTMLElement, s: number, v: number) {
+      const [, h, second] = SHOTS[s];
+      el.querySelector('.arl-h1')!.textContent = h;
+      el.querySelector('.arl-h2')!.textContent = second ?? '';
+      el.classList.toggle('is-hook', s === 0);
+      el.style.opacity = String(v);
+    }
+    const op = (sel: string, v: number) => { $(sel).style.opacity = String(v); };
+
+    function draw(t: number) {
+      t = Math.max(0, Math.min(TOTAL, t));
+      let s = 0;
+      while (s + 1 < SHOTS.length && t >= SHOTS[s + 1][0]) s++;
+      const a = SHOTS[s][0];
+
+      // Headline: the old line fades out, then the new one fades in, so two lines never sit on top of each other.
+      const into = s ? ease((t - a - XF / 2) / (XF / 2)) : 1;
+      const out = s ? 1 - ease((t - a) / (XF / 2)) : 0;
+      headline(layers[0], s, into);
+      const at = SHOTS[s][3];
+      layers[0].querySelector<HTMLElement>('.arl-h2')!.style.opacity = String(at ? ease((t - at) / 0.35) : 0);
+      if (s && out > 0) {
+        headline(layers[1], s - 1, out);
+        layers[1].querySelector<HTMLElement>('.arl-h2')!.style.opacity = '1';
+      } else layers[1].style.opacity = '0';
+      head.classList.toggle('is-hook', s === 0);
+
+      // Which turn the model is on (the last one started), and its timing.
+      let i = -1;
+      while (i + 1 < PLAN.length && t >= PLAN[i + 1].m) i++;
+      const P = i >= 0 ? PLAN[i] : null, T = i >= 0 ? run.turns[i] : null;
+
+      // Your job types in during the hook.
+      op('.arl-job', ease((t - 0.1) / 0.3));
+      $('.arl-job-t').textContent = type(run.job, t, 0.3, 2.4);
+      // The stations come in, faint, just before the first turn.
+      const stations = ease((t - 0.9) / 0.6);
+
+      // The model: lit while it writes, grey with a stamp while the harness works.
+      const modelOn = !!P && t < P.h;
+      const off = !!P && t >= P.h;
+      model.classList.toggle('is-on', modelOn);
+      model.classList.toggle('is-off', off);
+      model.style.opacity = String(stations * (modelOn || !P ? (P ? 1 : 0.55) : 0.55));
+      op('.arl-off', off ? ease((t - P!.h - 0.1) / 0.35) : 0);
+      const prev = i > 0 ? cum[i - 1] : 0;
+      $('.arl-n').textContent = String(P ? Math.round(prev + (cum[i] - prev) * smooth((t - P.w0) / (P.w1 - P.w0 + 0.2))) : 0);
+      $('.arl-wrote-t').textContent = T ? type(T.wrote, t, P!.w0, P!.w1) : '';
+      op('.arl-wrote', P ? 1 : 0.35);
+      const hasTool = !!T?.tool;
+      $('.arl-req-t').textContent = T?.tool ?? '';
+      op('.arl-req .arl-chip-req', hasTool ? ease((t - P!.c) / 0.3) : 0);
+      op('.arl-none', !hasTool && P ? ease((t - P.c) / 0.35) : 0);
+      op('.arl-plan', i === 1 ? win(t, 14.9, 17.9, 0.3) : 0);
+      $('.arl-plan').style.transform = `scale(${i === 1 ? 0.85 + 0.15 * ease((t - 14.9) / 0.3) : 1})`;
+      const done = i === 3 ? ease((t - 24.4) / 0.35) : 0;
+      op('.arl-done', done);
+      model.classList.toggle('is-done', done > 0.5);
+
+      // The request rides the down arrow for the 0.6 s before the harness takes over.
+      const fly = P && hasTool ? clamp((t - (P.h - 0.6)) / 0.6) : 0;
+      const fl = $('.arl-fly');
+      $('.arl-fly-t').textContent = T?.tool ?? '';
+      fl.style.opacity = String(P && hasTool && t >= P.h - 0.6 && t < P.h + 0.15 ? 1 - clamp((t - P.h) / 0.15) : 0);
+      fl.style.setProperty('--y', String(smooth(fly)));
+      op('.arl-down', P && hasTool && t >= P.c && t < P.h + 0.2 ? 1 : 0.35);
+      // The arrow's label steps aside while the request rides past it.
+      $('.arl-down span').style.opacity = String(P && hasTool ? 1 - win(t, P.h - 0.75, P.h, 0.15) : 1);
+      // The up arrow lights while the result lands and the conversation goes back to the model.
+      const upLit = !!P && hasTool && t >= P.p - 0.2 && (i + 1 >= PLAN.length || t < PLAN[i + 1].m + 0.4);
+      op('.arl-up', upLit ? 1 : 0.35);
+      op('.arl-arrows', stations);
+
+      // The harness: lit while it runs the tool. It shows the tool, then what came back.
+      const hOn = !!P && t >= P.h && t < P.p;
+      harness.classList.toggle('is-on', hOn);
+      harness.style.opacity = String(stations * (hOn ? 1 : 0.55));
+      const hv = P && hasTool && t >= P.h ? ease((t - P.h) / 0.3) : 0;
+      $('.arl-run-t').textContent = hv ? T!.tool! : '';
+      op('.arl-run', hv);
+      const bv = P && hasTool && t >= P.r ? ease((t - P.r) / 0.3) : 0;
+      $('.arl-back-t').textContent = bv ? T!.back! : '';
+      op('.arl-back', bv);
+      harness.querySelector('.arl-chip-back')!.classList.toggle('is-surprise', !!T?.surprise);
+
+      // The tape grows: the model's writing as it writes, each result as it's pasted in.
+      PLAN.forEach((p, j) => {
+        const x = run.turns[j];
+        root!.querySelector<HTMLElement>(`[data-w="${j}"]`)!.style.width = pct(x.wroteSize * clamp((t - p.w0) / (p.w1 - p.w0)));
+        const b = root!.querySelector<HTMLElement>(`[data-b="${j}"]`);
+        if (b) {
+          b.style.width = pct(x.backSize * ease((t - p.p) / 0.5));
+          b.classList.toggle('is-new', t >= p.p && t < p.p + 1.6);
+        }
+      });
+      op('.arl-conv', ease((t - 0.1) / 0.3));
+
+      // The memory shot: the stations step back, and the whole tape fills the frame with its page limit.
+      const mem = win(t, MEM, END - 0.6, 0.6);
+      $('.arl-flow').style.opacity = String(1 - ease((t - MEM) / 0.5));
+      op('.arl-mem', mem);
+      mbs.forEach((b, j) => { b.style.opacity = String(ease((t - MEM - 0.3 - j * 0.08) / 0.3)); });
+      op('.arl-limit', ease((t - 27.4) / 0.4));
+      op('.arl-mem-in', ease((t - 26.2) / 0.4));
+      op('.arl-legend', ease((t - 26.0) / 0.4));
+      op('.arl-mem-note', ease((t - 27.6) / 0.4));
+
+      // The footnote and the turn label.
+      op('.arl-foot', ease((t - 3) / 0.4));
+      $('.arl-turn').textContent = i >= 0 && t < MEM ? `Turn ${i + 1} of ${run.turns.length}` : '';
+
+      // The end card replaces the stage.
+      const e = ease((t - END + 0.2) / 0.6);
+      $('.arl-main').style.opacity = String(1 - e);
+      op('.arl-end', ease((t - END) / 0.5));
+      $$('.arl-trip > *').forEach((c, j) => { c.style.opacity = String(ease((t - END - 0.1 - j * 0.2) / 0.4)); });
+      op('.arl-end-1', ease((t - END - 1.0) / 0.5));
+      op('.arl-end-2', ease((t - END - 1.6) / 0.5));
+      op('.arl-end-3', ease((t - END - 2.2) / 0.5));
+    }
+    (window as any).__agentsReel = { draw, total: TOTAL };
+  }
+</script>
+
+<style is:global>
+  .arl { display: none; }
+  body:has(.arl[data-reel], .arl[data-og]) header.top { display: none; }
+  .arl[data-reel], .arl[data-og] {
+    position: fixed; inset: 0; z-index: 2147483647; margin: 0 !important; max-width: none !important; width: 100vw; height: 100vh; box-sizing: border-box;
+    padding: 3vh 5vw; display: flex; flex-direction: column; justify-content: center; overflow: hidden; container-type: inline-size;
+    color: var(--text); font: 500 4cqw/1.3 Inter, sans-serif;
+    background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--violet) 18%, transparent), transparent 60%),
+      radial-gradient(100% 70% at 100% 100%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 60%), var(--bg);
+  }
+  .arl-main { display: flex; flex-direction: column; }
+  .arl-head { display: grid; align-items: end; min-height: 16.4cqw; margin-bottom: 2.4cqw; }
+  .arl-hl { grid-area: 1 / 1; font: 700 6.4cqw/1.12 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .arl-hl.is-hook { font-size: 7.3cqw; }
+  .arl-hl span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .arl-hl .arl-h2 { display: block; }
+  .arl-stage { position: relative; }
+  .arl-flow { display: flex; flex-direction: column; gap: 2cqw; }
+  .arl-tag { display: inline-block; font: 800 3.2cqw/1.2 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .arl-tag-m { color: var(--violet); } .arl-tag-h { color: var(--teal); }
+  .arl-job { padding: 1.6cqw 3cqw; border-radius: 2.4cqw; background: var(--bg-2); border: 0.3cqw solid var(--line); min-height: 13.6cqw; box-sizing: border-box; font-weight: 600; font-size: 4.2cqw; line-height: 1.3; }
+  .arl-job .arl-tag, .arl-wrote .arl-tag { margin-right: 1.8cqw; }
+  .arl-box { position: relative; border: 0.4cqw solid var(--line); border-radius: 2.4cqw; padding: 1.8cqw 3cqw 2cqw; background: color-mix(in srgb, var(--card) 85%, transparent); display: grid; gap: 1.2cqw; }
+  .arl-model { border-color: color-mix(in srgb, var(--violet) 55%, var(--line)); }
+  .arl-model.is-on { border-color: var(--violet); box-shadow: 0 0 0 0.6cqw color-mix(in srgb, var(--violet) 22%, transparent), 0 0 6cqw color-mix(in srgb, var(--violet) 30%, transparent); }
+  .arl-model.is-off > :not(.arl-off) { filter: grayscale(1); opacity: 0.45; }
+  .arl-model.is-done { border-color: var(--ok); }
+  .arl-harness { border-color: color-mix(in srgb, var(--teal) 55%, var(--line)); }
+  .arl-harness.is-on { border-color: var(--teal); box-shadow: 0 0 0 0.6cqw color-mix(in srgb, var(--teal) 22%, transparent), 0 0 6cqw color-mix(in srgb, var(--teal) 30%, transparent); }
+  .arl-bh { display: flex; align-items: center; gap: 2cqw; }
+  .arl-bh b { white-space: nowrap; font: 700 5cqw/1.1 "Space Grotesk", sans-serif; }
+  .arl-ico { width: 5.4cqw; height: 5.4cqw; flex: none; }
+  .arl-model .arl-ico { color: var(--violet); } .arl-harness .arl-ico { color: var(--teal); }
+  .arl-ico circle { fill: none; stroke: currentColor; stroke-width: 2; }
+  .arl-ico line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+  .arl-ico-clip { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .arl-own { white-space: nowrap; font: 700 3.2cqw/1 Inter, sans-serif; padding: 1cqw 1.8cqw; border-radius: 99px; border: 0.3cqw solid; }
+  .arl-own-m { color: var(--violet); } .arl-own-h { color: var(--teal); }
+  .arl-cnt { margin-left: auto; display: grid; justify-items: end; line-height: 1; }
+  .arl-cnt b { font: 700 6cqw/1 "Space Grotesk", sans-serif; color: var(--violet); font-variant-numeric: tabular-nums; }
+  .arl-cnt small { text-align: right; white-space: nowrap; font: 600 3.2cqw/1.15 Inter, sans-serif; color: var(--muted); }
+  .arl-wrote { min-height: 11cqw; font-weight: 600; font-size: 4.4cqw; line-height: 1.25; }
+  .arl-req { position: relative; display: flex; align-items: center; gap: 2cqw; min-height: 7.6cqw; }
+  .arl-chip { display: inline-flex; align-items: baseline; gap: 1.6cqw; padding: 1.2cqw 2.4cqw; border-radius: 1.4cqw; background: var(--card); border: 0.4cqw solid var(--line); font: 600 4cqw/1.25 ui-monospace, Menlo, Consolas, monospace; white-space: nowrap; }
+  .arl-chip-req { border: 0.4cqw dashed var(--violet); }
+  .arl-none { position: absolute; left: 0; top: 50%; transform: translateY(-50%); padding: 1.6cqw 3cqw; border-radius: 1.4cqw; border: 0.4cqw dashed var(--muted); color: var(--muted); font: 700 3.8cqw/1.2 Inter, sans-serif; }
+  .arl-plan, .arl-done { position: absolute; right: 0; top: 50%; translate: 0 -50%; font: 800 3.8cqw/1 Inter, sans-serif; padding: 1.6cqw 2.6cqw; border-radius: 99px; }
+  .arl-plan { background: var(--warn); color: var(--bg); transform-origin: right center; }
+  .arl-done { background: var(--ok); color: var(--bg); font-size: 4.6cqw; padding: 1.8cqw 4cqw; }
+  .arl-off { position: absolute; left: 50%; top: 58%; translate: -50% -50%; white-space: nowrap; font: 800 5.6cqw/1 "Space Grotesk", sans-serif; text-transform: uppercase; letter-spacing: .04em; padding: 2cqw 4cqw; border: 0.6cqw solid var(--text); border-radius: 1.6cqw; color: var(--text); background: color-mix(in srgb, var(--bg) 94%, transparent); }
+  .arl-arrows { position: relative; height: 9.4cqw; margin: -0.6cqw 0; }
+  .arl-down, .arl-up { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; gap: 2cqw; font: 700 3.4cqw/1.2 Inter, sans-serif; }
+  .arl .arl-down { left: 7cqw; color: var(--violet); }
+  .arl .arl-up { right: 4cqw; flex-direction: row-reverse; text-align: right; color: var(--teal); max-width: 44cqw; }
+  .arl-down i, .arl-up i { position: relative; flex: none; width: 0.9cqw; height: 100%; background: currentColor; border-radius: 99px; }
+  .arl-down i::after, .arl-up i::after { content: ''; position: absolute; left: 50%; translate: -50% 0; border: 2cqw solid transparent; }
+  .arl-down i::after { bottom: -1.2cqw; border-top: 2.6cqw solid currentColor; border-bottom: 0; }
+  .arl-up i::after { top: -1.2cqw; border-bottom: 2.6cqw solid currentColor; border-top: 0; }
+  .arl-fly { position: absolute; left: 10cqw; top: 0; translate: 0 calc(-60% + var(--y, 0) * 9.4cqw); background: var(--card); box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, .35); }
+  .arl-run, .arl-back { display: flex; align-items: center; gap: 2cqw; min-height: 6.6cqw; }
+  .arl-chip-run { border: 0.4cqw dashed var(--violet); }
+  .arl-chip-back { border: 0.4cqw solid var(--teal); }
+  .arl-chip-back.is-surprise { border-left: 1.4cqw solid var(--warn); }
+  .arl-conv { display: grid; gap: 1.2cqw; margin-top: 0.6cqw; }
+  .arl-cl { font: 700 4cqw/1.2 "Space Grotesk", sans-serif; } .arl-cl span { font: 600 3.2cqw/1.2 Inter, sans-serif; color: var(--muted); margin-left: 1.4cqw; }
+  .arl-tape { display: flex; height: 6.4cqw; padding: 0.8cqw; gap: 0.5cqw; background: var(--bg-2); border: 1px solid var(--line); border-radius: 1.4cqw; overflow: hidden; }
+  .arl-tb { display: block; flex: none; height: 100%; border-radius: 0.8cqw; }
+  .arl-tb-job { background: var(--muted); }
+  .arl-tb-m { background: var(--violet); }
+  .arl-tb-h { background: var(--teal); }
+  .arl-tb-h[data-surprise] { box-shadow: inset 1.2cqw 0 0 var(--warn); }
+  .arl-tb.is-new { outline: 0.5cqw solid var(--text); outline-offset: 0.2cqw; }
+  .arl-foot { display: flex; justify-content: space-between; margin-top: 2.2cqw !important; font: 600 3.2cqw/1.2 Inter, sans-serif; color: var(--muted); }
+  .arl-turn { color: var(--text); font-weight: 700; }
+  /* The memory shot sits over the stage while the stations fade out. */
+  .arl-mem { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 3.6cqw; opacity: 0; }
+  .arl .arl-mem-in { max-width: 64cqw; font: 700 4.2cqw/1.25 Inter, sans-serif; color: var(--violet); }
+  .arl-mtape { position: relative; display: flex; gap: 0.6cqw; height: 30cqw; padding: 1cqw; background: var(--bg-2); border: 1px solid var(--line); border-radius: 2cqw; }
+  .arl-mb { position: relative; display: block; flex: none; height: 100%; border-radius: 1.2cqw; }
+  .arl-mb span { position: absolute; left: 50%; top: 50%; translate: -50% -50%; writing-mode: vertical-rl; rotate: 180deg; font: 800 3.8cqw/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; }
+  .arl-mb.arl-tb-job span { color: var(--bg); }
+  .arl-limit { position: absolute; top: -3cqw; bottom: -3cqw; left: 91%; border-left: 0.7cqw dashed var(--warn); }
+  .arl-limit span { position: absolute; bottom: 100%; right: -3cqw; white-space: nowrap; font: 800 3.6cqw/1.4 Inter, sans-serif; color: var(--warn); }
+  .arl-legend { display: flex; flex-wrap: wrap; gap: 1.6cqw 4cqw; font: 600 3.6cqw/1.2 Inter, sans-serif; }
+  .arl-legend span { display: inline-flex; align-items: center; gap: 1.4cqw; }
+  .arl-sw { display: inline-block; width: 4cqw; height: 4cqw; border-radius: 0.8cqw; }
+  .arl .arl-mem-note { font: 700 5.6cqw/1.2 "Space Grotesk", sans-serif; color: var(--warn); }
+  .arl-end { position: absolute; inset: 0; display: grid; align-content: center; gap: 3.4cqw; padding: 0 6cqw; opacity: 0; pointer-events: none; }
+  .arl-trip { display: grid; justify-items: start; gap: 0.6cqw; margin-bottom: 3cqw; }
+  .arl-card { display: flex; align-items: baseline; gap: 2cqw; padding: 1.8cqw 2.8cqw; border-radius: 1.6cqw; background: var(--card); border: 0.4cqw solid var(--line); font-size: 4.4cqw; font-weight: 600; }
+  .arl-card-m { border-color: var(--violet); } .arl-card-h { border-color: var(--teal); } .arl-card-c { background: var(--bg-2); }
+  .arl-arrow { margin-left: 4cqw; font: 700 5cqw/1 Inter, sans-serif; color: var(--muted); }
+  .arl-end-1 { font: 700 7.6cqw/1.1 "Space Grotesk", sans-serif; letter-spacing: -0.02em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .arl-end-2 { font: 700 5.4cqw/1.2 "Space Grotesk", sans-serif; }
+  .arl-end-3 { margin-top: 3cqw !important; font: 600 4cqw/1.4 Inter, sans-serif; color: var(--muted); }
+  .arl-end-3 b { font: 700 5.4cqw/1.3 "Space Grotesk", sans-serif; color: var(--text); }
+  /* The link preview: the headline and your job on the left, the two stations on the right. */
+  .arl[data-og] { padding: 0 4.5cqw; font-size: 2.2cqw; }
+  .arl[data-og] .arl-main { display: grid; grid-template-columns: 0.9fr 1.1fr; grid-template-rows: auto 1fr auto; column-gap: 4cqw; height: 100%; padding: 3.6cqw 0 2.4cqw; box-sizing: border-box; }
+  .arl[data-og] .arl-head { grid-column: 1; grid-row: 1 / 3; align-self: center; min-height: 0; margin: 0; }
+  .arl[data-og] .arl-hl { font-size: 4.4cqw; }
+  .arl[data-og] .arl-hl .arl-h2 { margin-top: 2cqw; font-size: 3.4cqw; }
+  .arl[data-og] .arl-stage { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  .arl[data-og] .arl-flow { gap: 1.2cqw; }
+  .arl[data-og] .arl-job, .arl[data-og] .arl-conv, .arl[data-og] .arl-mem, .arl[data-og] .arl-end { display: none; }
+  .arl[data-og] .arl-foot { grid-column: 1 / -1; margin: 0 !important; font-size: 1.6cqw; }
+  .arl[data-og] .arl-box { padding: 1.4cqw 2cqw 1.6cqw; gap: 0.9cqw; border-radius: 1.6cqw; border-width: 0.25cqw; }
+  .arl[data-og] .arl-bh b { font-size: 3cqw; }
+  .arl[data-og] .arl-ico { width: 3cqw; height: 3cqw; }
+  .arl[data-og] .arl-own, .arl[data-og] .arl-tag, .arl[data-og] .arl-cnt small { font-size: 1.6cqw; }
+  .arl[data-og] .arl-cnt b { font-size: 3cqw; }
+  .arl[data-og] .arl-wrote { min-height: 0; font-size: 2.3cqw; }
+  .arl[data-og] .arl-req { min-height: 4.6cqw; }
+  .arl[data-og] .arl-chip { font-size: 2.1cqw; padding: 0.7cqw 1.4cqw; border-width: 0.25cqw; }
+  .arl[data-og] .arl-off { font-size: 3.2cqw; padding: 1.2cqw 2.4cqw; border-width: 0.35cqw; }
+  .arl[data-og] .arl-arrows { height: 5.6cqw; }
+  .arl[data-og] .arl-down, .arl[data-og] .arl-up { font-size: 1.8cqw; }
+  .arl[data-og] .arl-down i, .arl[data-og] .arl-up i { width: 0.5cqw; }
+  .arl[data-og] .arl-down i::after, .arl[data-og] .arl-up i::after { border-width: 1.1cqw; }
+  .arl[data-og] .arl-run, .arl[data-og] .arl-back { min-height: 3.6cqw; }
+  .arl[data-og] .arl-down span, .arl[data-og] .arl-up span { display: none; }
+</style>
