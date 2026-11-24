@@ -22,6 +22,57 @@ has results).
   the weights of a tiny network for a toy problem (XOR, a small digit set), check it against a trained
   one, and write up how it went about it. Material exists only once the experiment has been run.
 
+## AI, plainly (series queue)
+
+Explainers for people who use AI but haven't looked under the hood, developers included. Keep the
+visuals plain and readable for someone who hasn't read anything yet (see the 3D note under the
+inference post). Owner's ideas, 2026-11-24. Suggested order:
+
+- **Tools** (promised at the end of part 0): why a model that can only guess words can still search
+  the web, read files, and run code. The model writes a request, a regular program does the work, and
+  the result is pasted into the conversation. Search tools are also where "find the nearest match in a
+  big space of numbers" really happens (retrieval), so the owner's original picture of inference
+  belongs here.
+- **The agentic loop**: the inference loop wrapped in a bigger loop of think, use a tool, read the
+  result, repeat, until the job is done. Can link the Gesso agent-loop post as a real example.
+- **The math of training, with nothing past arithmetic**: a weight as "how much one thing pushes
+  another", slope as "how far up for each step over" (no formulas or symbols), and training as
+  nudging a line, guess by guess, until it fits the dots. Builds on the DialDemo, where each dial is a
+  slope. Can end on why training a big model takes weeks on thousands of chips.
+- **The math of inference, and why everyone talks about Nvidia**: a spot on the map is a list of
+  numbers. Comparing two spots, or scoring how well a token lines up with where the sentence points,
+  is multiplying matching numbers and adding them up. Keep this separate from "find the nearest
+  match", which is what search tools do. The punchline is that it's multiplying and adding,
+  billions of times per word. Then the bridge: video games need the same thing (moving millions of
+  points and coloring millions of pixels with the same multiply-and-add, all at once), so graphics
+  chips (GPUs) were built to do thousands of simple sums at the same time. That turned out to be
+  exactly what AI needs, which is why Nvidia keeps showing up in the news, the same way part 0
+  connects "billions of parameters" to the dials. Check any history before using it (for example,
+  the 2012 image model that was trained on two gaming GPUs).
+- **Added by the owner, 2026-11-24 ("all")**, with the full suggested order:
+  inference (done), text finisher to chatbot, tools, why it forgets, agents, confidently wrong,
+  training math, inference math and GPUs, thinking models, then pictures. Renumber `part` when
+  these land (tools, agents, and the two math posts were first drafted as parts 1 to 4).
+- **How a text finisher becomes a chatbot**: part 0 says a model only continues text, so how does
+  it take turns and answer? The hidden script with user and assistant turns, the system prompt, the
+  second round of training (examples people write, answers people rate), and the knowledge cutoff.
+  Makes "the model writes a request" in the tools post make sense, so it goes right before tools.
+  Can fold in "steering the guess" (why examples, context, and roles in a prompt work).
+- **Why it forgets, and how "memory" really works**: nothing carries over between messages. It
+  rereads the whole conversation each time, up to the size of its window. "Memory" features are a
+  tool that pastes notes back in. Explains long chats drifting, long chats costing more, and why
+  agents manage what they keep. Before or after the agents post.
+- **Why it's confidently wrong**: a smooth guess can be false, "are you sure?" can flip the answer,
+  and what actually helps (search tools, citations, checking work). After tools.
+- **"Thinking" models**: the same loop writing scratch work before the answer, not a new kind of
+  brain. After the inference math post.
+- **Steering the guess**: why examples, context, and roles in a prompt change what comes next.
+  Its own post, or a section of the chatbot post.
+- **How AI makes pictures** (later): a different machine from next-word guessing, as a contrast.
+- **Format idea**: a card-based "AI, plainly" field guide in the style of the OWASP page (one concept
+  per card, same parts on every card, each card shareable on its own), with each card linking to the
+  post that goes deep. Decide with the owner before building.
+
 ## Drafted
 
 - **AI, plainly: inference** (owner's idea, 2026-11-23): `ai-plainly`, part 0 of a new `ai-plainly`
