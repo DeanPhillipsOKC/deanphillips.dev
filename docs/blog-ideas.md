@@ -35,11 +35,20 @@ inference post). Owner's ideas, 2026-11-24. Suggested order:
   belongs here.
 - **The agentic loop**: the inference loop wrapped in a bigger loop of think, use a tool, read the
   result, repeat, until the job is done. Can link the Gesso agent-loop post as a real example.
-- **The math, with nothing past arithmetic**: weights as "how much one thing pushes another", slope
-  as "how far up for each step over" (no formulas or symbols), training as nudging a line until it
-  fits the points, and distance and "lining up" in a space with many directions as comparing two
-  long lists of numbers item by item. The punchline is that it's multiplying and adding, billions of
-  times. Builds on the DialDemo (a dial is a slope).
+- **The math of training, with nothing past arithmetic**: a weight as "how much one thing pushes
+  another", slope as "how far up for each step over" (no formulas or symbols), and training as
+  nudging a line, guess by guess, until it fits the dots. Builds on the DialDemo, where each dial is a
+  slope. Can end on why training a big model takes weeks on thousands of chips.
+- **The math of inference, and why everyone talks about Nvidia**: a spot on the map is a list of
+  numbers. Comparing two spots, or scoring how well a token lines up with where the sentence points,
+  is multiplying matching numbers and adding them up. Keep this separate from "find the nearest
+  match", which is what search tools do. The punchline is that it's multiplying and adding,
+  billions of times per word. Then the bridge: video games need the same thing (moving millions of
+  points and coloring millions of pixels with the same multiply-and-add, all at once), so graphics
+  chips (GPUs) were built to do thousands of simple sums at the same time. That turned out to be
+  exactly what AI needs, which is why Nvidia keeps showing up in the news, the same way part 0
+  connects "billions of parameters" to the dials. Check any history before using it (for example,
+  the 2012 image model that was trained on two gaming GPUs).
 - **Format idea**: a card-based "AI, plainly" field guide in the style of the OWASP page (one concept
   per card, same parts on every card, each card shareable on its own), with each card linking to the
   post that goes deep. Decide with the owner before building.
