@@ -6,8 +6,10 @@ in `src/components/blog/`. A push to `main` deploys through Cloudflare in about 
 - Read `docs/writing-rules.md` before writing or editing anything public, and run the
   `humanizer` skill on all of it.
 - `draft: true` builds a post as an unlisted preview (with a banner and noindex, and left out of
-  the lists, RSS, and sitemap). Publishing means changing it to `draft: false`, through a PR the
-  owner merges.
+  the lists, RSS, and sitemap). Publishing means changing it to `draft: false`.
+- Agents merge their own PRs once `npm run build` passes. It's a blog, and the owner doesn't review
+  PRs. The one gate is publishing: a post goes public only after the owner has read the preview and
+  approved it, either by telling a session or with an approving comment on its `Publish:` PR.
 - The weekly `blog-update` routine (`.claude/skills/blog-update/SKILL.md`) proposes freshness edits,
   at most one new draft, and a share suggestion. Post ideas are queued in `docs/blog-ideas.md`.
 - Check changes with `npm run build`.
