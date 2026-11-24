@@ -63,7 +63,12 @@ inference post). Owner's ideas, 2026-11-24. Suggested order:
 - **Why it forgets, and how "memory" really works**: nothing carries over between messages. It
   rereads the whole conversation each time, up to the size of its window. "Memory" features are a
   tool that pastes notes back in. Explains long chats drifting, long chats costing more, and why
-  agents manage what they keep. Before or after the agents post.
+  agents manage what they keep. The owner wants this as one or more posts of its own (2026-11-24),
+  so it was cut from the agents post, which now only teases it. Cover the context window,
+  summarizing (compaction) and other ways harnesses trim the conversation, and how that makes
+  agents forgetful or flaky on long jobs (early details lost, instructions dropped). ContextMeter's
+  `grow` state (the notebook filling toward the page limit, then a summary block) was built for
+  the agents post and is ready to reuse. The math posts must not explain the context window.
 - **Why it's confidently wrong**: a smooth guess can be false, "are you sure?" can flip the answer,
   and what actually helps (search tools, citations, checking work). After tools.
 - **"Thinking" models**: the same loop writing scratch work before the answer, not a new kind of
