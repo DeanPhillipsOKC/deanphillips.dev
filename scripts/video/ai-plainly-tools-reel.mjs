@@ -29,7 +29,7 @@ async function open(width, height, mode) {
   return page;
 }
 
-// The video: the whole round trip once, ending on the takeaway.
+// The video: the whole round trip once, as text chats, ending on the takeaway.
 const page = await open(1080, 1350, 'reel');
 const total = await page.evaluate(() => window.__toolsReel.total);
 if (process.env.REEL_STILLS) {
@@ -52,9 +52,9 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-tools-reel.mp4']);
 
-// The link preview: the winning guess, with the note it starts typing out underneath.
+// The link preview: the hook, next to the model's chat once it has replied with its note.
 const og = await open(1200, 630, 'og');
-await og.evaluate(() => window.__toolsReel.draw(6.0));
+await og.evaluate(() => window.__toolsReel.draw(9.5));
 await og.screenshot({ path: join(work, 'og.png') });
 await og.close();
 mkdirSync('public/img/og', { recursive: true });
