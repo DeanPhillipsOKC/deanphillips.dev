@@ -4,7 +4,7 @@ titleAccent: "can search the web"
 tabTitle: "AI, Plainly: Tools"
 partTitle: "Tools, or how it looks things up"
 description: A plain-English, picture-first explanation of AI tools. How a model that can only guess the next word still searches the web, reads your files, and runs code, step by step, plus where "find the nearest match" really happens. Part 1 of AI, plainly.
-dek: A model can only guess the next word. So how does a chatbot search the web? It writes a note, and an ordinary program does the errand. Step through the whole trip yourself.
+dek: A model can only guess the next word. So how does a chatbot search the web? It writes a note, and an ordinary program does the errand. Here's the whole trip, one step at a time.
 eyebrow: "AI, plainly"
 date: 2026-11-24
 readMinutes: 5
@@ -15,11 +15,11 @@ image: /img/og/ai-plainly-tools.jpg
 ---
 import TrustSwitch from '../../components/blog/TrustSwitch.astro';
 import NextWord from '../../components/blog/NextWord.astro';
-import ToolRelay from '../../components/blog/ToolRelay.astro';
+import RoundTrip from '../../components/blog/RoundTrip.astro';
 import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
-import SearchMap from '../../components/blog/SearchMap.astro';
+import NearMatch from '../../components/blog/NearMatch.astro';
 import FixSplit from '../../components/blog/FixSplit.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import ToolsReel from '../../components/blog/ToolsReel.astro';
@@ -67,12 +67,20 @@ How does it know the tools exist? The app slips in a hidden list of them (you'll
 
 ## A regular program does the work
 
-**The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip. Pick a question and step through it.
+**The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip for one question.
 
-<ToolRelay
-  questions={d.relay.questions}
+<RoundTrip
+  question={d.relay.questions[0].chip}
+  note={d.relay.questions[0].note}
+  tool="A search engine looks it up."
+  result="Tulsa now 54°F, cloudy"
+  answer={d.relay.questions[0].answer}
   toolList={d.relay.toolList}
-  caption="The weather and the packing list are made up. The math is real."
+  others={[
+    { label: 'Big math', note: 'run_code(print(48271 * 9358))' },
+    { label: 'Your file', note: 'read_file(packing-list.txt)' },
+  ]}
+  caption="The weather is made up. The app is the ordinary program you type into."
 />
 
 Two things are easy to miss. While the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app runs it again, and it rereads the whole conversation from the top, result included.
@@ -94,11 +102,10 @@ Web search asks a regular search engine, the same kind you'd use. (Big ones use 
 
 Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from the overview, but for whole passages, and it's a separate map. A separate model of its own hands out the spots. In this job it never writes a word. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
 
-<SearchMap
-  passages={d.searchMap.passages}
-  groups={d.searchMap.groups}
-  queries={d.searchMap.queries}
-  caption="Every position and passage here is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 4."
+<NearMatch
+  passages={d.nearMatch.passages}
+  panels={d.nearMatch.panels}
+  caption="The purple diamond is the search note. The lines go to the three passages sitting nearest to it. Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 4."
 />
 
 Now, back in the overview, my first try at explaining AI went like this.
@@ -136,7 +143,7 @@ Searching for the nearest match is real. It's just not how the model answers. It
   ]}
 />
 
-The Model 7 question on the map got the Model 5 page, and the answer still came out smooth. It's the same confidently wrong from the overview. Now it has a source to be wrong from.
+The Model 7 question got the Model 5 page, and the answer still came out smooth. It's the same confidently wrong from the overview. Now it has a source to be wrong from.
 
 ## Check yourself
 
