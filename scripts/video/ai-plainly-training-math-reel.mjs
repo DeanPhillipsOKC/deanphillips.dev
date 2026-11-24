@@ -30,8 +30,9 @@ async function open(width, height, mode) {
   return page;
 }
 
-// The video: bean dots, a wild guess, its misses, why each is multiplied by itself, then 40 rounds of
-// real training, ending on the takeaway.
+// The video: a poster frame (dots, a wild guess, its misses), measuring the misses, why each is multiplied by
+// itself, the score, then 40 rounds of real training with two dials turning,
+// ending on the takeaway.
 const page = await open(1080, 1350, 'reel');
 const total = await page.evaluate(() => window.__trainingReel.total);
 if (process.env.REEL_STILLS) {
@@ -54,7 +55,8 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-training-math-reel.mp4']);
 
-// The link preview: "Nobody drew the line." beside the settled line, with the first guess drawn faintly.
+// The link preview: "Nobody drew the line." beside the settled line, with the first guess drawn faintly
+// (the figure jumps to just after the last round of training whatever time it is given).
 const og = await open(1200, 630, 'og');
 await og.evaluate(() => window.__trainingReel.draw(25));
 await og.screenshot({ path: join(work, 'og.png') });
