@@ -4,12 +4,15 @@ import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 
 const all = await getCollection('blog', (p) => !p.data.draft);
-// Series parts (part 1+) list under their overview's card instead of as their own cards.
+// Series parts list under their series' lead card instead of as their own cards. The lead is the
+// overview (no part number) or, for a series without one, its lowest-numbered part.
+const isLead = (p: (typeof all)[number]) => !p.data.part || (!!p.data.series && !all.some((q) =>
+  q.data.series === p.data.series && (!q.data.part || q.data.part < p.data.part!)));
 const posts = all
-  .filter((p) => !p.data.part)
+  .filter(isLead)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const partsOf = (series?: string) => series
-  ? all.filter((p) => p.data.series === series && p.data.part).sort((a, b) => (a.data.part ?? 0) - (b.data.part ?? 0))
+const partsOf = (series?: string, lead?: string) => series
+  ? all.filter((p) => p.data.series === series && p.data.part && p.id !== lead).sort((a, b) => (a.data.part ?? 0) - (b.data.part ?? 0))
   : [];
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
@@ -35,13 +38,13 @@ const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'nu
       </a>
     </div>
     {posts.map((p) => {
-      const parts = partsOf(p.data.series);
+      const parts = partsOf(p.data.series, p.id);
       return (
         <div class:list={['entry', parts.length && 'has-parts']}>
           <a class:list={['post', p.data.cover && 'has-cover']} href={`/blog/${p.id}/`}>
             {p.data.cover && <Image class="thumb" src={p.data.cover} alt="" widths={[400, 800]} sizes="(max-width: 640px) calc(100vw - 40px), 260px" />}
             <div>
-              <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}{parts.length > 0 && <> &middot; Overview + {parts.length} parts</>}</time>
+              <time datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}{parts.length > 0 && (p.data.part ? <> &middot; Part {p.data.part} of {parts.length + 1}</> : <> &middot; Overview + {parts.length} parts</>)}</time>
               <h2>{p.data.title}</h2>
               <p>{p.data.description}</p>
             </div>
