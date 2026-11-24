@@ -9,7 +9,8 @@
       "trips": 40,
       "wroteSize": 150,
       "backSize": 450,
-      "surprise": true
+      "surprise": true,
+      "tag": "rain Sat"
     },
     {
       "wrote": "Rain Saturday. Check Sunday instead.",
@@ -18,7 +19,8 @@
       "trips": 50,
       "wroteSize": 200,
       "backSize": 500,
-      "brainPower": true
+      "brainPower": true,
+      "tag": "dry Sun"
     },
     {
       "wrote": "Sunday works. Is the park open?",
@@ -26,7 +28,8 @@
       "back": "Opens 9 am Sundays",
       "trips": 45,
       "wroteSize": 200,
-      "backSize": 500
+      "backSize": 500,
+      "tag": "opens 9"
     },
     {
       "wrote": "Park Sunday morning? It's dry until noon and opens at 9.",
@@ -45,11 +48,14 @@
       "Give up"
     ],
     "answer": "Check Sunday",
-    "callout": "It read the result and changed plan. That's what makes it an agent.",
-    "script": "A script (a fixed list of steps written ahead of time) would draft the text for Saturday anyway.",
-    "agent": "The agent checks Sunday."
+    "script": "Checks Sunday only if someone thought to write that step ahead of time.",
+    "agent": "Read the rain and wrote the Sunday step itself.",
+    "right": "Right. It checks Sunday.",
+    "wrong": "The agent checked Sunday, because the result said rain."
   },
   "meter": {
+    "title": "A longer made-up job, same loop",
+    "jobText": "Plan my whole weekend.",
     "track": 68,
     "limit": 62,
     "setup": 6,
@@ -58,8 +64,8 @@
     "turns": [
       {
         "wrote": 2,
-        "result": 12,
-        "kind": "search"
+        "result": 4,
+        "kind": "weather"
       },
       {
         "wrote": 2,
@@ -73,13 +79,13 @@
       },
       {
         "wrote": 2,
-        "result": 4,
-        "kind": "map"
+        "result": 12,
+        "kind": "search"
       },
       {
         "wrote": 2,
-        "result": 9,
-        "kind": "search"
+        "result": 4,
+        "kind": "map"
       },
       {
         "wrote": 2,
@@ -92,7 +98,16 @@
         "kind": "weather"
       }
     ],
-    "squeezeAt": 5
+    "squeezeAt": 5,
+    "guess": {
+      "question": "What happens now?",
+      "options": [
+        "It crashes",
+        "It squeezes old turns into a summary",
+        "It forgets the job"
+      ],
+      "answer": "It squeezes old turns into a summary"
+    }
   },
   "reviewer": {
     "maker": [
@@ -137,7 +152,7 @@
         "label": "the work to check"
       },
       {
-        "kind": "job",
+        "kind": "ask",
         "size": 2,
         "label": "check it"
       }
@@ -154,7 +169,7 @@
         "label": "the work to check"
       },
       {
-        "kind": "job",
+        "kind": "ask",
         "size": 2,
         "label": "find problems"
       }
@@ -167,9 +182,9 @@
       "why": "It's the same kind of word-guessing model, often the very same one."
     },
     {
-      "prompt": "An agent keeps thinking between turns.",
+      "prompt": "An agent keeps thinking while a tool runs.",
       "answer": "Myth",
-      "why": "While the harness works, the model isn't running at all."
+      "why": "While the tool runs, the model isn't running at all."
     },
     {
       "prompt": "An agent remembers your last job with nothing written down.",

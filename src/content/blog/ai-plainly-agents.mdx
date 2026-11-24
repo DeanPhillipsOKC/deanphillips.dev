@@ -21,11 +21,10 @@ import story from '../../data/ai-plainly/inference.json';
 import d from '../../data/ai-plainly/ai-plainly-agents.json';
 import day2 from '../../data/gesso/day2.json';
 
-export const tries = day2.all_decisions.reduce((n, x) => n + x.tries.length, 0);
 
 This is part 2 of [AI, plainly](/blog/ai-plainly/), and it builds on [part 1's tools](/blog/ai-plainly-tools/).
 
-Say you type one line. Find a dry morning this weekend when the park is open, and draft a text I can send. A few turns later the text is done, and nobody touched it in between.
+Say you type one line. "Find a dry morning this weekend when the park is open, and draft a text I can send." A few turns later the draft text is ready, and you didn't type anything else.
 
 Here's where my kid-level explanation ran out. Part 1 got the model one request and one result. So how does it do a whole job?
 
@@ -36,12 +35,12 @@ Agents get sold as a smarter kind of AI that keeps thinking in the background. T
 <LoopInLoop
   mode="diagram"
   loop={story.loop}
-  caption="Two stations take turns. Only the purple one uses the dials. The trip count is made up to show the scale."
+  caption="Two stations take turns. The harness is a regular program. Some tools it runs use AI of their own, but this model isn't running then. The trip count is made up."
 />
 
-An **agent** is the part 0 loop wrapped in a bigger loop. Part 1 called the program around the model the app. In agent talk it's called the **harness**. Claude Code is one (it's what ran my Gesso experiment).
+An **agent** is the model called again and again in a loop, choosing its next step from what came back. The program doing the calling is the **harness** (part 1 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
 
-The harness calls the model. The model writes, one token at a time, and sometimes what it writes is a tool request. The harness runs it, pastes the result onto the end, and calls the model again. One model call plus the tool work after it is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once, and the harness runs them together.)
+One trip around the big ring is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once. The harness runs them all and pastes every result in before calling it again.)
 
 <NoDumbQuestions items={[
   { q: 'Is the thinking a separate hidden brain?', a: "No. It's more text the model writes, the same way it writes answers, even when an app hides it from you." },
@@ -55,26 +54,28 @@ Press Start, then Next turn. Turn 2 stops and asks you first.
   mode="run"
   loop={story.loop}
   run={d}
-  caption="A made-up run, one tool request per turn. Real ones often run many more turns. The sizes are made up."
+  caption="A made-up run, one tool request per turn. Real ones often run many more turns. Trip counts and sizes are made up."
 />
 
-Turn 2 is the one to watch. Nothing in the job said to check Sunday. The model read rain in the conversation and wrote a different request. A script can't do that, because its steps were written before anything came back.
+Turn 2 is the one to watch. Nothing in the job said to check Sunday. A script only follows the branches someone wrote ahead of time, and nobody wrote this one. The model wrote it after reading the result.
 
-It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or a question only you can answer).
+It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first).
 
 ## Its whole memory is the conversation
 
-Between turns, nothing carries over except the text. The harness hands the model the whole conversation again every turn. (There are shortcuts that save work, but they don't change what it sees.)
+From one model call to the next, nothing carries over except the text. The harness hands the model the whole conversation again every time.
 
-Think of someone with no memory and a notebook. Each turn they start reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had in part 1.
+It's the same stack of paper from part 1, now a notebook with a page limit. Each turn the model starts reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had.
+
+Now picture a bigger job, like planning the whole weekend.
 
 <ContextMeter
   state="grow"
   meter={d.meter}
-  caption="What the model can see is only the conversation. Block sizes and the limit are made up to show the idea."
+  caption="What the model can see is only the conversation. Block sizes and the limit are made up and not to scale."
 />
 
-The notebook has a page limit, called the **context window**. It's the most text the model can work with at once (counting what it writes). Long jobs fill it.
+That page limit is called the **context window**. It's the most text the model can work with at once. Long jobs fill it.
 
 <NoDumbQuestions items={[
   { q: 'But my chat app has memory.', a: "Those features save notes and put them back into the conversation. It's still the notebook." },
@@ -82,17 +83,17 @@ The notebook has a page limit, called the **context window**. It's the most text
 
 ## A real one, and why checks matter
 
-[Gesso](/blog/gesso-agent-loop/), my ongoing painting-lesson experiment, ran this loop in Claude Code. I wrote the instruction file and its rules, including the checks. Claude ran the lesson alone.
+[Gesso](/blog/gesso-agent-loop/) is my ongoing painting-lesson experiment. It takes a photo and makes a step-by-step painting lesson, and every step needs a picture. It ran this loop in Claude Code. I wrote a list of rules for it, including the checks. Claude ran the lesson alone.
 
 {/* 14 min isn't in day2.json. It's hard-coded in src/content/blog/gesso-agent-loop.mdx (the StatRow, line 71). */}
 <StatRow stats={[
-  { value: String(day2.all_decisions.length), label: 'pictures it planned and picked a tool for' },
-  { value: String(tries), label: 'tools it considered, kept or skipped' },
+  { value: String(day2.all_decisions.length), label: 'pictures it planned, picking an image tool for each' },
+  { value: '2', label: 'problems a fresh copy caught in round 1' },
+  { value: '1', label: 'still wrong in round 2, after the fixes' },
   { value: '14 min', label: 'start to finish' },
-  { value: `$${day2.total_cost.toFixed(2)}`, label: 'all the images (image cost only)' },
 ]} />
 
-A loop that only makes things will happily make wrong things. That's part 0's confident guesser, now taking actions. So one of Gesso's checks used a fresh copy of Claude with a clean conversation. It caught 2 problems in round 1 and 1 in round 2.
+A loop that only makes things will happily make wrong things. That's part 0's confident guesser, now taking actions. So one check used a fresh copy of Claude with a clean conversation. It read the lesson and listed problems, Claude fixed them, and another fresh copy read it again.
 
 <ContextMeter
   state="reviewer"
@@ -102,7 +103,7 @@ A loop that only makes things will happily make wrong things. That's part 0's co
   caption="A fresh copy is the same model with a clean conversation. Bar sizes are made up."
 />
 
-A clean notebook helps because it isn't nudged by the maker's own story. More loops don't check anything by themselves. Someone has to build the check in.
+More loops don't check anything by themselves. Someone has to build the check in.
 
 ## Check yourself
 
