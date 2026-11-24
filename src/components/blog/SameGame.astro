@@ -1,0 +1,47 @@
+---
+// "Same game, bigger" as one plain comparison card. Each row names a part of the bean game (the dots, the
+// guess, the dials, the miss, the nudge) and what it turns into in a real model, so the reader can carry
+// everything from the bean line across in one look. The last row is marked as the one that stays the same.
+// Static HTML, no JavaScript and no motion. On phones the two value columns stay side by side, with the row
+// name above them, so nothing scrolls sideways at 390px.
+interface Props { rows: [string, string, string][]; caption?: string }
+const { rows, caption } = Astro.props;
+---
+<figure class="sgm panel bleed">
+  <p class="sgm-head">Same game, bigger.</p>
+  <div class="sgm-card" role="table" aria-label="The bean game next to a real model">
+    <div class="sgm-row sgm-cols" role="row">
+      <span role="columnheader" class="sgm-k"></span>
+      <span role="columnheader" class="sgm-beans">Bean line</span>
+      <span role="columnheader" class="sgm-real">Real model</span>
+    </div>
+    {rows.map(([k, a, b], i) => (
+      <div class={`sgm-row${i === rows.length - 1 ? ' sgm-same' : ''}`} role="row">
+        <span role="rowheader" class="sgm-k">{k}</span>
+        <span role="cell" class="sgm-a">{a}</span>
+        <span role="cell" class="sgm-b">{b}</span>
+      </div>
+    ))}
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .sgm p { margin: 0; }
+  .sgm-head { font: 700 clamp(1.3rem, 5vw, 1.7rem)/1.2 "Space Grotesk", sans-serif; margin-bottom: 12px !important; }
+  .sgm-card { border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
+  .sgm-row { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) minmax(0, 1fr); gap: 4px 14px; padding: 12px 14px; border-top: 1px solid var(--line); align-items: baseline; }
+  .sgm-row:first-child { border-top: 0; }
+  .sgm-cols span { font: 700 0.78rem/1.2 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+  .sgm-beans { color: var(--teal); }
+  .sgm-real { color: var(--violet); }
+  .sgm-k { font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; }
+  .sgm-a, .sgm-b { font-size: 1.02rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .sgm-same { background: color-mix(in srgb, var(--ok) 12%, var(--card)); }
+  .sgm-same .sgm-b { font-weight: 700; color: var(--ok); }
+  @media (max-width: 560px) {
+    .sgm-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .sgm-row .sgm-k { grid-column: 1 / -1; }
+    .sgm-cols .sgm-k { display: none; }
+  }
+</style>

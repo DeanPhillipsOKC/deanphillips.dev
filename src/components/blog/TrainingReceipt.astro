@@ -4,22 +4,24 @@
 // 405 billion, written out in full in big type. Rows under it are for the real model only, from Meta's
 // "The Llama 3 Herd of Models" paper and the Llama 3.1 announcement (405B parameters, 15.6T pre-training
 // tokens, up to 16K chips). The paper gives no total elapsed time, so the time row says weeks to months.
-// No chip brand here; that belongs to part 5. Static HTML, no JavaScript.
+// Llama is glossed as the family behind Meta AI (Meta's assistant in WhatsApp and Instagram), since readers
+// know the app, not the model. No chip brand here; that belongs to part 5. Static HTML, no JavaScript.
 ---
 <figure class="trc panel bleed">
   <div class="trc-receipt">
     <p class="trc-head">TRAINING RECEIPT</p>
     <p class="trc-sec">Dials</p>
-    <p class="trc-row"><span>part 1's toy</span><i></i><b>9</b></p>
-    <p class="trc-row"><span>this post's bean line</span><i></i><b>2</b></p>
+    <p class="trc-row trc-n"><span>part 1's toy</span><i></i><b>9</b></p>
+    <p class="trc-row trc-n"><span>this post's bean line</span><i></i><b>2</b></p>
     <p class="trc-row"><span>Meta's biggest Llama 3.1</span></p>
+    <p class="trc-note">Llama is the model family behind Meta AI, the assistant in WhatsApp and Instagram.</p>
     <p class="trc-big"><small>about</small> 405,000,000,000</p>
-    <p class="trc-sec">The real one only</p>
+    <p class="trc-sec">Llama only</p>
     <p class="trc-row"><span>tokens read</span><i></i><b>over 15 trillion</b></p>
     <p class="trc-note">A token is a word piece, from part 1.</p>
     <p class="trc-row"><span>chips</span><i></i><b>about 16,000</b></p>
     <p class="trc-row"><span>time</span><i></i><b>weeks to months</b></p>
-    <p class="trc-total"><span>Total</span>trillions of guesses, each batch nudging billions of dials</p>
+    <p class="trc-total"><span>Total</span>trillions of guesses, then a nudge to billions of dials</p>
     <svg class="trc-tear" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L0 4 L10 10 L20 4 L30 10 L40 4 L50 10 L60 4 L70 10 L80 4 L90 10 L100 4 L110 10 L120 4 L130 10 L140 4 L150 10 L160 4 L170 10 L180 4 L190 10 L200 4 L200 0 Z" /></svg>
   </div>
   <figcaption>Real figures from Meta's Llama 3 paper and its Llama 3.1 announcement, for the biggest Llama 3.1 model. The toy and bean numbers come from this series.</figcaption>
@@ -33,7 +35,9 @@
   .trc-row { display: flex; align-items: baseline; gap: 6px; font-size: 1rem; line-height: 1.9; }
   .trc-row i { flex: 1; border-bottom: 2px dotted var(--muted); opacity: .6; transform: translateY(-4px); min-width: 12px; }
   .trc-row b, .trc-row span { white-space: nowrap; }
-  .trc-big { font: 700 clamp(1.45rem, 7.4vw, 2.7rem)/1.1 "Space Grotesk", sans-serif; color: var(--teal); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; margin: 2px 0 4px !important; }
+  
+  .trc-n b { font: 700 1.4rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; color: var(--teal); }
+  .trc-big { font: 700 clamp(1.7rem, 8vw, 3.4rem)/1.1 "Space Grotesk", sans-serif; color: var(--teal); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; margin: 2px 0 4px !important; }
   .trc-big small { display: block; font: 600 0.85rem/1.3 ui-monospace, Menlo, monospace; color: var(--muted); }
   .trc-note { font: 500 0.85rem/1.3 Inter, sans-serif; color: var(--violet); margin-bottom: 2px !important; }
   .trc-total { margin-top: 12px !important; padding-top: 10px; border-top: 2px dashed var(--line); font: 700 1.2rem/1.35 "Space Grotesk", sans-serif; display: grid; gap: 2px; }

@@ -2,10 +2,11 @@
 // Why the total miss multiplies each miss by itself, as a wrong-vs-right pair of stills. Both cards show
 // the same two dots, one 3 above a flat teal line and one 3 below, with amber miss lines. Adding the misses
 // as they are gives 0 (a pink "wrong" stamp), and multiplying each by itself gives 9 plus 9, so 18 (a green
-// "right" stamp). This is the same total miss FitLine and MissHill use. Static SVG and HTML, no motion.
+// "honest" stamp). Under the right card, two amber bars drawn to scale show a miss of 1 counting 1 and a miss of
+// 3 counting 9, so "big misses count extra" is on the picture). This is the same total miss FitLine and MissHill use. Static SVG and HTML, no motion.
 const cards = [
   { title: 'Just add the misses', a: 'up 3', b: 'down 3', sum: '3 plus (minus 3) = 0', stamp: "Looks perfect. Isn't.", tone: 'bad', foot: '' },
-  { title: 'Multiply each miss by itself', a: '3 × 3 = 9', b: '3 × 3 = 9', sum: '9 plus 9 = 18', stamp: 'Bad, and it says so.', tone: 'good', foot: 'Big misses count extra.' },
+  { title: 'Multiply each miss by itself', a: '3 × 3 = 9', b: '3 × 3 = 9', sum: '9 plus 9 = 18', stamp: 'Honest. 18, not 0.', tone: 'good', foot: 'Big misses count extra.' },
 ];
 ---
 <figure class="msm panel bleed">
@@ -25,10 +26,16 @@ const cards = [
         <p class="msm-sum">{c.sum}</p>
         <p class="msm-stamp">{c.stamp}</p>
         {c.foot && <p class="msm-foot">{c.foot}</p>}
+        {c.foot && (
+          <div class="msm-scale" aria-label="A miss of 1 counts 1. A miss of 3 counts 9.">
+            <p class="msm-srow"><span>miss 1 counts</span><i style="width:calc(var(--msm-u) * 1)"></i><b>1</b></p>
+            <p class="msm-srow"><span>miss 3 counts</span><i style="width:calc(var(--msm-u) * 9)"></i><b>9</b></p>
+          </div>
+        )}
       </section>
     ))}
   </div>
-  <figcaption>The total miss is every miss multiplied by itself, then added up. People call it the loss. Numbers made up.</figcaption>
+  <figcaption>The total miss is every miss multiplied by itself, then added up. Numbers made up.</figcaption>
 </figure>
 
 <style is:global>
@@ -45,6 +52,10 @@ const cards = [
   .msm-lab { font: 700 20px "Space Grotesk", sans-serif; fill: var(--warn); }
   .msm-sum { font: 700 1.35rem/1.2 "Space Grotesk", sans-serif; }
   .msm-stamp { display: inline-block; font: 800 1rem/1.2 "Space Grotesk", sans-serif; text-transform: uppercase; letter-spacing: .04em; color: var(--msm-c); border: 3px solid var(--msm-c); border-radius: 8px; padding: 6px 10px; transform: rotate(-3deg); margin: 4px 0 !important; }
-  .msm-foot { font-size: 0.92rem; color: var(--muted); }
+  .msm-foot { font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; }
+  .msm-scale { --msm-u: 15px; display: grid; gap: 6px; justify-self: stretch; max-width: 280px; margin: 0 auto; width: 100%; }
+  .msm-srow { display: grid; grid-template-columns: 7.2em auto 1fr; gap: 8px; align-items: center; text-align: left; font-size: 0.95rem; }
+  .msm-srow i { display: block; height: 14px; border-radius: 4px; background: var(--warn); }
+  .msm-srow b { font: 700 1rem/1 "Space Grotesk", sans-serif; color: var(--warn); }
   @media (max-width: 620px) { .msm-grid { grid-template-columns: 1fr; } }
 </style>

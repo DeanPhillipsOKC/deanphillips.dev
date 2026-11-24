@@ -1,19 +1,22 @@
 ---
 // Training by hand, then by computer. Eight made-up bean plant heights (one per week) and a straight
-// teal line with two dials, the tilt (cm up each week) and the start height (the line's height at week 0).
+// teal line with two dials, the slope (cm up each week) and the start height (the line's height at week 0).
 // An amber miss line runs from each dot to the line, and the scoreboard shows the total miss, which is
 // always the sum of squared misses (each miss multiplied by itself, then added up). The same quantity is
 // what MissHill draws as a valley.
 //
 // The reader moves two sliders first. "Let it learn" then resets to the bad line (tilt 0.5, start 10) and
-// runs real gradient descent, one round about every 120 ms. Implementation note: inside the update the
+// runs real gradient descent. The first rounds go slowly (550 ms each for rounds 1 to 8, where nearly all
+// the drop happens), then about every 120 ms. A trail under the total miss keeps the first few totals, the
+// starting guess stays drawn as a faint dashed line labeled "first guess", and if the reader moved the
+// sliders, their last line stays as a thin muted line labeled "yours" so the end frame reads you vs training. Implementation note: inside the update the
 // weeks are measured from the middle (week minus 4.5), and the start height is worked back out for display.
 // The step uses the average squared miss with a step size of 0.05. Without the centering the two dials want
 // very different step sizes and the tilt crawls (still near 0.96 after 60 rounds), so don't skip it. With
 // it, the total miss goes 140.5, 63.5 (round 1), 9.4 (round 10), 3.4 (round 40), and the floor is 3.35,
 // since no straight line goes through every dot.
 //
-// With `still`, it renders only the hero picture (the round 1 line, the round 40 line, and labels), which
+// With `still`, it renders only the hero picture (the first guess, the line after 40 nudges, and labels), which
 // is also the no-JavaScript fallback for the interactive. Reduced motion jumps to rounds 1, 5, 10 and 40
 // with a pause at each instead of animating every round.
 interface Beans { weeks: number[]; heights: number[]; bad: { tilt: number; start: number }; step: number; rounds: number }
@@ -46,7 +49,7 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
 <figure class={`fl panel bleed${still ? ' fl-is-still' : ''}`} data-beans={JSON.stringify(beans)}>
   <div class="fl-hero">
     <p class="fl-head">Nobody drew the line.</p>
-    <svg class="fl-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Eight bean plant heights, one per week, rising from 3 to 16 centimeters. A dashed line labeled round 1 is a wild guess. A solid line labeled round 40 runs through the middle of the dots.">
+    <svg class="fl-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Eight bean plant heights, one per week, rising from 3 to 16 centimeters. A dashed line labeled first guess is a wild guess. A solid line labeled after 40 nudges runs through the middle of the dots.">
       <defs><clipPath id={`${id}c`}><rect x={L} y={T} width={R - L} height={B - T} /></clipPath>
         <marker id={`${id}a`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="fl-arrowhead" /></marker></defs>
       {yTicks.map((v) => <g><line class="fl-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="fl-tick" x={L - 7} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
@@ -58,8 +61,8 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
         <line class="fl-line" {...good} />
       </g>
       {weeks.map((w, i) => <circle class="fl-dot" cx={sx(w)} cy={sy(heights[i])} r="5" />)}
-      <text class="fl-lab fl-lab-muted" x={sx(1)} y={sy(13.4)}>Round 1. A wild guess.</text>
-      <text class="fl-lab fl-lab-teal" x={R - 2} y={sy(4.6)} text-anchor="end">Round 40.</text>
+      <text class="fl-lab fl-lab-muted" x={sx(1)} y={sy(13.4)}>First guess. A wild one.</text>
+      <text class="fl-lab fl-lab-teal" x={R - 2} y={sy(4.6)} text-anchor="end">After 40 nudges.</text>
       <text class="fl-lab fl-lab-teal" x={R - 2} y={sy(4.6) + 17} text-anchor="end">Nobody drew this one.</text>
       <text class="fl-lab fl-lab-warn" x={sx(2.3)} y={sy(19)}>A dot. One real</text>
       <text class="fl-lab fl-lab-warn" x={sx(2.3)} y={sy(19) + 16}>measurement.</text>
@@ -72,8 +75,9 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
     <div class="fl-live" hidden>
       <div class="fl-board" aria-hidden="true">
         <p class="fl-score"><span>Total miss</span><b class="fl-total">140.5</b></p>
-        <p class="fl-round" hidden><span>Round</span><b class="fl-rn">0</b></p>
+        <p class="fl-round"><span>Round</span><b class="fl-rn">0</b></p>
       </div>
+      <p class="fl-trail" aria-hidden="true"></p>
       <svg class="fl-chart fl-livechart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="The eight bean dots, the line you are setting, and a miss line from each dot to it.">
         <defs><clipPath id={`${id}d`}><rect x={L} y={T} width={R - L} height={B - T} /></clipPath></defs>
         {yTicks.map((v) => <g><line class="fl-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="fl-tick" x={L - 7} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
@@ -81,20 +85,24 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
         <text class="fl-axis" x={(L + R) / 2} y={H - 4} text-anchor="middle">week</text>
         <text class="fl-axis" x="12" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + B) / 2})`}>height (cm)</text>
         <g clip-path={`url(#${id}d)`}>
+          <line class="fl-line fl-ghost fl-first" {...bad} hidden />
+          <line class="fl-yours" hidden />
           {weeks.map(() => <line class="fl-miss" />)}
           <line class="fl-line fl-cur" />
         </g>
         {weeks.map((w, i) => <circle class="fl-dot" cx={sx(w)} cy={sy(heights[i])} r="5" />)}
+        <text class="fl-lab fl-lab-muted fl-firstlab" x={sx(1)} y={sy(13.4)} hidden>first guess</text>
+        <text class="fl-lab fl-yourslab" hidden>yours</text>
       </svg>
       <div class="fl-sliders">
-        <label class="fl-slider"><span class="fl-sname">Tilt <i>(up each week)</i></span><input type="range" class="fl-tilt" min="-1" max="4" step="0.05" value={beans.bad.tilt} /><output class="fl-tv">0.5 cm</output></label>
+        <label class="fl-slider"><span class="fl-sname">Slope <i>(up each week)</i></span><input type="range" class="fl-tilt" min="-1" max="4" step="0.05" value={beans.bad.tilt} /><output class="fl-tv">0.5 cm a week</output></label>
         <label class="fl-slider"><span class="fl-sname">Start height</span><input type="range" class="fl-start" min="-5" max="15" step="0.1" value={beans.bad.start} /><output class="fl-sv">10 cm</output></label>
       </div>
       <div class="fl-ctl">
         <button type="button" class="fl-learn">Let it learn</button>
         <button type="button" class="fl-reset">Start over</button>
       </div>
-      <p class="fl-status" aria-live="polite">Your turn first. Can you get the total miss under 5?</p>
+      <p class="fl-status" aria-live="polite">Round 0. A wild guess. Your turn first. Can you get the total miss under 5?</p>
     </div>
   )}
   {caption && <figcaption>{caption}</figcaption>}
@@ -115,10 +123,14 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
     const line = $<SVGLineElement>('.fl-cur');
     const misses = [...root.querySelectorAll<SVGLineElement>('.fl-miss')];
     const tiltIn = $<HTMLInputElement>('.fl-tilt'), startIn = $<HTMLInputElement>('.fl-start');
-    const total = $<HTMLElement>('.fl-total'), roundBox = $<HTMLElement>('.fl-round'), rn = $<HTMLElement>('.fl-rn');
+    const total = $<HTMLElement>('.fl-total'), rn = $<HTMLElement>('.fl-rn'), trail = $<HTMLElement>('.fl-trail');
+    const first = $<SVGLineElement>('.fl-first'), firstLab = $<SVGTextElement>('.fl-firstlab');
+    const yours = $<SVGLineElement>('.fl-yours'), yoursLab = $<SVGTextElement>('.fl-yourslab');
+    const START = 'Round 0. A wild guess. Your turn first. Can you get the total miss under 5?';
+    let trailVals: number[] = [], moved = false;
     const status = $<HTMLElement>('.fl-status'), learn = $<HTMLButtonElement>('.fl-learn');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let tilt = d.bad.tilt, start = d.bad.start, round = 0, timer = 0, praised = false;
+    let tilt = d.bad.tilt, start = d.bad.start, round = 0, timer = 0, praised = false, running = false;
 
     const sse = (t: number, b: number) => d.weeks.reduce((s, w, i) => s + (t * w + b - d.heights[i]) ** 2, 0);
     const fmt = (v: number) => (Math.round(v * 100) / 100).toString();
@@ -134,9 +146,8 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
       total.textContent = s >= 1000 ? Math.round(s).toLocaleString('en-US') : s.toFixed(1);
       total.dataset.tone = s > 20 ? 'warn' : s < 5 ? 'ok' : '';
       tiltIn.value = String(tilt); startIn.value = String(start);
-      $('.fl-tv').textContent = `${fmt(tilt)} cm`;
+      $('.fl-tv').textContent = `${fmt(tilt)} cm a week`;
       $('.fl-sv').textContent = `${fmt(start)} cm`;
-      roundBox.hidden = round === 0;
       rn.textContent = String(round);
       return s;
     }
@@ -146,17 +157,34 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
       d.weeks.forEach((w, i) => { const e = tilt * (w - 4.5) + c - d.heights[i]; gt += (2 * e * (w - 4.5)) / d.weeks.length; gc += (2 * e) / d.weeks.length; });
       tilt -= d.step * gt; c -= d.step * gc; start = c - tilt * 4.5; round += 1;
     }
-    function stop(label = 'Let it learn') { clearInterval(timer); clearTimeout(timer); timer = 0; learn.textContent = label; }
+    function stop(label = 'Let it learn') { clearTimeout(timer); timer = 0; running = false; learn.textContent = label; }
+    // The first few totals stay on screen, so the big early drop is still visible after it happens.
+    function noteTrail(s: number) {
+      const pushed = trailVals.length < 5;
+      if (pushed) trailVals.push(s);
+      const shown = trailVals.map((v) => v.toFixed(0)).join(' → ');
+      trail.textContent = pushed ? shown : `${shown} → … → ${s.toFixed(1)}`;
+    }
+    function showGuides(on: boolean) {
+      // SVG elements have no hidden property, so toggle the attribute (the .fl [hidden] rule hides it).
+      first.toggleAttribute('hidden', !on); firstLab.toggleAttribute('hidden', !on);
+      yours.toggleAttribute('hidden', !(on && moved)); yoursLab.toggleAttribute('hidden', !(on && moved));
+    }
     function finish() {
       stop();
       const s = draw();
-      status.textContent = `Round ${round}. Total miss ${s.toFixed(1)}. It can't reach 0, because no straight line goes through every dot. Nobody told it the right line. It only had the dots and how far off it was.`;
+      noteTrail(s);
+      status.textContent = `Round ${round}. Total miss ${s.toFixed(1)}. It can't reach 0, because no straight line goes through every dot. Nobody told it the right line. It only had the dots and how far off it was from each.`;
     }
     function tick() {
+      timer = 0;
+      if (!running) return;
       step();
       const s = draw();
-      status.textContent = `Round ${round}. Nudging the line a little downhill. Total miss ${s.toFixed(1)}.`;
-      if (round >= d.rounds) finish();
+      noteTrail(s);
+      status.textContent = `Round ${round}. Nudging both dials a little to shrink the total miss. Total miss ${s.toFixed(1)}.`;
+      if (round >= d.rounds) return finish();
+      timer = window.setTimeout(tick, round < 8 ? 550 : 120);
     }
     function runReduced() {
       const stops = [1, 5, 10, d.rounds].filter((n) => n > round);
@@ -166,24 +194,37 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
         while (round < n) step();
         const s = draw();
         status.textContent = `Round ${round}. Total miss ${s.toFixed(1)}.`;
+        noteTrail(s);
         if (round >= d.rounds) return finish();
         timer = window.setTimeout(next, 1100);
       };
       next();
     }
     learn.addEventListener('click', () => {
-      if (timer) return stop('Keep going');
-      if (round === 0 || round >= d.rounds) { tilt = d.bad.tilt; start = d.bad.start; round = 0; draw(); }
+      if (running) return stop('Keep going');
+      if (round === 0 || round >= d.rounds) {
+        if (round === 0 && moved) {
+          // Keep the reader's own last line on the chart for comparison.
+          yours.setAttribute('x1', String(sx(X0))); yours.setAttribute('y1', String(sy(start + tilt * X0)));
+          yours.setAttribute('x2', String(sx(X1))); yours.setAttribute('y2', String(sy(start + tilt * X1)));
+          yoursLab.setAttribute('x', String(R - 4)); yoursLab.setAttribute('text-anchor', 'end');
+          yoursLab.setAttribute('y', String(Math.max(T + 14, Math.min(B - 6, sy(start + tilt * 8.3) - 8))));
+        }
+        tilt = d.bad.tilt; start = d.bad.start; round = 0; trailVals = []; noteTrail(draw());
+      }
+      showGuides(true);
       learn.textContent = 'Pause';
+      running = true;
       if (reduce) runReduced();
-      else timer = window.setInterval(tick, 120);
+      else timer = window.setTimeout(tick, 550);
     });
     $('.fl-reset').addEventListener('click', () => {
-      stop(); tilt = d.bad.tilt; start = d.bad.start; round = 0; praised = false; draw();
-      status.textContent = 'Your turn first. Can you get the total miss under 5?';
+      stop(); tilt = d.bad.tilt; start = d.bad.start; round = 0; praised = false; moved = false; trailVals = []; trail.textContent = '';
+      showGuides(false); draw();
+      status.textContent = START;
     });
     const onSlide = () => {
-      stop(); round = 0;
+      stop(); round = 0; moved = true; trailVals = []; trail.textContent = ''; showGuides(false);
       tilt = +tiltIn.value; start = +startIn.value;
       const s = draw();
       if (s < 5 && !praised) { praised = true; status.textContent = 'Nice. Now let the computer try from the bad line.'; }
@@ -218,6 +259,9 @@ const id = `fl${Math.round(Math.random() * 1e6)}`;
   .fl-score, .fl-round { display: flex; align-items: baseline; gap: 10px; padding: 8px 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); }
   .fl-score span, .fl-round span { font: 700 0.75rem/1 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .fl-score b, .fl-round b { font: 700 2rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; color: var(--text); }
+  .fl-trail { font: 600 0.95rem/1.3 ui-monospace, Menlo, monospace; color: var(--muted); min-height: 1.3em; margin: -4px 0 8px !important; overflow-wrap: anywhere; }
+  .fl-yours { stroke: var(--muted); stroke-width: 2; }
+  .fl-yourslab { fill: var(--muted); font-size: 13px; }
   .fl-score b[data-tone="warn"] { color: var(--warn); }
   .fl-score b[data-tone="ok"] { color: var(--ok); }
   .fl-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin: 14px 0; }

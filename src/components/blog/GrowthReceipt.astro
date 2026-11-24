@@ -1,7 +1,7 @@
 ---
 // A point on a line, as a shop receipt. The bean line's start height plus "up 2" for each week adds up
-// to its height at week 3, with violet notes on the receipt naming the two dials (the start height is the
-// bias, and it's a dial too). Beside it (under it on phones), a tiny chart of the same line with three
+// to its height at week 3, with violet notes on the receipt naming the two dials (the start height is a dial
+// too, a starting point rather than a slope). Beside it (under it on phones), a tiny chart of the same line with three
 // teal stairs under it and a marker at week 3. Static HTML and SVG, so it needs no JavaScript and has no
 // motion. Values are made up (rounded from the bean line in FitLine).
 ---
@@ -10,13 +10,13 @@
     <div class="grc-receipt">
       <p class="grc-head">BEAN LINE. 2 DIALS</p>
       <p class="grc-row"><span>start height</span><i></i><b>1 cm</b></p>
-      <p class="grc-note"><span aria-hidden="true">↑</span> A dial too. People call it the <b>bias</b>. Nothing to do with being unfair.</p>
+      <p class="grc-note"><span aria-hidden="true">↑</span> A dial too. This one is a starting point, not a slope.</p>
       <div class="grc-group">
         <p class="grc-row"><span>week 1</span><i></i><b>up 2</b></p>
         <p class="grc-row"><span>week 2</span><i></i><b>up 2</b></p>
         <p class="grc-row"><span>week 3</span><i></i><b>up 2</b></p>
       </div>
-      <p class="grc-note"><span aria-hidden="true">↑</span> The <b>tilt</b> dial, once per week.</p>
+      <p class="grc-note"><span aria-hidden="true">↑</span> The <b>slope</b> dial, once per week.</p>
       <p class="grc-row grc-total"><span>height at week 3</span><i></i><b>7 cm</b></p>
       <svg class="grc-tear" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L0 4 L10 10 L20 4 L30 10 L40 4 L50 10 L60 4 L70 10 L80 4 L90 10 L100 4 L110 10 L120 4 L130 10 L140 4 L150 10 L160 4 L170 10 L180 4 L190 10 L200 4 L200 0 Z" /></svg>
     </div>

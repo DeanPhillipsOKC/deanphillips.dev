@@ -19,7 +19,7 @@ import MissMath from '../../components/blog/MissMath.astro';
 import MissHill from '../../components/blog/MissHill.astro';
 import StepSize from '../../components/blog/StepSize.astro';
 import MissBowl from '../../components/blog/MissBowl.astro';
-import BendStack from '../../components/blog/BendStack.astro';
+import SameGame from '../../components/blog/SameGame.astro';
 import WordMiss from '../../components/blog/WordMiss.astro';
 import TrainingReceipt from '../../components/blog/TrainingReceipt.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
@@ -38,7 +38,7 @@ Part 1 said every wrong guess nudges the dials. When I tried to explain what a n
 
 ## A dial is a slope
 
-A dial is how hard one thing pushes another. Picture it as stairs. How far up you go for each step over is the **slope**, and that's all a dial is.
+A dial is how hard one thing pushes another. For the bean plant, the one thing is the week and the other is the height. Picture it as stairs. How far up you go for each step over is the **slope**, and most dials are just that.
 
 <StairSlope />
 
@@ -46,7 +46,7 @@ A spot on a line works like a receipt. Start somewhere, then add the slope once 
 
 <GrowthReceipt />
 
-So this line has two dials, the tilt and the start height. Training's job is to set them.
+So this line has two dials, the slope and the start height. Training's job is to set them.
 
 ## The miss
 
@@ -56,27 +56,28 @@ Adding the misses up as they are doesn't work, though. Under and over cancel out
 
 <MissMath />
 
-Your turn.
+One look at the dots plus one nudge is a **round**. Your turn.
 
 <FitLine
   beans={d.beans}
   caption="Made-up bean data. The total miss is each miss multiplied by itself, added up. Let it learn runs real training on these eight dots."
 />
 
-Notice what the computer never gets. Nobody hands it the right line. It gets the dots and its total miss, and it nudges. (One look at the dots plus one nudge is a **round**.)
+Notice what the computer never gets. Nobody hands it the right line. It gets the dots and how far off it is at each one, and it nudges.
 
 ## Downhill
 
-How does it know which way to nudge? Draw the total miss for every setting of the tilt dial and you get a valley.
+How does it know which way to nudge? Draw the total miss for every setting of the slope dial and you get a valley.
 
 <MissHill
   beans={d.beans}
   start={d.hill.start}
   frames={d.hill.frames}
-  caption="Only the tilt dial moves here. The start height stays at its best value, so the bottom of this valley is the line you just watched training find. Numbers made up."
+  feel={d.hill.feel}
+  caption="Only the slope dial moves here. The start height stays at its best value, so the bottom of this valley is the line you just watched training find. The beans are made up, so these misses are too."
 />
 
-Each step is the step size times the slope under the ball. Steep ground, big step. Flat ground, tiny step. The step size is the one thing a person picks, and picking it is fussy.
+Each step is the step size times how steep the ground is under the ball. Steep ground, big step. Flat ground, tiny step. The step size is something a person picks, not training, and picking it is fussy.
 
 <StepSize
   beans={d.beans}
@@ -85,18 +86,17 @@ Each step is the step size times the slope under the ball. Steep ground, big ste
   caption="Same valley, same start, three step sizes. The values are made up."
 />
 
-With both dials, the valley becomes a bowl. You're the hiker now, blindfolded, feeling for downhill with your feet. Doing that for every dial at once is called **gradient descent**.
+With both dials, the valley becomes a bowl. The computer is a blindfolded hiker, feeling for downhill with its feet. Doing that for every dial at once is called **gradient descent**.
 
 <MissBowl />
 
 ## From one line to billions of dials
 
-A real model is the same move with more dials. It has many layers of pushes, with a small bend between them. The bend matters more than it sounds.
+A real model plays the same game with far more dials.
 
-<BendStack
-  dots={d.bend.dots}
-  caption="Two straight-line steps in a row add up to one straight line. Real models bend the result a little between layers. A sketch, made-up dots."
-/>
+<SameGame rows={d.same} />
+
+(A real model is also more than one straight line. It stacks many, with bends between them, so it can fit curves. That's a post of its own.)
 
 Each guess is part 1's game. Hide the next word, guess, and score the miss.
 
@@ -104,19 +104,19 @@ Each guess is part 1's game. Hide the next word, guess, and score the miss.
   prompt={d.wordMiss.prompt}
   right={d.wordMiss.right}
   cards={d.wordMiss.cards}
-  caption="Made-up percentages. In real training the miss is how low a chance the model gave the right next word. It's a different score from the bean misses, and the downhill rule is the same."
+  caption="Made-up percentages. In real training the miss is how low a chance the model gave the right next word. It's scored differently from the bean misses, and the downhill rule is the same."
 />
 
-<NoDumbQuestions items={[
-  { q: "Part 1's Study button nudged after every sentence. Is that how big models do it?", a: "No. Big models make a batch of guesses (thousands to millions of words), average the misses, then nudge once. A dial that played no part in a guess gets no nudge from it." },
-  { q: 'How do you find the slope for billions of dials?', a: "A piece of bookkeeping works backward from the miss and finds every dial's slope in one pass (people call it backpropagation). It isn't a different way of learning. It's how the downhill step gets its directions." },
-]} />
-
-Then do that a few trillion times.
+Then do that trillions of times.
 
 <TrainingReceipt />
 
-Trillions of guesses, in batches, each batch nudging billions of dials a little downhill. That's why it takes weeks to months on thousands of chips.
+Trillions of guesses, and every so often a small nudge downhill for billions of dials. That's why it takes weeks to months on thousands of chips.
+
+<NoDumbQuestions items={[
+  { q: "Part 1's Study button nudged after every sentence. Is that how big models do it?", a: "No. Big models make a batch of guesses (thousands to millions of words), average the misses, then nudge once. In a big model, nearly every dial plays a part in every guess, so nearly every dial gets a nudge every round." },
+  { q: 'Does it really turn each dial a hair to feel the ground?', a: "That's the idea, and it would work, but it's slow with billions of dials. A piece of bookkeeping works backward from the miss and finds every dial's steepness in one pass (people call it backpropagation). Same answer, much faster." },
+]} />
 
 ## Check yourself
 
@@ -133,4 +133,4 @@ Five quick ones.
 
 So what are those thousands of chips doing all day? Mostly multiplying and adding. And they started out in video games. That's part 5, the math of inference, and why everyone talks about Nvidia.
 
-The bean plant, for the record, had no idea any of this was happening.
+The bean plant kept growing the whole time. It didn't need a single nudge.

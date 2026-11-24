@@ -1,20 +1,22 @@
 ---
 // A real model's miss, tied back to part 1's percentage bars. Two still cards for "The sky is ___", drawn
 // like DialDemo's bars (rebuilt here with the wms- prefix, not imported). The check marks the right word.
-// Card A gave the right word a low chance (a big miss), card B a high one (a small miss). Made-up
+// Card A (a bad guess) gave the right word a low chance (a big miss), card B (a good guess) a high one
+// (a small miss). The cards aren't tied to a moment in training, since an untrained model spreads tiny,
+// nearly even chances over every token. Made-up
 // percentages. Static HTML, no JavaScript, no motion.
-interface Card { bars: [string, number][]; tag: string; tone: 'warn' | 'ok' }
+interface Card { bars: [string, number][]; tag: string; tone: 'warn' | 'ok'; label?: string }
 interface Props { prompt: string; right: string; cards: Card[]; caption?: string }
 const { prompt, right, cards, caption } = Astro.props;
 ---
 <figure class="wms panel bleed">
-  <p class="wms-head">A real model's miss</p>
+  <p class="wms-head">How a real model's miss is scored</p>
   <div class="wms-grid">
     {cards.map((c, i) => {
       const top = Math.max(...c.bars.map((b) => b[1]));
       return (
         <section class={`wms-card wms-${c.tone}`}>
-          <p class="wms-prompt"><span>{i === 0 ? 'Early in training' : 'Later'}</span>{prompt}</p>
+          <p class="wms-prompt"><span>{c.label ?? (i === 0 ? 'Bad guess' : 'Good guess')}</span>{prompt}</p>
           <ol class="wms-bars">
             {c.bars.map(([w, p]) => (
               <li class={p === top ? 'wms-lead' : ''}>
