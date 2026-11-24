@@ -1,14 +1,14 @@
 ---
 // One tool round trip as a group chat, seen from the user's phone. Four members: you, the app, the
 // model, and a tool. Your messages sit on the right, everyone else's on the left with an avatar, a name,
-// and who the message is for. Thought bubbles (dashed clouds) show what a member is holding in memory:
-// the app keeps the conversation, and the model holds only what it was just handed. Grey event lines
+// and who the message is for. The app keeps the memory, so every message it sends the model carries the
+// whole conversation. A dashed thought cloud shows that the model holds nothing from before. Grey event lines
 // mark when the model starts and stops running. Messages a real chat app would hide from you are tagged
 // "hidden from you". A still picture read top to bottom. Messages fade in once on scroll unless the
 // reader prefers less motion, and everything shows without JavaScript.
 type Who = 'you' | 'app' | 'model' | 'tool';
 interface Line { tag?: string; text: string; code?: boolean; fresh?: boolean }
-interface Item { kind: 'msg' | 'think' | 'event'; who?: Who; to?: Who; hidden?: boolean; text?: string; lines?: Line[] }
+interface Item { kind: 'msg' | 'think' | 'event'; who?: Who; label?: string; to?: Who; hidden?: boolean; text?: string; lines?: Line[] }
 interface Props { title: string; items: Item[]; others?: { label: string; note: string }[]; caption?: string }
 const { title, items, others = [], caption } = Astro.props;
 const NAME: Record<Who, string> = { you: 'You', app: 'The app', model: 'The model', tool: 'The tool' };
@@ -39,7 +39,7 @@ const members: Who[] = ['you', 'app', 'model', 'tool'];
             {!mine && <span class={`gc-av gc-${w}`} set:html={av(w)} />}
             <div class={think ? 'gc-think' : 'gc-bub'}>
               <p class="gc-who">
-                {think ? <>{NAME[w]} is holding</> : <>{NAME[w]}{it.to && <> to {NAME[it.to].toLowerCase()}</>}</>}
+                {think ? <>{it.label ?? `${NAME[w]} is holding`}</> : <>{NAME[w]}{it.to && <> to {NAME[it.to].toLowerCase()}</>}</>}
                 {it.hidden && <span class="gc-hide">hidden from you</span>}
               </p>
               {it.lines!.map((l) => <p class={`gc-line${l.fresh ? ' gc-fresh' : ''}`}>{l.tag && <span class="gc-tag">{l.tag}</span>}{l.code ? <code>{l.text}</code> : l.text}</p>)}

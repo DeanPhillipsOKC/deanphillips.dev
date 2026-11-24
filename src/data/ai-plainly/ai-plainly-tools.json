@@ -277,17 +277,6 @@
       ]
     },
     {
-      "kind": "think",
-      "who": "app",
-      "hidden": true,
-      "lines": [
-        {
-          "tag": "You",
-          "text": "What's the weather in Tulsa right now?"
-        }
-      ]
-    },
-    {
       "kind": "event",
       "text": "The app starts the model"
     },
@@ -313,9 +302,10 @@
       "hidden": true,
       "lines": [
         {
-          "text": "Only what it was just handed. The tool list and your question."
+          "text": "Nothing. Only the message it was just handed."
         }
-      ]
+      ],
+      "label": "The model remembers"
     },
     {
       "kind": "msg",
@@ -359,8 +349,13 @@
       ]
     },
     {
-      "kind": "think",
+      "kind": "event",
+      "text": "The app starts the model again. It remembers nothing."
+    },
+    {
+      "kind": "msg",
       "who": "app",
+      "to": "model",
       "hidden": true,
       "lines": [
         {
@@ -384,29 +379,15 @@
       ]
     },
     {
-      "kind": "event",
-      "text": "The app starts the model again. It remembers nothing."
-    },
-    {
-      "kind": "msg",
-      "who": "app",
-      "to": "model",
-      "hidden": true,
-      "lines": [
-        {
-          "text": "The whole conversation, from the top."
-        }
-      ]
-    },
-    {
       "kind": "think",
       "who": "model",
       "hidden": true,
       "lines": [
         {
-          "text": "Only what it was just handed. Tools, question, note, and result."
+          "text": "Nothing. Only the message it was just handed."
         }
-      ]
+      ],
+      "label": "The model remembers"
     },
     {
       "kind": "msg",
