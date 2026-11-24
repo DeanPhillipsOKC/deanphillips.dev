@@ -1,0 +1,125 @@
+---
+title: "What makes an AI an agent"
+titleAccent: "an agent"
+tabTitle: "AI, Plainly: Agents"
+partTitle: "Agents, or the bigger loop"
+description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Follow a made-up run turn by turn, watch the notebook fill up, and see why checks matter. Part 2 of AI, plainly.
+dek: An agent is the same word-guessing model, called again and again by a regular program, with nothing to remember but the conversation. Here's one run, turn by turn, and its notebook filling up.
+eyebrow: "AI, plainly"
+date: 2026-11-24
+readMinutes: 5
+series: ai-plainly
+part: 2
+draft: true
+image: /img/og/ai-plainly-agents.jpg
+---
+import LoopInLoop from '../../components/blog/LoopInLoop.astro';
+import ContextMeter from '../../components/blog/ContextMeter.astro';
+import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
+import StatRow from '../../components/blog/StatRow.astro';
+import GuessCards from '../../components/blog/GuessCards.astro';
+import AgentsReel from '../../components/blog/AgentsReel.astro';
+import story from '../../data/ai-plainly/inference.json';
+import d from '../../data/ai-plainly/ai-plainly-agents.json';
+import day2 from '../../data/gesso/day2.json';
+
+
+This is part 2 of [AI, plainly](/blog/ai-plainly/), and it builds on [part 1's tools](/blog/ai-plainly-tools/).
+
+Say you type one line. "Find a dry morning this weekend when the park is open, and draft a text I can send." A few turns later the draft text is ready, and you didn't type anything else.
+
+Here's where my kid-level explanation ran out. Part 1 got the model one request and one result. So how does it do a whole job?
+
+Agents get sold as a smarter kind of AI that keeps thinking in the background. The picture below is what's really there.
+
+## A loop around the loop
+
+<LoopInLoop
+  mode="diagram"
+  loop={story.loop}
+  caption="Two stations take turns. The harness is a regular program. Some tools it runs use AI of their own, but this model isn't running then. The trip count is made up."
+/>
+
+An **agent** is the model called again and again in a loop, choosing its next step from what came back. The program doing the calling is the **harness** (part 1 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
+
+One trip around the big ring is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once. The harness runs them all and pastes every result in before calling it again.)
+
+<NoDumbQuestions items={[
+  { q: 'Is the thinking a separate hidden brain?', a: "No. It's more text the model writes, the same way it writes answers, even when an app hides it from you." },
+]} />
+
+## One run, turn by turn
+
+Four made-up turns, read top to bottom. Each card is one trip around the loop.
+
+<LoopInLoop
+  mode="run"
+  run={d}
+  caption="A made-up run, one tool request per turn. Real ones often run many more turns."
+/>
+
+Turn 2 is the one to watch. Nothing in the job said to check Sunday. A script only follows the branches someone wrote ahead of time, and nobody wrote this one. The model wrote it after reading the result.
+
+It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first).
+
+## Its whole memory is the conversation
+
+From one model call to the next, nothing carries over except the text. The harness hands the model the whole conversation again every time.
+
+It's the same stack of paper from part 1, now a notebook with a page limit. Each turn the model starts reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had.
+
+Now picture a bigger job, like planning the whole weekend.
+
+<ContextMeter
+  state="grow"
+  meter={d.meter}
+  caption="What the model can see is only the conversation. Block sizes and the limit are made up and not to scale."
+/>
+
+That page limit is called the **context window**. It's the most text the model can work with at once. Long jobs fill it.
+
+<NoDumbQuestions items={[
+  { q: 'But my chat app has memory.', a: "Those features save notes and put them back into the conversation. It's still the notebook." },
+]} />
+
+## A real one, and why checks matter
+
+[Gesso](/blog/gesso-agent-loop/) is my ongoing painting-lesson experiment. It takes a photo and makes a step-by-step painting lesson, and every step needs a picture. It ran this loop in Claude Code. I wrote a list of rules for it, including the checks. Claude ran the lesson alone.
+
+{/* 14 min isn't in day2.json. It's hard-coded in src/content/blog/gesso-agent-loop.mdx (the StatRow, line 71). */}
+<StatRow stats={[
+  { value: String(day2.all_decisions.length), label: 'pictures it planned, picking an image tool for each' },
+  { value: '2', label: 'problems a fresh copy caught in round 1' },
+  { value: '1', label: 'still wrong in round 2, after the fixes' },
+  { value: '14 min', label: 'start to finish' },
+]} />
+
+A loop that only makes things will happily make wrong things. That's part 0's confident guesser, now taking actions. So one check used a fresh copy of Claude with a clean conversation. It read the lesson and listed problems, Claude fixed them, and another fresh copy read it again.
+
+<ContextMeter
+  state="reviewer"
+  maker={d.reviewer.maker}
+  fresh={d.reviewer.fresh}
+  track={d.meter.track}
+  caption="A fresh copy is the same model with a clean conversation. Bar sizes are made up."
+/>
+
+More loops don't check anything by themselves. Someone has to build the check in.
+
+## Check yourself
+
+Quick check before the next part.
+
+<GuessCards
+  title="Myth or fact"
+  options={['Myth', 'Fact']}
+  cards={d.quiz}
+/>
+
+## What's next
+
+Every word the agent writes comes out of the same dials, set during training. That goes for its thinking, its tool requests and its answers alike. Nobody set them by hand. So how does nudging them a little at a time ever land on the right settings? It's math, but nothing past arithmetic. That's the next post.
+
+The weather tool, for the record, has no idea any of this happened.
+
+<AgentsReel run={d} />

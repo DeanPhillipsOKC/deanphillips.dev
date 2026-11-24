@@ -1,0 +1,220 @@
+---
+// The conversation as the agent's only memory, drawn as a bar (the notebook) with a dashed page limit (the
+// context window). Same colors as LoopInLoop: muted for text the harness or the reader wrote, violet for
+// what the model wrote, teal for tool results, a dashed outline for a summary or the work to check. Both
+// states are still pictures with no controls, so they read the same with or without JavaScript.
+//
+// state="grow": a longer made-up job (it has its own title, so it doesn't read as the park run) as four
+// numbered snapshots read top to bottom. Turn 1, turn 3 (search results take big bites), turn squeezeAt
+// with the next result drawn as a dashed ghost crossing the line, and the fix, where your job and the
+// oldest turns became one summary. Every bar is drawn to the same scale, and the snapshots fade in once on
+// scroll unless the reader prefers less motion.
+//
+// state="reviewer": a wrong-vs-right pair. The maker checking itself reads its own long story first
+// (bracketed, panel greyed), and a fresh copy reads a short bar with only the work to check. Same scale for
+// both bars. Under them, one bracket across both says what the fresh copy helps with and what it doesn't.
+interface MTurn { wrote: number; result: number; kind: string }
+interface Meter { title?: string; jobText?: string; track: number; limit: number; setup: number; job: number; summary: number; turns: MTurn[]; squeezeAt: number }
+interface RBlock { kind: string; size: number; label: string }
+interface Props { state?: 'grow' | 'reviewer'; meter?: Meter; maker?: RBlock[]; fresh?: RBlock[]; track?: number; caption?: string }
+const { state = 'grow', meter, maker = [], fresh = [], track = 68, caption } = Astro.props;
+const pct = (n: number, t: number) => `${(100 * n / t).toFixed(2)}%`;
+
+// The four snapshots. Each is a list of blocks, a headline, and an optional label pointing at one block.
+type B = { kind: string; size: number; label?: string };
+type Snap = { head: string; blocks: B[]; ghost?: number; point?: { at: number; text: string; end?: boolean }; notes?: { text: string; warn?: boolean }[] };
+const snaps: Snap[] = [];
+if (meter) {
+  const S = meter.squeezeAt;
+  const turnBlocks = (from: number, to: number) => meter.turns.slice(from, to).flatMap((t) => [{ kind: 'm', size: t.wrote }, { kind: 'r', size: t.result, label: t.kind === 'search' ? 'search' : undefined }]);
+  const base = [{ kind: 'setup', size: meter.setup, label: 'setup' }, { kind: 'job', size: meter.job }];
+  const at = (blocks: B[], i: number) => blocks.slice(0, i).reduce((a, b) => a + b.size, 0);
+  const s1 = [...base, ...turnBlocks(0, 1)];
+  const s2 = [...base, ...turnBlocks(0, 3)];
+  const firstSearch = s2.findIndex((b) => b.label === 'search');
+  const s3 = [...base, ...turnBlocks(0, S)];
+  const s4 = [{ kind: 'setup', size: meter.setup, label: 'setup' }, { kind: 'sum', size: meter.summary }, ...turnBlocks(S - 1, S + 1)];
+  snaps.push(
+    { head: 'Turn 1. Setup notes, your job, and one turn.', blocks: s1 },
+    { head: 'Turn 3. Search results take big bites.', blocks: s2, point: firstSearch >= 0 ? { at: at(s2, firstSearch), text: 'a search result' } : undefined },
+    { head: `Turn ${S}. The next result won't fit under the line.`, blocks: s3, ghost: meter.turns[S].wrote + meter.turns[S].result, point: { at: 0, text: `turn ${S + 1} won't fit ↑`, end: true } },
+    {
+      head: `The fix. The model squeezes your job and turns 1 to ${S - 1} into a summary.`, blocks: s4,
+      point: { at: meter.setup, text: 'the summary' },
+      notes: [{ text: 'Small details, even your exact wording, can get lost.', warn: true }, { text: 'Other harnesses drop old results, or just stop.' }],
+    },
+  );
+}
+const used = (s: Snap) => s.blocks.reduce((a, b) => a + b.size, 0);
+// The reviewer's bracket: from the maker's first block of its own reasoning to its last.
+const story = (() => {
+  let at = 0, a = -1, b = 0;
+  for (const x of maker) { if (x.kind === 'wrote') { if (a < 0) a = at; b = at + x.size; } at += x.size; }
+  return { left: pct(Math.max(0, a), track), width: pct(b - Math.max(0, a), track) };
+})();
+const keys = (list: RBlock[]) => list.filter((b, i, a) => a.findIndex((x) => x.label === b.label) === i);
+const book = '<svg class="cm-book" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2z" /><path d="M5 19a2 2 0 0 1 2-2h12" /><path d="M9 7h6M9 10.5h6" /></svg>';
+---
+{state === 'grow' && meter && (
+<figure class="cm cm-grow panel bleed">
+  {meter.title && <p class="cm-title">{meter.title}</p>}
+  {meter.jobText && <p class="cm-jobline"><span class="cm-k">your job</span>{meter.jobText}</p>}
+  <p class="cm-intro"><Fragment set:html={book} />Every turn the model reads the whole notebook, from page one.</p>
+  <ul class="cm-legend">
+    <li><i class="cm-sw cm-b-setup"></i><span><b>setup notes</b> from the harness</span></li>
+    <li><i class="cm-sw cm-b-job"></i><span><b>your job</b></span></li>
+    <li><i class="cm-sw cm-b-m"></i><span><b>the model wrote</b></span></li>
+    <li><i class="cm-sw cm-b-r"></i><span><b>a tool result</b></span></li>
+    <li><i class="cm-sw cm-b-sum"></i><span><b>a summary</b></span></li>
+  </ul>
+  <ol class="cm-snaps">
+    {snaps.map((s, i) => (
+      <li class={`cm-snap${i === snaps.length - 1 ? ' cm-snap-fix' : ''}`} style={`--i:${i}`}>
+        <span class="cm-n">{i + 1}</span>
+        <div class="cm-sbody">
+          <p class="cm-sh">{s.head}</p>
+          <div class="cm-barbox">
+            <p class="cm-plimit" style={`right:${pct(meter.track - meter.limit, meter.track)}`}>page limit</p>
+            <div class="cm-track">
+              <div class="cm-blocks">
+                {s.blocks.map((b) => <i class={`cm-b cm-b-${b.kind}`} style={`width:${pct(b.size, meter.track)}`}>{b.label && <span>{b.label}</span>}</i>)}
+                {s.ghost && <i class="cm-ghost" style={`width:${pct(Math.min(s.ghost, meter.track - used(s)), meter.track)}`}></i>}
+              </div>
+              <i class="cm-limit" style={`left:${pct(meter.limit, meter.track)}`}></i>
+            </div>
+            {s.point && (s.point.end ? <p class="cm-point cm-point-end">{s.point.text}</p> : <p class="cm-point" style={`margin-left:${pct(s.point.at, meter.track)}`}>↑ {s.point.text}</p>)}
+          </div>
+          {s.notes?.map((n) => <p class={n.warn ? 'cm-note cm-note-warn' : 'cm-note'}>{n.text}</p>)}
+          <span class="cm-sr">{used(s)} of {meter.limit} made-up units used.</span>
+        </div>
+      </li>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+)}
+
+{state === 'reviewer' && (
+<figure class="cm cm-rev panel bleed">
+  <div class="cm-pair">
+    <div class="cm-side cm-side-no">
+      <p class="cm-tag cm-tag-no">tempted to agree with itself</p>
+      <p class="cm-side-h">The maker checks itself</p>
+      <p class="cm-reads">↓ reads its own story first</p>
+      <div class="cm-rtrack">
+        <div class="cm-blocks">
+          {maker.map((b) => <i class={`cm-b cm-b-${b.kind}`} style={`width:${pct(b.size, track)}`} title={b.label}></i>)}
+        </div>
+      </div>
+      <p class="cm-story" style={`margin-left:${story.left};width:${story.width}`}><span>its own story, read first</span></p>
+      <p class="cm-keys">{keys(maker).map((b) => <span><i class={`cm-sw cm-b-${b.kind}`}></i>{b.label}</span>)}</p>
+    </div>
+    <div class="cm-side cm-side-yes">
+      <p class="cm-tag cm-tag-yes">clean notebook</p>
+      <p class="cm-side-h">A fresh copy checks</p>
+      <p class="cm-reads">↓ never saw the reasoning</p>
+      <div class="cm-rtrack">
+        <div class="cm-blocks">
+          {fresh.map((b) => <i class={`cm-b cm-b-${b.kind}`} style={`width:${pct(b.size, track)}`} title={b.label}></i>)}
+        </div>
+      </div>
+      <p class="cm-keys">{keys(fresh).map((b) => <span><i class={`cm-sw cm-b-${b.kind}`}></i>{b.label}</span>)}</p>
+    </div>
+  </div>
+  <div class="cm-same">
+    <p class="cm-same-h">Same model, same dials</p>
+    <p class="cm-same-r cm-same-yes"><b>Helps with</b> not being nudged by its own story</p>
+    <p class="cm-same-r cm-same-no"><b>Doesn't help with</b> mistakes baked into the dials</p>
+  </div>
+  <p class="cm-chip">Checks don't have to be AI. A regular program can check too.</p>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+)}
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.cm-grow')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('cm-ready');
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { root.classList.add('cm-go'); io.disconnect(); } }, { threshold: 0.12 });
+    io.observe(root);
+  }
+</script>
+
+<style is:global>
+  .cm p { margin: 0; }
+  .cm-title { font: 700 1.25rem/1.2 "Space Grotesk", sans-serif; color: var(--text); }
+  .cm-jobline { margin-top: 8px !important; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text); }
+  .cm-k { font: 600 0.8rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; padding: 5px 8px; border-radius: 6px; color: var(--muted); background: var(--card); border: 1px solid var(--line); }
+  .cm-intro { margin-top: 14px !important; display: flex; align-items: center; gap: 10px; font: 600 1rem/1.35 Inter, sans-serif; font-style: normal; color: var(--text); }
+  .cm-book { flex: none; width: 28px; height: 28px; fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+  .cm-legend { list-style: none; margin: 12px 0 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .cm-legend li { margin: 0 !important; display: flex; align-items: center; gap: 6px; font: 500 0.88rem/1.3 Inter, sans-serif; color: var(--muted) !important; }
+  .cm-legend b { color: var(--text); font-weight: 600; }
+  .cm-snaps { list-style: none; margin: 16px 0 0 !important; padding: 0 !important; display: grid; gap: 12px; }
+  .cm-snap { margin: 0 !important; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); border-left: 4px solid var(--muted); }
+  .cm-snap:nth-child(3) { border-left-color: var(--warn); }
+  .cm-snap-fix { border-left-color: var(--teal); }
+  .cm-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 700 1.1rem/1 "Space Grotesk", sans-serif; background: var(--card); color: var(--text); }
+  .cm-sbody { display: grid; gap: 10px; min-width: 0; }
+  .cm-sh { font: 700 1.05rem/1.35 "Space Grotesk", sans-serif; color: var(--text); }
+  .cm-barbox { position: relative; }
+  .cm-barbox { padding-top: 1.4rem; }
+  .cm-plimit { position: absolute; top: 0; padding-right: 6px; font: 700 0.82rem/1.2 Inter, sans-serif; color: var(--warn); white-space: nowrap; }
+  .cm-track { position: relative; height: 44px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); }
+  .cm-blocks { display: flex; height: 100%; overflow: hidden; border-radius: 7px; }
+  .cm-b { display: flex; align-items: center; justify-content: center; flex: none; height: 100%; overflow: hidden; box-shadow: inset -2px 0 0 var(--card); }
+  .cm-b span { font: 600 0.78rem/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; }
+  .cm-b-setup { background: color-mix(in srgb, var(--muted) 38%, var(--bg-2)); }
+  .cm-b-setup span { color: var(--text); }
+  .cm-b-job { background: color-mix(in srgb, var(--muted) 70%, var(--bg-2)); }
+  .cm-b-sum { background: var(--card); box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -4px; }
+  .cm-b-m, .cm-b-wrote { background: var(--violet); }
+  .cm-b-r, .cm-b-result { background: var(--teal); }
+  .cm-b-work { background: var(--card); box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -3px; }
+  .cm-b-ask { background: repeating-linear-gradient(135deg, var(--muted) 0 3px, color-mix(in srgb, var(--muted) 30%, var(--bg-2)) 3px 6px); }
+  .cm-ghost { flex: none; display: flex; align-items: center; justify-content: center; margin: 3px 0; border: 2px dashed var(--warn); border-radius: 6px; background: color-mix(in srgb, var(--teal) 30%, transparent); }
+  .cm-limit { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 3px dashed var(--warn); }
+  .cm-point { margin-top: 4px !important; width: fit-content; font: 600 0.88rem/1.3 Inter, sans-serif; color: var(--text); }
+  .cm-point-end { margin-left: auto !important; color: var(--warn); }
+  .cm-note { font: 500 0.92rem/1.4 Inter, sans-serif; color: var(--muted); }
+  .cm-note-warn { font-weight: 600; color: var(--text); padding: 6px 10px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--card)); border-radius: 0 8px 8px 0; }
+  .cm-sw { display: inline-block; flex: none; width: 16px !important; height: 16px; border-radius: 4px; }
+  .cm-sw.cm-b-sum { background: none; box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -2px; }
+  .cm-sw.cm-b-work { outline-offset: -2px; }
+  .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .cm-ready .cm-snap { opacity: 0; transform: translateY(10px); }
+  .cm-go .cm-snap { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; transition-delay: calc(var(--i) * .4s); }
+
+  .cm-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cm-side { position: relative; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 2px solid var(--line); display: grid; gap: 10px; align-content: start; }
+  .cm-side-no { background: color-mix(in srgb, var(--muted) 12%, var(--bg-2)); }
+  .cm-side-no .cm-rtrack { filter: saturate(.75); }
+  .cm-side-yes { border: 3px solid var(--teal); }
+  .cm-tag { justify-self: start; font: 700 0.88rem/1 Inter, sans-serif; padding: 6px 10px; border-radius: 999px; }
+  .cm-tag-no { color: var(--muted); border: 1.5px solid var(--muted); }
+  .cm-tag-yes { font-size: 1.05rem; color: var(--bg); background: var(--teal); }
+  .cm-side-h { font: 700 1.2rem/1.2 "Space Grotesk", sans-serif; color: var(--text); }
+  .cm-reads { font: italic 600 0.95rem/1.3 Inter, sans-serif; color: var(--text); }
+  .cm-rtrack { height: 56px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+  .cm-side .cm-b { width: auto; }
+  .cm-story { margin-top: -4px !important; height: 10px; border: 3px solid var(--violet); border-top: 0; border-radius: 0 0 6px 6px; position: relative; }
+  .cm-story span { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap; font: 700 0.9rem/1.2 Inter, sans-serif; color: var(--violet); }
+  .cm-story + .cm-keys { margin-top: 20px !important; }
+  .cm-keys { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 0.85rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .cm-keys span { display: inline-flex; align-items: center; gap: 5px; }
+  .cm-keys .cm-sw { width: 13px !important; height: 13px; }
+  .cm-same { position: relative; margin-top: 22px; padding: 14px 16px 12px; border: 3px solid var(--warn); border-bottom: 0; border-radius: 14px 14px 0 0; display: grid; gap: 8px; }
+  .cm-same-h { position: absolute; top: -0.8rem; left: 50%; transform: translateX(-50%); padding: 0 10px; background: var(--card); white-space: nowrap; font: 700 1rem/1.4 "Space Grotesk", sans-serif; color: var(--warn); }
+  .cm-same-r { font: 600 1rem/1.4 Inter, sans-serif; color: var(--text); }
+  .cm-same-r b { display: inline-block; min-width: 9.5em; font: 700 0.85rem/1.4 Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; }
+  .cm-same-yes b { color: var(--teal); }
+  .cm-same-no b { color: var(--warn); }
+  .cm-chip { margin: 12px auto 0 !important; width: fit-content; max-width: 100%; text-align: center; font: 500 0.9rem/1.35 Inter, sans-serif; color: var(--muted); background: var(--bg-2); border-radius: 999px; padding: 8px 14px; }
+  @media (max-width: 620px) {
+    .cm-pair { grid-template-columns: 1fr; }
+    .cm-same-r b { display: block; min-width: 0; }
+    .cm-snap { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 12px; }
+    .cm-n { width: 30px; height: 30px; font-size: 0.95rem; }
+    .cm-b span { display: none; }
+  }
+</style>
