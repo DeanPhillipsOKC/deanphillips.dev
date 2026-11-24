@@ -194,11 +194,6 @@
       "why": "While the tool runs, the model isn't running at all."
     },
     {
-      "prompt": "An agent remembers your last job with nothing written down.",
-      "answer": "Myth",
-      "why": "Memory features work by pasting saved notes back into the conversation."
-    },
-    {
       "prompt": "One way it stops is writing an answer with no tool request.",
       "answer": "Fact",
       "why": "There's nothing left for the harness to run."
@@ -207,11 +202,6 @@
       "prompt": "More loops means it double-checks itself.",
       "answer": "Myth",
       "why": "Only if someone builds a check into the loop."
-    },
-    {
-      "prompt": "A very long job can push early details out of what it can read.",
-      "answer": "Fact",
-      "why": "The context window has a limit, and the fixes can lose details."
     }
   ],
   "jobShort": "Two concert tickets, on a weekend day with no rain.",

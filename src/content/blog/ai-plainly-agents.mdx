@@ -3,7 +3,7 @@ title: "What makes an AI an agent"
 titleAccent: "an agent"
 tabTitle: "AI, Plainly: Agents"
 partTitle: "Agents, or the bigger loop"
-description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Follow a made-up ticket booking as it checks, adjusts, and checks again, watch the notebook fill up, and see why checks matter. Part 3 of AI, plainly.
+description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness. Follow a made-up ticket booking as it checks, adjusts, and checks again, and see why checks matter. Part 3 of AI, plainly.
 dek: An agent is part 2's tool loop kept going. The same word-guessing model tries something, reads the result, and adjusts, with nothing to remember but the conversation.
 eyebrow: "AI, plainly"
 date: 2026-11-24
@@ -69,26 +69,6 @@ Turn 3 is the one to watch. Nothing in the job said to check Sunday. A script on
 
 It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first). Turn 5 shows the OK kind. The harness paused before spending your money, and the run went on once you said yes.
 
-## Its whole memory is the conversation
-
-From one model call to the next, nothing carries over except the text. The harness hands the model the whole conversation again every time.
-
-It's the same stack of paper from part 2, now a notebook with a page limit. Each turn the model starts reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had.
-
-Now picture a bigger job, like planning the whole weekend.
-
-<ContextMeter
-  state="grow"
-  meter={d.meter}
-  caption="What the model can see is only the conversation. Block sizes and the limit are made up and not to scale."
-/>
-
-That page limit is called the **context window**. It's the most text the model can work with at once. Long jobs fill it.
-
-<NoDumbQuestions items={[
-  { q: 'But my chat app has memory.', a: "Those features save notes and put them back into the conversation. It's still the notebook." },
-]} />
-
 ## A real one, and why checks matter
 
 [Gesso](/blog/gesso-agent-loop/) is my ongoing painting-lesson experiment. It takes a photo and makes a step-by-step painting lesson, and every step needs a picture. It ran this loop in Claude Code. I wrote a list of rules for it, including the checks. Claude ran the lesson alone.
@@ -125,7 +105,9 @@ Quick check before the next part.
 
 ## What's next
 
-Every word the agent writes comes out of the same dials, set during training. That goes for its thinking, its tool requests and its answers alike. Nobody set them by hand. So how does nudging them a little at a time ever land on the right settings? It's math, but nothing past arithmetic. That's the next post.
+Long jobs have a catch. The conversation keeps growing, and there's a limit to how much of it the model can read at once. What the harness does about that, and why agents get forgetful and flaky on long jobs, gets its own post.
+
+First, though, every word the agent writes comes out of the same dials, set during training. That goes for its thinking, its tool requests and its answers alike. Nobody set them by hand. So how does nudging them a little at a time ever land on the right settings? It's math, but nothing past arithmetic. That's the next post.
 
 The weather tool, for the record, has no idea any of this happened.
 
