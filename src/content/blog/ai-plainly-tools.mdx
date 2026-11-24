@@ -76,10 +76,12 @@ How does it know the tools exist? The app slips in a hidden list of them (you'll
     { label: 'Big math', note: 'run_code(print(48271 * 9358))' },
     { label: 'Your file', note: 'read_file(packing-list.txt)' },
   ]}
-  caption="The whole group chat, as if you could see all of it. A real chat app shows you only your question and the last answer. Dashed clouds are what each one is holding. The app keeps the conversation. The model keeps nothing between runs. The weather is made up."
+  caption="The whole group chat, as if you could see all of it. A real chat app shows you only your question and the last answer. The highlighted line is what's new. The weather is made up."
 />
 
-Two things are easy to miss. While the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app runs it again, and it rereads the whole conversation from the top, result included.
+Look at who does the remembering. It's the app. The model is just a token predictor, and it has no memory at all. Every time the app starts it, the app pastes the whole conversation into one message. The model guesses from that message, then stops and keeps nothing.
+
+So while the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app starts it fresh and hands it everything again, result included.
 
 And the result is just more text. Nothing checks whether it's true. And if a pasted page says “do this”, the model may do it.
 
