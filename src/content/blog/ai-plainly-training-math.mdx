@@ -1,0 +1,140 @@
+---
+title: "How an AI learns, with nothing past arithmetic"
+titleAccent: "nothing past arithmetic"
+tabTitle: "AI, Plainly: Training math"
+partTitle: "Training, or how the dials get set"
+description: A plain-English, picture-first explanation of how AI training works, with no formulas. A dial is a slope, the miss is measured by multiplying each miss by itself, and training walks downhill one small step at a time. Fit a line to made-up bean plant data by hand, then watch a computer do it. Part 4 of AI, plainly.
+dek: Every word an AI writes runs through dials set during training. Nobody sets them by hand. Here's how they get set, using stairs, a receipt, and a bean plant.
+eyebrow: "AI, plainly"
+date: 2026-11-24
+readMinutes: 5
+series: ai-plainly
+part: 4
+draft: true
+image: /img/og/ai-plainly-training-math.jpg
+---
+import FitLine from '../../components/blog/FitLine.astro';
+import StairSlope from '../../components/blog/StairSlope.astro';
+import GrowthReceipt from '../../components/blog/GrowthReceipt.astro';
+import MissMath from '../../components/blog/MissMath.astro';
+import MissHill from '../../components/blog/MissHill.astro';
+import StepSize from '../../components/blog/StepSize.astro';
+import MissBowl from '../../components/blog/MissBowl.astro';
+import SameGame from '../../components/blog/SameGame.astro';
+import WordMiss from '../../components/blog/WordMiss.astro';
+import TrainingReceipt from '../../components/blog/TrainingReceipt.astro';
+import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
+import GuessCards from '../../components/blog/GuessCards.astro';
+import TrainingReel from '../../components/blog/TrainingReel.astro';
+import d from '../../data/ai-plainly/ai-plainly-training-math.json';
+
+This is part 4 of AI, plainly. New to the series? Start with [part 1](/blog/ai-plainly/). [Part 3](/blog/ai-plainly-agents/) ended on a loose end. Every turn of an agent runs through the same dials, set during training. So how do they get set?
+
+<FitLine
+  beans={d.beans}
+  still
+  caption="A bean plant's height each week. The numbers are made up. The second line came from training, not from a person."
+/>
+
+Part 1 said every wrong guess nudges the dials. When I tried to explain what a nudge is, I got stuck. That's the gap this post fills. No formulas and no symbols. If you can count stairs, you're fine.
+
+## A dial is a slope
+
+A dial is how hard one thing pushes another. For the bean plant, the one thing is the week and the other is the height. Picture it as stairs. How far up you go for each step over is the **slope**, and most dials are just that.
+
+<StairSlope />
+
+A spot on a line works like a receipt. Start somewhere, then add the slope once for every step.
+
+<GrowthReceipt />
+
+So this line has two dials, the slope and the start height. Training's job is to set them.
+
+## The miss
+
+Here's training by hand. You get the dots, and your job is the line. The gap between a dot and the line is a **miss**.
+
+Adding the misses up as they are doesn't work, though. Under and over cancel out.
+
+<MissMath />
+
+One look at the dots plus one nudge is a **round**. Your turn.
+
+<FitLine
+  beans={d.beans}
+  caption="Made-up bean data. The total miss is each miss multiplied by itself, added up. Let it learn runs real training on these eight dots."
+/>
+
+Notice what the computer never gets. Nobody hands it the right line. It gets the dots and how far off it is at each one, and it nudges.
+
+## Downhill
+
+How does it know which way to nudge? Draw the total miss for every setting of the slope dial and you get a valley.
+
+<MissHill
+  beans={d.beans}
+  start={d.hill.start}
+  frames={d.hill.frames}
+  feel={d.hill.feel}
+  caption="Only the slope dial moves here. The start height stays at its best value, so the bottom of this valley is the line you just watched training find. The beans are made up, so these misses are too."
+/>
+
+Each step is the step size times how steep the ground is under the ball. Steep ground, big step. Flat ground, tiny step. The step size is something a person picks, not training, and picking it is fussy.
+
+<StepSize
+  beans={d.beans}
+  start={d.hill.start}
+  rows={d.hill.steps}
+  caption="Same valley, same start, three step sizes. The values are made up."
+/>
+
+With both dials, the valley becomes a bowl. The computer is a blindfolded hiker, feeling for downhill with its feet. Doing that for every dial at once is called **gradient descent**.
+
+<MissBowl />
+
+## From one line to billions of dials
+
+A real model plays the same game with far more dials.
+
+<SameGame rows={d.same} />
+
+(A real model is also more than one straight line. It stacks many, with bends between them, so it can fit curves. That's a post of its own.)
+
+Each guess is part 1's game. Hide the next word, guess, and score the miss.
+
+<WordMiss
+  prompt={d.wordMiss.prompt}
+  right={d.wordMiss.right}
+  cards={d.wordMiss.cards}
+  caption="Made-up percentages. In real training the miss is how low a chance the model gave the right next word. It's scored differently from the bean misses, and the downhill rule is the same."
+/>
+
+Then do that trillions of times.
+
+<TrainingReceipt />
+
+Trillions of guesses, and every so often a small nudge downhill for billions of dials. That's why it takes weeks to months on thousands of chips.
+
+<NoDumbQuestions items={[
+  { q: "Part 1's Study button nudged after every sentence. Is that how big models do it?", a: "No. Big models make a batch of guesses (thousands to millions of words), average the misses, then nudge once. In a big model, nearly every dial plays a part in every guess, so nearly every dial gets a nudge every round." },
+  { q: 'Does it really turn each dial a hair to feel the ground?', a: "That's the idea, and it would work, but it's slow with billions of dials. A piece of bookkeeping works backward from the miss and finds every dial's steepness in one pass (people call it backpropagation). Same answer, much faster." },
+]} />
+
+## Check yourself
+
+Five quick ones.
+
+<GuessCards
+  title="Myth or fact?"
+  options={['Myth', 'Fact']}
+  cards={d.quiz}
+  caption="Tap a guess on each card."
+/>
+
+## What's next
+
+So what are those thousands of chips doing all day? Mostly multiplying and adding. And they started out in video games. That's part 5, the math of inference, and why everyone talks about Nvidia.
+
+The bean plant kept growing the whole time. It didn't need a single nudge.
+
+<TrainingReel beans={d.beans} />

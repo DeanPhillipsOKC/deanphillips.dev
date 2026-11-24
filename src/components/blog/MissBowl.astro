@@ -1,0 +1,87 @@
+---
+// Gradient descent with two dials, drawn as a hiking map seen from above. Oval contour rings sit over
+// "slope dial" across and "start height dial" up. Each ring is one total miss, with made-up miss numbers on
+// three of them and "lowest" at the center, and the rings are outlines only (no stacked fills), so the
+// middle doesn't read as a hilltop. The trail is real downhill steps on this bowl, worked out here, so it
+// crosses each ring at a right angle and the steps get shorter near the middle. A blindfolded stick hiker
+// stands on the outer ring at the start, with a thought bubble right above him. One dot per round.
+// A sketch, not to scale (the rings are tilted because the two dials trade off against each other).
+// Static SVG, no JavaScript, no motion.
+const cx = 190, cy = 160, a = 160, b = 98, phi = (-24 * Math.PI) / 180;
+const rings = [1, 0.82, 0.64, 0.47, 0.31, 0.16];
+const rot = (x: number, y: number) => ({ x: cx + x * Math.cos(phi) - y * Math.sin(phi), y: cy + x * Math.sin(phi) + y * Math.cos(phi) });
+// Downhill steps on the bowl, from the outer ring at the left.
+const trail: { x: number; y: number }[] = [];
+{
+  let x = a * Math.cos((210 * Math.PI) / 180), y = b * Math.sin((210 * Math.PI) / 180);
+  for (let i = 0; i < 13; i++) { trail.push(rot(x, y)); x *= 0.84; y *= 0.62; }
+}
+const ringLabels = [{ k: 1, t: 'miss 100' }, { k: 0.64, t: 'miss 40' }, { k: 0.31, t: 'miss 10' }].map((r) => ({ ...rot(0, b * r.k), t: r.t }));
+const h = trail[0];
+---
+<figure class="mbw panel bleed">
+  <p class="mbw-head">Two dials. The valley is a bowl.</p>
+  <p class="mbw-sub">Seen from above, like a map. Each ring is one total miss.</p>
+  <svg class="mbw-pic" viewBox="0 0 360 330" role="img" aria-label="A map of the miss seen from above. Oval rings, each one total miss, close in on the lowest spot, marked best line. A blindfolded hiker stands at the start on the outer ring. A trail of dots, one per round, crosses the rings straight in toward the middle.">
+    <g transform={`rotate(-24 ${cx} ${cy})`}>
+      {rings.map((k) => <ellipse class="mbw-ring" cx={cx} cy={cy} rx={a * k} ry={b * k} />)}
+    </g>
+    {ringLabels.map((r) => <text class="mbw-rl" x={r.x + 4} y={r.y + 5}>{r.t}</text>)}
+    {trail.map((p, i) => <circle class="mbw-step" cx={p.x} cy={p.y} r={i ? 3.6 : 5} />)}
+    <text class="mbw-note" x={trail[3].x - 4} y={trail[3].y + 22}>one dot per round</text>
+    <g class="mbw-flag" transform={`translate(${cx} ${cy})`}>
+      <line x1="0" y1="0" x2="0" y2="-34" />
+      <path d="M0 -34 L34 -27 L0 -20 Z" />
+      <circle r="4" />
+    </g>
+    <text class="mbw-flagt" x={cx + 38} y={cy - 22}>lowest.</text>
+    <text class="mbw-flagt" x={cx + 38} y={cy - 5}>best line</text>
+    <g class="mbw-hiker" transform={`translate(${h.x} ${h.y - 46})`}>
+      <circle cx="0" cy="0" r="9" />
+      <line class="mbw-blind" x1="-10" y1="-1" x2="10" y2="-1" />
+      <line x1="0" y1="9" x2="0" y2="30" />
+      <line x1="0" y1="15" x2="-11" y2="24" />
+      <line x1="0" y1="15" x2="11" y2="22" />
+      <line x1="0" y1="30" x2="-8" y2="44" />
+      <line x1="0" y1="30" x2="8" y2="44" />
+    </g>
+    <text class="mbw-st" x={h.x - 6} y={h.y + 24}>start</text>
+    <circle class="mbw-puff" cx={h.x + 4} cy={h.y - 64} r="3" />
+    <circle class="mbw-puff" cx={h.x + 8} cy={h.y - 76} r="4.5" />
+    <rect class="mbw-bubble" x="26" y="50" width="236" height="38" rx="19" />
+    <text class="mbw-think" x="144" y="75" text-anchor="middle">Which way is down from here?</text>
+    <line class="mbw-ax" x1="20" y1="300" x2="340" y2="300" />
+    <line class="mbw-ax" x1="20" y1="300" x2="20" y2="64" />
+    <text class="mbw-axl" x="340" y="320" text-anchor="end">slope dial</text>
+    <text class="mbw-axl" x="12" y="190" text-anchor="middle" transform="rotate(-90 12 190)">start height dial</text>
+  </svg>
+  <p class="mbw-foot"><span><b>Gradient</b> means how steep it is for every dial at once.</span><span><b>Descent</b> means going down.</span></p>
+  <figcaption>A sketch, not to scale, and the miss numbers are made up. With two dials you can still draw the bowl. With billions you can't, but the rule is the same. A real model's ground is lumpy, so going downhill finds a good low spot, not a perfect one.</figcaption>
+</figure>
+
+<style is:global>
+  .mbw p { margin: 0; }
+  .mbw-head { font: 700 clamp(1.3rem, 5vw, 1.7rem)/1.2 "Space Grotesk", sans-serif; margin-bottom: 4px !important; }
+  .mbw-sub { font-size: 1.02rem; color: var(--muted); margin-bottom: 8px !important; }
+  .mbw-pic { width: 100%; max-width: 480px; height: auto; display: block; margin: 0 auto; }
+  .mbw-ring { fill: none; stroke: color-mix(in srgb, var(--teal) 55%, var(--line)); stroke-width: 1.6; }
+  .mbw-rl { font: 600 12px Inter, sans-serif; fill: var(--muted); paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+  .mbw-step { fill: var(--violet); }
+  .mbw-note, .mbw-st { font: 700 13px "Space Grotesk", sans-serif; fill: var(--violet); paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+  .mbw-flag line { stroke: var(--text); stroke-width: 2.5; }
+  .mbw-flag path { fill: var(--ok); }
+  .mbw-flag circle { fill: var(--text); }
+  .mbw-flagt { font: 700 15px "Space Grotesk", sans-serif; fill: var(--ok); paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+  .mbw-hiker circle { fill: var(--card); stroke: var(--text); stroke-width: 2.5; }
+  .mbw-hiker line { stroke: var(--text); stroke-width: 2.5; stroke-linecap: round; }
+  .mbw-hiker .mbw-blind { stroke: var(--pink); stroke-width: 5; }
+  .mbw-bubble { fill: var(--card); stroke: var(--muted); stroke-width: 1.5; }
+  .mbw-puff { fill: var(--card); stroke: var(--muted); stroke-width: 1.5; }
+  .mbw-think { font: 600 15px Inter, sans-serif; fill: var(--text); }
+  .mbw-ax { stroke: var(--line); stroke-width: 2; }
+  .mbw-axl { font: 600 13px Inter, sans-serif; fill: var(--muted); }
+  .mbw-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 10px auto 0 !important; max-width: 520px; border-radius: 10px; background: var(--bg-2); border: 1px solid var(--line); }
+  .mbw-foot span { padding: 10px 12px; font-size: 1rem; line-height: 1.35; }
+  .mbw-foot span + span { border-left: 1px solid var(--line); }
+  .mbw-foot b { color: var(--teal); }
+</style>

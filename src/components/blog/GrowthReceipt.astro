@@ -1,0 +1,68 @@
+---
+// A point on a line, as a shop receipt. The bean line's start height plus "up 2" for each week adds up
+// to its height at week 3, with violet notes on the receipt naming the two dials (the start height is a dial
+// too, a starting point rather than a slope). Beside it (under it on phones), a tiny chart of the same line with three
+// teal stairs under it and a marker at week 3. Static HTML and SVG, so it needs no JavaScript and has no
+// motion. Values are made up (rounded from the bean line in FitLine).
+---
+<figure class="grc panel bleed">
+  <div class="grc-wrap">
+    <div class="grc-receipt">
+      <p class="grc-head">BEAN LINE. 2 DIALS</p>
+      <p class="grc-row"><span>start height</span><i></i><b>1 cm</b></p>
+      <p class="grc-note"><span aria-hidden="true">↑</span> A dial too. This one is a starting point, not a slope.</p>
+      <div class="grc-group">
+        <p class="grc-row"><span>week 1</span><i></i><b>up 2</b></p>
+        <p class="grc-row"><span>week 2</span><i></i><b>up 2</b></p>
+        <p class="grc-row"><span>week 3</span><i></i><b>up 2</b></p>
+      </div>
+      <p class="grc-note"><span aria-hidden="true">↑</span> The <b>slope</b> dial, once per week.</p>
+      <p class="grc-row grc-total"><span>height at week 3</span><i></i><b>7 cm</b></p>
+      <svg class="grc-tear" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L0 4 L10 10 L20 4 L30 10 L40 4 L50 10 L60 4 L70 10 L80 4 L90 10 L100 4 L110 10 L120 4 L130 10 L140 4 L150 10 L160 4 L170 10 L180 4 L190 10 L200 4 L200 0 Z" /></svg>
+    </div>
+    <svg class="grc-chart" viewBox="0 0 220 210" role="img" aria-label="The bean line starts at 1 centimeter at week 0 and climbs 2 centimeters each week, reaching 7 at week 3.">
+      <line class="grc-ax" x1="34" y1="180" x2="210" y2="180" />
+      <line class="grc-ax" x1="34" y1="180" x2="34" y2="14" />
+      {[0, 1, 2, 3, 4].map((w) => <text class="grc-tk" x={34 + w * 40} y="198" text-anchor="middle">{w}</text>)}
+      {[0, 3, 6, 9].map((h) => <text class="grc-tk" x="26" y={180 - h * 18 + 4} text-anchor="end">{h}</text>)}
+      <text class="grc-axl" x="200" y="172" text-anchor="end">week</text>
+      <text class="grc-axl" x="40" y="22">cm</text>
+      <line class="grc-line" x1="34" y1={180 - 18} x2="194" y2={180 - 9 * 18} />
+      <path class="grc-steps" d={`M34 ${180 - 18} H74 V${180 - 54} H114 V${180 - 90} H154 V${180 - 126}`} />
+      <circle class="grc-start" cx="34" cy={180 - 18} r="6" />
+      <circle class="grc-mark" cx="154" cy={180 - 126} r="7" />
+      <text class="grc-lab" x="146" y={180 - 140} text-anchor="end">7 cm</text>
+      <text class="grc-lab grc-lab-v" x="44" y={180 - 4}>start 1</text>
+    </svg>
+  </div>
+  <figcaption>Any spot on a line is where you started plus the slope for every step since. Part 1's tiny model skipped the start height to stay small. Numbers made up.</figcaption>
+</figure>
+
+<style is:global>
+  .grc p { margin: 0; }
+  .grc-wrap { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; align-items: center; }
+  .grc-receipt { position: relative; background: var(--bg-2); border: 1px solid var(--line); border-bottom: 0; border-radius: 10px 10px 0 0; padding: 16px 16px 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin-bottom: 10px; }
+  .grc-head { font: 700 1rem/1.2 ui-monospace, Menlo, monospace; letter-spacing: .08em; text-align: center; padding-bottom: 10px !important; margin-bottom: 8px !important; border-bottom: 2px dashed var(--line); }
+  .grc-row { display: flex; align-items: baseline; gap: 6px; font-size: 1rem; line-height: 1.9; }
+  .grc-row i { flex: 1; border-bottom: 2px dotted var(--muted); opacity: .6; transform: translateY(-4px); min-width: 12px; }
+  .grc-row b { white-space: nowrap; }
+  .grc-group { border-left: 3px solid var(--teal); padding-left: 8px; margin-left: -11px; }
+  .grc-group b { color: var(--teal); }
+  .grc-note { font: 500 0.88rem/1.35 Inter, sans-serif; color: var(--violet); margin: 2px 0 8px !important; }
+  .grc-note b { font-weight: 700; }
+  .grc-total { margin-top: 8px !important; padding-top: 8px; border-top: 2px dashed var(--line); font-size: 1.15rem; font-weight: 700; }
+  .grc-total b { font-size: 1.5rem; }
+  .grc-tear { position: absolute; left: -1px; right: -1px; bottom: -10px; width: calc(100% + 2px); height: 10px; }
+  .grc-tear path { fill: var(--bg-2); stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .grc-chart { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; }
+  .grc-ax { stroke: var(--line); stroke-width: 2; }
+  .grc-tk { font: 500 12px Inter, sans-serif; fill: var(--muted); }
+  .grc-axl { font: 600 12px Inter, sans-serif; fill: var(--muted); }
+  .grc-line { stroke: var(--teal); stroke-width: 2; stroke-dasharray: 5 5; opacity: .7; }
+  .grc-steps { fill: none; stroke: var(--teal); stroke-width: 4; stroke-linejoin: round; }
+  .grc-start { fill: var(--violet); }
+  .grc-mark { fill: var(--text); stroke: var(--card); stroke-width: 2; }
+  .grc-lab { font: 700 16px "Space Grotesk", sans-serif; fill: var(--text); }
+  .grc-lab-v { fill: var(--violet); font-size: 13px; }
+  @media (max-width: 620px) { .grc-wrap { grid-template-columns: 1fr; } }
+</style>
