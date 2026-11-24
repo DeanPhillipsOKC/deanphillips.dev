@@ -49,6 +49,26 @@ inference post). Owner's ideas, 2026-11-24. Suggested order:
   exactly what AI needs, which is why Nvidia keeps showing up in the news, the same way part 0
   connects "billions of parameters" to the dials. Check any history before using it (for example,
   the 2012 image model that was trained on two gaming GPUs).
+- **Added by the owner, 2026-11-24 ("all")**, with the full suggested order:
+  inference (done), text finisher to chatbot, tools, why it forgets, agents, confidently wrong,
+  training math, inference math and GPUs, thinking models, then pictures. Renumber `part` when
+  these land (tools, agents, and the two math posts were first drafted as parts 1 to 4).
+- **How a text finisher becomes a chatbot**: part 0 says a model only continues text, so how does
+  it take turns and answer? The hidden script with user and assistant turns, the system prompt, the
+  second round of training (examples people write, answers people rate), and the knowledge cutoff.
+  Makes "the model writes a request" in the tools post make sense, so it goes right before tools.
+  Can fold in "steering the guess" (why examples, context, and roles in a prompt work).
+- **Why it forgets, and how "memory" really works**: nothing carries over between messages. It
+  rereads the whole conversation each time, up to the size of its window. "Memory" features are a
+  tool that pastes notes back in. Explains long chats drifting, long chats costing more, and why
+  agents manage what they keep. Before or after the agents post.
+- **Why it's confidently wrong**: a smooth guess can be false, "are you sure?" can flip the answer,
+  and what actually helps (search tools, citations, checking work). After tools.
+- **"Thinking" models**: the same loop writing scratch work before the answer, not a new kind of
+  brain. After the inference math post.
+- **Steering the guess**: why examples, context, and roles in a prompt change what comes next.
+  Its own post, or a section of the chatbot post.
+- **How AI makes pictures** (later): a different machine from next-word guessing, as a contrast.
 - **Format idea**: a card-based "AI, plainly" field guide in the style of the OWASP page (one concept
   per card, same parts on every card, each card shareable on its own), with each card linking to the
   post that goes deep. Decide with the owner before building.
