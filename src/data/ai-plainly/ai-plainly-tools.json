@@ -265,179 +265,171 @@
       }
     ]
   },
-  "comic": [
+  "chat": [
     {
-      "a": "you",
-      "b": "app",
-      "caption": "You ask the app.",
-      "msgs": [
+      "kind": "msg",
+      "who": "you",
+      "to": "app",
+      "lines": [
         {
-          "from": "a",
-          "lines": [
-            {
-              "text": "What's the weather in Tulsa right now?"
-            }
-          ]
+          "text": "What's the weather in Tulsa right now?"
         }
       ]
     },
     {
-      "a": "app",
-      "b": "model",
+      "kind": "think",
+      "who": "app",
       "hidden": true,
-      "caption": "The app hands your question to the model, with a list of tools it can ask for.",
-      "think": {
-        "who": "a",
-        "lines": [
-          {
-            "tag": "You",
-            "text": "What's the weather in Tulsa right now?"
-          }
-        ]
-      },
-      "msgs": [
+      "lines": [
         {
-          "from": "a",
-          "lines": [
-            {
-              "tag": "Tools",
-              "text": "search the web, run code, read a shared file"
-            },
-            {
-              "tag": "You",
-              "text": "What's the weather in Tulsa right now?"
-            }
-          ]
+          "tag": "You",
+          "text": "What's the weather in Tulsa right now?"
         }
       ]
     },
     {
-      "a": "app",
-      "b": "model",
-      "hidden": true,
-      "caption": "The model guesses. Its best guess isn't an answer. It's a note asking for a tool.",
-      "think": {
-        "who": "b",
-        "lines": [
-          {
-            "text": "Only what it was just handed. The tool list and your question."
-          }
-        ]
-      },
-      "msgs": [
-        {
-          "from": "b",
-          "lines": [
-            {
-              "tag": "Note",
-              "text": "search(Tulsa weather now)",
-              "code": true
-            }
-          ]
-        }
-      ]
+      "kind": "event",
+      "text": "The app starts the model"
     },
     {
-      "a": "app",
-      "b": "tool",
+      "kind": "msg",
+      "who": "app",
+      "to": "model",
       "hidden": true,
-      "caption": "The app runs the tool. The model isn't running at all now.",
-      "msgs": [
+      "lines": [
         {
-          "from": "a",
-          "lines": [
-            {
-              "text": "search(Tulsa weather now)",
-              "code": true
-            }
-          ]
+          "tag": "Tools",
+          "text": "search the web, run code, read a shared file"
         },
         {
-          "from": "b",
-          "lines": [
-            {
-              "tag": "Result",
-              "text": "Tulsa now 54°F, cloudy"
-            }
-          ]
+          "tag": "You",
+          "text": "What's the weather in Tulsa right now?"
         }
       ]
     },
     {
-      "a": "app",
-      "b": "model",
+      "kind": "think",
+      "who": "model",
       "hidden": true,
-      "caption": "The app pastes the result into the conversation and sends the whole thing again.",
-      "think": {
-        "who": "a",
-        "lines": [
-          {
-            "tag": "Tools",
-            "text": "search the web, run code, read a shared file"
-          },
-          {
-            "tag": "You",
-            "text": "What's the weather in Tulsa right now?"
-          },
-          {
-            "tag": "Note",
-            "text": "search(Tulsa weather now)",
-            "code": true
-          },
-          {
-            "tag": "Result",
-            "text": "Tulsa now 54°F, cloudy",
-            "fresh": true
-          }
-        ]
-      },
-      "msgs": [
+      "lines": [
         {
-          "from": "a",
-          "lines": [
-            {
-              "text": "The whole conversation, from the top."
-            }
-          ]
+          "text": "Only what it was just handed. The tool list and your question."
         }
       ]
     },
     {
-      "a": "app",
-      "b": "model",
+      "kind": "msg",
+      "who": "model",
+      "to": "app",
       "hidden": true,
-      "caption": "The model starts from nothing and reads it all. This time its best guess is the answer.",
-      "think": {
-        "who": "b",
-        "lines": [
-          {
-            "text": "Only what it was just handed. Tools, question, note, and result."
-          }
-        ]
-      },
-      "msgs": [
+      "lines": [
         {
-          "from": "b",
-          "lines": [
-            {
-              "text": "It's 54°F and cloudy in Tulsa right now."
-            }
-          ]
+          "tag": "Note",
+          "text": "search(Tulsa weather now)",
+          "code": true
         }
       ]
     },
     {
-      "a": "you",
-      "b": "app",
-      "caption": "The app shows you the answer. You only ever see panels 1 and 7.",
-      "msgs": [
+      "kind": "event",
+      "text": "The model stops running"
+    },
+    {
+      "kind": "msg",
+      "who": "app",
+      "to": "tool",
+      "hidden": true,
+      "lines": [
         {
-          "from": "b",
-          "lines": [
-            {
-              "text": "It's 54°F and cloudy in Tulsa right now."
-            }
-          ]
+          "text": "search(Tulsa weather now)",
+          "code": true
+        }
+      ]
+    },
+    {
+      "kind": "msg",
+      "who": "tool",
+      "to": "app",
+      "hidden": true,
+      "lines": [
+        {
+          "tag": "Result",
+          "text": "Tulsa now 54°F, cloudy"
+        }
+      ]
+    },
+    {
+      "kind": "think",
+      "who": "app",
+      "hidden": true,
+      "lines": [
+        {
+          "tag": "Tools",
+          "text": "search the web, run code, read a shared file"
+        },
+        {
+          "tag": "You",
+          "text": "What's the weather in Tulsa right now?"
+        },
+        {
+          "tag": "Note",
+          "text": "search(Tulsa weather now)",
+          "code": true
+        },
+        {
+          "tag": "Result",
+          "text": "Tulsa now 54°F, cloudy",
+          "fresh": true
+        }
+      ]
+    },
+    {
+      "kind": "event",
+      "text": "The app starts the model again. It remembers nothing."
+    },
+    {
+      "kind": "msg",
+      "who": "app",
+      "to": "model",
+      "hidden": true,
+      "lines": [
+        {
+          "text": "The whole conversation, from the top."
+        }
+      ]
+    },
+    {
+      "kind": "think",
+      "who": "model",
+      "hidden": true,
+      "lines": [
+        {
+          "text": "Only what it was just handed. Tools, question, note, and result."
+        }
+      ]
+    },
+    {
+      "kind": "msg",
+      "who": "model",
+      "to": "app",
+      "hidden": true,
+      "lines": [
+        {
+          "text": "It's 54°F and cloudy in Tulsa right now."
+        }
+      ]
+    },
+    {
+      "kind": "event",
+      "text": "The model stops running"
+    },
+    {
+      "kind": "msg",
+      "who": "app",
+      "to": "you",
+      "lines": [
+        {
+          "text": "It's 54°F and cloudy in Tulsa right now."
         }
       ]
     }
