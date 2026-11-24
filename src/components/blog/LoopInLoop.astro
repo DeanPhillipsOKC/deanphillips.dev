@@ -28,10 +28,10 @@ const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden=
     <section class="lil-box lil-model lil-fade" style="--i:0" aria-label="The model">
       <p class="lil-head"><Fragment set:html={dial} /><b>The model</b><span class="lil-own lil-own-m">uses the dials</span></p>
       <div class="lil-small">
-        <p class="lil-strip" aria-label={`The small loop from part 0: ${titles.join(', ')}, then again`}>
+        <p class="lil-strip" aria-label={`The small loop from part 1: ${titles.join(', ')}, then again`}>
           {titles.map((t, i) => (<span class="lil-step"><span class="lil-pip">{t}</span><span class="lil-to" aria-hidden="true">{i < titles.length - 1 ? '→' : '↺'}</span></span>))}
         </p>
-        <p class="lil-per">The part 0 loop. One lap per token, about 140 laps a turn (made up).</p>
+        <p class="lil-per">The part 1 loop. One lap per token, about 140 laps a turn (made up).</p>
       </div>
       <p class="lil-writes"><span class="lil-k">It writes</span><span class="lil-pill lil-pill-think">notes to itself</span><span class="lil-then">then maybe</span><span class="lil-pill lil-pill-req">a tool request</span></p>
       <p class="lil-exit"><span class="lil-exit-t">No tool request?</span><span class="lil-exit-a" aria-hidden="true">→</span><span class="lil-done">Done</span></p>
@@ -42,7 +42,7 @@ const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden=
     </div>
     <section class="lil-box lil-harness lil-fade" style="--i:2" aria-label="The harness">
       <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b><span class="lil-own lil-own-h">regular program</span></p>
-      <p class="lil-aka">the app from part 1</p>
+      <p class="lil-aka">the app from part 2</p>
       <p class="lil-eg"><span class="lil-chip lil-chip-tool">weather, Saturday</span><span class="lil-eg-a" aria-hidden="true">↓</span><span class="lil-chip lil-chip-back">Rain 7 to 11 am</span></p>
       <p class="lil-does">Runs the tool and pastes the result onto the end of the conversation.</p>
       <p class="lil-stamp">The model isn't running here</p>

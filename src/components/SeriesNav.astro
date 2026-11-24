@@ -13,7 +13,8 @@ const parts = series
 const i = parts.findIndex((p) => p.id === post.id);
 const label = (p: CollectionEntry<'blog'>) => p.data.partTitle ?? p.data.tabTitle ?? p.data.title;
 const num = (p: CollectionEntry<'blog'>) => (p.data.part ? `Part ${p.data.part}` : 'Overview');
-const count = parts.filter((p) => p.data.part).length;
+// The highest part number, so a draft preview of a later part still reads "Part 3 of 3".
+const count = Math.max(0, ...parts.map((p) => p.data.part ?? 0));
 const prev = parts[i - 1];
 const next = parts[i + 1];
 ---

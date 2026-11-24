@@ -3,13 +3,13 @@ title: "What makes an AI an agent"
 titleAccent: "an agent"
 tabTitle: "AI, Plainly: Agents"
 partTitle: "Agents, or the bigger loop"
-description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Follow a made-up run turn by turn, watch the notebook fill up, and see why checks matter. Part 2 of AI, plainly.
+description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Follow a made-up run turn by turn, watch the notebook fill up, and see why checks matter. Part 3 of AI, plainly.
 dek: An agent is the same word-guessing model, called again and again by a regular program, with nothing to remember but the conversation. Here's one run, turn by turn, and its notebook filling up.
 eyebrow: "AI, plainly"
 date: 2026-11-24
 readMinutes: 5
 series: ai-plainly
-part: 2
+part: 3
 draft: true
 image: /img/og/ai-plainly-agents.jpg
 ---
@@ -24,11 +24,11 @@ import d from '../../data/ai-plainly/ai-plainly-agents.json';
 import day2 from '../../data/gesso/day2.json';
 
 
-This is part 2 of [AI, plainly](/blog/ai-plainly/), and it builds on [part 1's tools](/blog/ai-plainly-tools/).
+This is part 3 of AI, plainly. It builds on [part 1's inference](/blog/ai-plainly/) and [part 2's tools](/blog/ai-plainly-tools/).
 
 Say you type one line. "Find a dry morning this weekend when the park is open, and draft a text I can send." A few turns later the draft text is ready, and you didn't type anything else.
 
-Here's where my kid-level explanation ran out. Part 1 got the model one request and one result. So how does it do a whole job?
+Here's where my kid-level explanation ran out. Part 2 got the model one request and one result. So how does it do a whole job?
 
 Agents get sold as a smarter kind of AI that keeps thinking in the background. The picture below is what's really there.
 
@@ -40,7 +40,7 @@ Agents get sold as a smarter kind of AI that keeps thinking in the background. T
   caption="Two stations take turns. The harness is a regular program. Some tools it runs use AI of their own, but this model isn't running then. The trip count is made up."
 />
 
-An **agent** is the model called again and again in a loop, choosing its next step from what came back. The program doing the calling is the **harness** (part 1 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
+An **agent** is the model called again and again in a loop, choosing its next step from what came back. The program doing the calling is the **harness** (part 2 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
 
 One trip around the big ring is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once. The harness runs them all and pastes every result in before calling it again.)
 
@@ -66,7 +66,7 @@ It stops one of two ways. Either it writes an answer with no tool request, so th
 
 From one model call to the next, nothing carries over except the text. The harness hands the model the whole conversation again every time.
 
-It's the same stack of paper from part 1, now a notebook with a page limit. Each turn the model starts reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had.
+It's the same stack of paper from part 2, now a notebook with a page limit. Each turn the model starts reading at page one. The harness also slips its own **setup notes** in at the top, which is how the model knew what tools it had.
 
 Now picture a bigger job, like planning the whole weekend.
 
@@ -94,7 +94,7 @@ That page limit is called the **context window**. It's the most text the model c
   { value: '14 min', label: 'start to finish' },
 ]} />
 
-A loop that only makes things will happily make wrong things. That's part 0's confident guesser, now taking actions. So one check used a fresh copy of Claude with a clean conversation. It read the lesson and listed problems, Claude fixed them, and another fresh copy read it again.
+A loop that only makes things will happily make wrong things. That's part 1's confident guesser, now taking actions. So one check used a fresh copy of Claude with a clean conversation. It read the lesson and listed problems, Claude fixed them, and another fresh copy read it again.
 
 <ContextMeter
   state="reviewer"

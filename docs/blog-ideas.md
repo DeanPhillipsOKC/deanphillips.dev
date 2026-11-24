@@ -51,8 +51,10 @@ inference post). Owner's ideas, 2026-11-24. Suggested order:
   the 2012 image model that was trained on two gaming GPUs).
 - **Added by the owner, 2026-11-24 ("all")**, with the full suggested order:
   inference (done), text finisher to chatbot, tools, why it forgets, agents, confidently wrong,
-  training math, inference math and GPUs, thinking models, then pictures. Renumber `part` when
-  these land (tools, agents, and the two math posts were first drafted as parts 1 to 4).
+  training math, inference math and GPUs, thinking models, then pictures. The series has no
+  overview. The owner decided (2026-11-24) that the inference post is part 1, because it's a
+  full tutorial and not just an intro. Tools is part 2 and agents is part 3, and the math posts
+  come next as parts 4 and 5. Number later posts in the order they're published.
 - **How a text finisher becomes a chatbot**: part 0 says a model only continues text, so how does
   it take turns and answer? The hidden script with user and assistant turns, the system prompt, the
   second round of training (examples people write, answers people rate), and the knowledge cutoff.

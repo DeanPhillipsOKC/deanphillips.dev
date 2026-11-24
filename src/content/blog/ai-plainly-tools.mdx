@@ -3,13 +3,13 @@ title: "How an AI that only guesses words can search the web"
 titleAccent: "can search the web"
 tabTitle: "AI, Plainly: Tools"
 partTitle: "Tools, or how it looks things up"
-description: A plain-English, picture-first explanation of AI tools. How a model that can only guess the next word still searches the web, reads your files, and runs code, step by step, plus where "find the nearest match" really happens. Part 1 of AI, plainly.
+description: A plain-English, picture-first explanation of AI tools. How a model that can only guess the next word still searches the web, reads your files, and runs code, step by step, plus where "find the nearest match" really happens. Part 2 of AI, plainly.
 dek: A model can only guess the next word. So how does a chatbot search the web? It writes a note, and an ordinary program does the errand. Here's the whole trip, one step at a time.
 eyebrow: "AI, plainly"
 date: 2026-11-24
 readMinutes: 5
 series: ai-plainly
-part: 1
+part: 2
 draft: true
 image: /img/og/ai-plainly-tools.jpg
 ---
@@ -25,9 +25,9 @@ import GuessCards from '../../components/blog/GuessCards.astro';
 import ToolsReel from '../../components/blog/ToolsReel.astro';
 import d from '../../data/ai-plainly/ai-plainly-tools.json';
 
-This is part 1 of [AI, plainly](/blog/ai-plainly/), and it starts where the overview stopped. The overview said a model can only guess the next word. It can't look anything up. So how can a chatbot tell you it's searching the web?
+This is part 2 of AI, plainly, and it starts where [part 1](/blog/ai-plainly/) stopped. Part 1 said a model can only guess the next word. It can't look anything up. So how can a chatbot tell you it's searching the web?
 
-This post walks the whole trip, one step at a time. And my half-wrong first answer from the overview? Half of it is real. It just describes a different part.
+This post walks the whole trip, one step at a time. And my half-wrong first answer from part 1? Half of it is real. It just describes a different part.
 
 <TrustSwitch
   beforeLabel="What it looks like"
@@ -63,7 +63,7 @@ The model doesn't know today's weather. So what's the most useful thing it could
   caption="At the spot where it would start answering, the model's top guess is the start of a note. The percentages are made up to show the idea."
 />
 
-How does it know the tools exist? The app slips in a hidden list of them (you'll see it in the next picture). And the second round of training from the overview, the one that made it an assistant, included lots of practice at writing notes and using what comes back.
+How does it know the tools exist? The app slips in a hidden list of them (you'll see it in the next picture). And the second round of training from part 1, the one that made it an assistant, included lots of practice at writing notes and using what comes back.
 
 ## A regular program does the work
 
@@ -97,15 +97,15 @@ Someone in a closed room who can only pass notes under the door. A helper outsid
 
 Web search asks a regular search engine, the same kind you'd use. (Big ones use maps like the one below too, along with matching words.) For your own files and help docs, many tools build their own map. Here's that map.
 
-Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from the overview, but for whole passages, and it's a separate map. A separate model of its own hands out the spots. In this job it never writes a word. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
+Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from part 1, but for whole passages, and it's a separate map. A separate model of its own hands out the spots. In this job it never writes a word. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
 
 <NearMatch
   passages={d.nearMatch.passages}
   panels={d.nearMatch.panels}
-  caption="The purple diamond is the search note. The lines go to the three passages sitting nearest to it. Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 4."
+  caption="The purple diamond is the search note. The lines go to the three passages sitting nearest to it. Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 5."
 />
 
-Now, back in the overview, my first try at explaining AI went like this.
+Now, back in part 1, my first try at explaining AI went like this.
 
 <QuoteCheck
   head="My first try, graded"
@@ -140,7 +140,7 @@ Searching for the nearest match is real. It's just not how the model answers. It
   ]}
 />
 
-The Model 7 question got the Model 5 page, and the answer still came out smooth. It's the same confidently wrong from the overview. Now it has a source to be wrong from.
+The Model 7 question got the Model 5 page, and the answer still came out smooth. It's the same confidently wrong from part 1. Now it has a source to be wrong from.
 
 ## Check yourself
 
