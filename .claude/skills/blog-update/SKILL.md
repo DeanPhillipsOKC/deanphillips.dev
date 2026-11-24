@@ -1,25 +1,26 @@
 ---
 name: blog-update
-description: Keeps deanphillips.dev current with the RepBunny project. Reads what changed in the RepBunny repo since the last run, fixes stale facts in live posts (as a pull request the owner merges), drafts at most one new post as an unlisted preview with a publish pull request, and suggests one post to share on LinkedIn and Facebook with ready-to-paste text. Runs as a weekly routine (/blog-update) or by hand. Never makes anything public on its own.
+description: Keeps deanphillips.dev current with the RepBunny project. Reads what changed in the RepBunny repo since the last run, fixes stale facts in live posts, drafts at most one new post as an unlisted preview with a publish pull request that waits for the owner's approval, and suggests one post to share on LinkedIn and Facebook with ready-to-paste text. Merges its own pull requests. Runs as a weekly routine (/blog-update) or by hand. Never makes a new post public without the owner's approval.
 ---
 
 # blog-update
 
-Keep the blog in step with the project, and leave every public change for the owner to approve
-with a single Merge tap on their phone.
+Keep the blog in step with the project. Merge your own pull requests (the owner doesn't review
+them). The only thing that waits for the owner is making a new post public.
 
 Read `docs/writing-rules.md` first, every run. Use `.claude/skills/humanizer/SKILL.md` on every
 piece of text you write: posts, edits, PR descriptions, and share drafts.
 
-## What may change without the owner
+## What needs the owner
 
-- **Unlisted drafts:** a new post with `draft: true`. It builds at `/blog/<slug>/` with a banner and
-  `noindex`, and the Writing page, RSS, sitemap, and series nav leave it out.
-- `.blog-state.json` and `docs/blog-ideas.md`.
+Only one thing: **publishing a post** (`draft: true` to `draft: false`). It waits until the owner has
+read the preview and approved it, either by telling a Claude session or with an approving comment on
+the `Publish:` PR (such as "approved" or "publish"). Then self-merge that PR.
 
-Everything else goes through a pull request the owner merges: publishing a draft
-(`draft: false`), any edit to a published post, and any change to layouts, components, or
-config. **Never merge one of those yourself.**
+Everything else you merge yourself once `npm run build` passes: unlisted drafts (a new post with
+`draft: true` builds at `/blog/<slug>/` with a banner and `noindex`, and the Writing page, RSS,
+sitemap, and series nav leave it out), freshness edits to published posts, `.blog-state.json`,
+`docs/blog-ideas.md`, and component or layout fixes.
 
 ## Setup
 
@@ -43,8 +44,9 @@ Read `.blog-state.json` (`lastRun`, `lastRepCommit`, `suggestedShares`). In `$RE
   (drop entries with `pull_request`). Read the titles, and the bodies of anything about the
   delivery process: skills, routines, workflows, testing, reviews, support, cost.
 - Open and closed PRs on `deanphillips.dev` from earlier runs, to see what the owner merged,
-  closed, or commented on. A comment asking for changes on an open publish or freshness PR is the
-  first thing to handle: revise on that PR's branch and reply on the PR with what changed.
+  closed, or commented on. An owner comment on an open `Publish:` PR is the first thing to handle.
+  If it approves the post, merge the PR. If it asks for changes, revise on that PR's branch and
+  reply on the PR with what changed (the PR still waits for approval).
 
 If nothing relevant changed and nothing is waiting on a PR, skip to step 5.
 
@@ -62,7 +64,7 @@ Check every published post for claims the project has moved past:
   behavior.
 
 Put all of it in one PR, `claude/blog-freshness-<date>`, titled `Freshness: <date>`. List each
-change and its evidence (issue or commit) in the body. Leave it open for the owner. Add a short
+change and its evidence (issue or commit) in the body, and self-merge it once the build passes. Add a short
 italic "Updated <Month D, YYYY>" note to a post only when a fact a reader would care about changed.
 
 ## 3. A new post (at most one per run)
@@ -77,17 +79,19 @@ any new idea you spotted to `docs/blog-ideas.md` under "Waiting for material" an
 2. `npm run build`. Then branch `claude/blog-draft-<slug>`, commit, push, open the PR
    `Draft (unlisted): <title>`, and **self-merge it**. It's an unlisted preview, so it's allowed.
 3. Branch `claude/blog-publish-<slug>` from the new `main`, flip `draft: true` to `draft: false`,
-   build, push, and open the PR `Publish: <title>` **for the owner**. Its body has:
+   build, push, and open the PR `Publish: <title>`. **Leave it open until the owner approves the
+   post** (see "What needs the owner"). Its body has:
    - the preview link `https://deanphillips.dev/blog/<slug>/` (live about a minute after the draft
      merge) and a two-sentence summary;
    - the facts checked and their sources;
    - **LinkedIn draft** and **Facebook draft** (step 5's rules) in plain-text code blocks, ready
-     to paste once it's live.
+     to paste once it's live;
+   - a line saying to comment "approved" (or tell any Claude session) to publish it.
 4. Move the idea to "Drafted" in `docs/blog-ideas.md` (it goes in the state PR in step 6).
 
 ## 4. Don't
 
-- Publish, or edit a published post, without a PR the owner merges.
+- Publish a post the owner hasn't approved.
 - Open a new draft while an earlier `Publish:` PR is still open. Remind the owner instead.
 - Invent quotes, numbers, or conversations. A sample thread must be labeled as based on a real
   one, and must come from a real issue.
@@ -111,7 +115,7 @@ Update `.blog-state.json` (`lastRun` = now in UTC, `lastRepCommit` = `$REP`'s `o
 and self-merge.
 
 Then send **one** push notification (the `PushNotification` tool) that lists, as links, each PR
-waiting on the owner (Publish, Freshness), and says the share suggestion is in the run summary.
+waiting on the owner (only `Publish:` PRs, which need their approval of the post), lists what was merged, and says the share suggestion is in the run summary.
 End the run with a short summary:
 
 - PRs opened or updated, with links;
