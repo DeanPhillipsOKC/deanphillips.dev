@@ -116,72 +116,6 @@
     ],
     "squeezeAt": 5
   },
-  "reviewer": {
-    "maker": [
-      {
-        "kind": "setup",
-        "size": 6,
-        "label": "setup notes"
-      },
-      {
-        "kind": "job",
-        "size": 3,
-        "label": "your job"
-      },
-      {
-        "kind": "wrote",
-        "size": 6,
-        "label": "its own reasoning"
-      },
-      {
-        "kind": "result",
-        "size": 7,
-        "label": "result"
-      },
-      {
-        "kind": "wrote",
-        "size": 7,
-        "label": "its own reasoning"
-      },
-      {
-        "kind": "result",
-        "size": 6,
-        "label": "result"
-      },
-      {
-        "kind": "wrote",
-        "size": 8,
-        "label": "its own reasoning"
-      },
-      {
-        "kind": "work",
-        "size": 8,
-        "label": "the work to check"
-      },
-      {
-        "kind": "ask",
-        "size": 2,
-        "label": "check it"
-      }
-    ],
-    "fresh": [
-      {
-        "kind": "setup",
-        "size": 6,
-        "label": "setup notes"
-      },
-      {
-        "kind": "work",
-        "size": 8,
-        "label": "the work to check"
-      },
-      {
-        "kind": "ask",
-        "size": 2,
-        "label": "find problems"
-      }
-    ]
-  },
   "quiz": [
     {
       "prompt": "An agent runs on a different kind of AI than a chatbot.",
@@ -517,6 +451,44 @@
           ]
         }
       ]
+    }
+  ],
+  "check": [
+    {
+      "link": "Say the harness had one more new chat built in, before it texts you back.",
+      "me": "app",
+      "them": "model",
+      "sub": "new chat, a check",
+      "hidden": true,
+      "banner": "Only the job and the receipt. None of the earlier chats.",
+      "msgs": [
+        {
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Job",
+              "text": "Book me two tickets to the outdoor concert in Tulsa on a weekend day when it isn't raining."
+            },
+            {
+              "tag": "Receipt",
+              "text": "Outdoor concert, next Saturday, 2 seats, $60"
+            },
+            {
+              "tag": "Ask",
+              "text": "Find anything that doesn't match the job."
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "text": "Weekend day, yes. Two seats, yes. No rain is a forecast a week out, so it could change. Tell them to check again closer to the day."
+            }
+          ]
+        }
+      ],
+      "end": "Chat over. Now the app can add that warning to your answer."
     }
   ]
 }

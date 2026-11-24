@@ -16,13 +16,10 @@ image: /img/og/ai-plainly-agents.jpg
 import TextThreads from '../../components/blog/TextThreads.astro';
 import AgentLoop from '../../components/blog/AgentLoop.astro';
 import SameLoop from '../../components/blog/SameLoop.astro';
-import ContextMeter from '../../components/blog/ContextMeter.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
-import StatRow from '../../components/blog/StatRow.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import AgentsReel from '../../components/blog/AgentsReel.astro';
 import d from '../../data/ai-plainly/ai-plainly-agents.json';
-import day2 from '../../data/gesso/day2.json';
 
 
 This is part 3 of AI, plainly. It builds on [part 1's inference](/blog/ai-plainly/) and [part 2's tools](/blog/ai-plainly-tools/).
@@ -37,7 +34,7 @@ Agents get sold as a smarter kind of AI that keeps thinking in the background. T
 
 <AgentLoop caption="One trip around the loop is a turn. Each trip runs inference once, with everything so far." />
 
-An **agent** is inference run in a loop. The model runs, the harness does whatever it asked for, and the model runs again with the result added. It keeps going until the model stops asking for things, or the harness stops it. The program running the loop is the **harness** (part 2 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
+An **agent** is inference run in a loop. The model runs, the harness does whatever it asked for, and the model runs again with the result added. It keeps going until the model stops asking for things, or the harness stops it. The program running the loop is the **harness** (part 2 called it the app). The ChatGPT app is one. When it searches the web, runs code, or works through a whole task in its agent mode, it's running this loop.
 
 Notice what “done” means. The model thinks it's finished. Nothing in the loop checks that the job really got done. More on that at the end.
 
@@ -68,26 +65,15 @@ Turn 3 is the one to watch. Nothing in the job said to check Sunday. A script on
 
 It stops one of two ways. Either it writes an answer with no tool request, so there's nothing left for the harness to do, or the harness stops it (too many turns, too much time or money, or it needs your OK first). The OK kind is in there too. The app paused before spending your money, and the run went on once you said yes.
 
-## A real one, and why checks matter
+## Why checks matter
 
-[Gesso](/blog/gesso-agent-loop/) is my ongoing painting-lesson experiment. It takes a photo and makes a step-by-step painting lesson, and every step needs a picture. It ran this loop in Claude Code. I wrote a list of rules for it, including the checks. Claude ran the lesson alone.
+A loop that only does things will happily do the wrong thing. That's part 1's confident guesser, now taking actions. Remember what “done” means. The model stopped asking for things. Nothing checked the result.
 
-{/* 14 min isn't in day2.json. It's hard-coded in src/content/blog/gesso-agent-loop.mdx (the StatRow, line 71). */}
-<StatRow stats={[
-  { value: String(day2.all_decisions.length), label: 'pictures it planned, picking an image tool for each' },
-  { value: '2', label: 'problems a fresh copy caught in round 1' },
-  { value: '1', label: 'still wrong in round 2, after the fixes' },
-  { value: '14 min', label: 'start to finish' },
-]} />
+So someone has to build a check in. It can be ordinary code, like making sure the receipt says a weekend day and two seats. Or it can be one more new chat with the model that gets only the job and the result, and is asked to find problems.
 
-A loop that only makes things will happily make wrong things. That's part 1's confident guesser, now taking actions. So one check used a fresh copy of Claude with a clean conversation. It read the lesson and listed problems, Claude fixed them, and another fresh copy read it again.
-
-<ContextMeter
-  state="reviewer"
-  maker={d.reviewer.maker}
-  fresh={d.reviewer.fresh}
-  track={d.meter.track}
-  caption="A fresh copy is the same model with a clean conversation. Bar sizes are made up."
+<TextThreads
+  threads={d.check}
+  caption="A made-up check. The checker gets the job and the receipt, not the whole run, so it isn't reading the reasons the first chats talked themselves into."
 />
 
 More loops don't check anything by themselves. Someone has to build the check in.
