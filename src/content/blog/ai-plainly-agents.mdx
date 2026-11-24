@@ -14,12 +14,12 @@ draft: true
 image: /img/og/ai-plainly-agents.jpg
 ---
 import LoopInLoop from '../../components/blog/LoopInLoop.astro';
+import AgentLoop from '../../components/blog/AgentLoop.astro';
 import ContextMeter from '../../components/blog/ContextMeter.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import StatRow from '../../components/blog/StatRow.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import AgentsReel from '../../components/blog/AgentsReel.astro';
-import story from '../../data/ai-plainly/inference.json';
 import d from '../../data/ai-plainly/ai-plainly-agents.json';
 import day2 from '../../data/gesso/day2.json';
 
@@ -34,15 +34,13 @@ Agents get sold as a smarter kind of AI that keeps thinking in the background. T
 
 ## A loop around the loop
 
-<LoopInLoop
-  mode="diagram"
-  loop={story.loop}
-  caption="Two stations take turns. The harness is a regular program. Some tools it runs use AI of their own, but this model isn't running then. The trip count is made up."
-/>
+<AgentLoop caption="One trip around the loop is a turn. Each trip runs inference once, with everything so far." />
 
-An **agent** is the model called again and again in a loop, choosing its next step from what came back. The program doing the calling is the **harness** (part 2 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
+An **agent** is inference run in a loop. The model runs, the harness does whatever it asked for, and the model runs again with the result added. It keeps going until the model stops asking for things, or the harness stops it. The program running the loop is the **harness** (part 2 called it the app). Claude Code is one, and it's what ran my Gesso experiment.
 
-One trip around the big ring is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once. The harness runs them all and pastes every result in before calling it again.)
+Notice what “done” means. The model thinks it's finished. Nothing in the loop checks that the job really got done. More on that at the end.
+
+One trip around is a **turn**. People call this the agentic loop. (Sometimes the model asks for several tools at once. The harness runs them all and pastes every result in before calling it again.)
 
 <NoDumbQuestions items={[
   { q: 'Is the thinking a separate hidden brain?', a: "No. It's more text the model writes, the same way it writes answers, even when an app hides it from you." },
