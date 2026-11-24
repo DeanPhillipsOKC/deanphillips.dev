@@ -33,7 +33,8 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
 
 ## Shape
 
-- Posts are 4 to 5 minutes (about 800 to 1,100 words). If a topic is bigger, make it a series.
+- Posts are 4 to 5 minutes (about 800 to 1,100 words). If a topic is bigger, make it a series. Explainers
+  that lean on visuals (see "Visuals first") should aim lower, at about 500 to 900 words of prose.
 - The delivery-team series is `series: ai-delivery-team`. The overview is `part: 0`, and new parts
   take the next number. Exact stats (days, commits, issues, tests) live **only** on the overview.
   Parts say "the full end-to-end suite", not a count.
@@ -47,6 +48,25 @@ They come from the owner's decisions. The `blog-update` skill reads this file on
   when there's a real failure to tell.
 - Reuse the components in `src/components/blog/` (StatRow, Flow, Steps, Lanes, Callout,
   ChatThread, AskOwner, ReviewCalendar) before writing new ones.
+
+## Visuals first
+
+The owner's rule (2026-11-24): visuals are the most important part of a post, and they take priority
+over prose. Dean has ADHD and struggles with long prose, and so do many readers. Write for them.
+
+- Think O'Reilly's Head First books. The pictures carry the explanation, with labels and callouts
+  right on them, and the prose is short glue between them. If a paragraph explains something a
+  picture could show, make the picture and cut the paragraph.
+- Every main idea gets a visual that teaches it. Decoration doesn't count. Prefer visuals the reader
+  can do something with (drag, pick, press play) over ones they only look at.
+- Plain and readable beats impressive. Nothing that makes a topic look mysterious or magical (a 3D
+  token cloud was tried for `ai-plainly` and dropped for that reason).
+- Big type, few words per visual, one idea per visual, clear labels, and made-up numbers labeled as
+  made up.
+- Every explainer post gets a short silent social video (4:5, about 20 to 40 seconds) made from its
+  visuals, for Facebook and LinkedIn. It has to grab attention in a feed and make sense to someone
+  who hasn't read the post, with text large enough to read on a phone. See
+  `scripts/video/next-word-reel.mjs` for how one is recorded.
 
 ## Share drafts
 
