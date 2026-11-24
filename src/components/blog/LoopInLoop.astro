@@ -1,612 +1,193 @@
 ---
-// The agents post's main picture: the bigger loop. Two stations take turns. On the left, the model (violet,
-// "uses the dials") holds part 0's small loop as a strip of five pills (titles read from inference.json, so
-// they match part 0 exactly) and a trip counter. It writes notes to itself (its thinking) and maybe a tool
-// request, one token at a time. On the right, the harness (teal, "regular program", the app from part 1)
-// runs the tool and pastes the result onto the end of the conversation, with a small made-up example and a
-// stamp that says this model isn't running there. A top arrow (a tool request) and a bottom arrow (the whole
-// conversation, result added) make the ring. Exits: a green "Done" off the model (an answer with no tool
-// request), and a grey one off the harness (it stops the run).
+// The agents post's two loop pictures. Both are still pictures with no controls. They read the same with or
+// without JavaScript, and the parts fade in once when they scroll into view unless the reader prefers less
+// motion. Colors: the model violet, the harness and its results teal, the surprise --warn, Done --ok.
 //
-// mode="diagram": tap a station for a one-line explanation. When it scrolls into view the small loop plays
-// one slow lap (each pill lit for 300 ms, counter at 1), then all pills hold a soft fill while the counter
-// steps to about 140 (nothing changes faster than every 150 ms). Reduced motion shows the final count.
-// Without JavaScript the diagram is the same, with an ordered list under it. Under 620px the ring stacks:
-// model, a drawn down arrow (with Done offset to the right), harness, and a return line up the left edge
-// with its label written flat underneath.
+// mode="diagram": the bigger loop. The model box (with part 0's small loop as one line of pills, titles
+// read from inference.json so they match part 0) and the harness box, joined by two labeled arrows. A tool
+// request goes right, the whole conversation with the result added comes back. The model box ends in the
+// Done exit, the harness box in its own way to stop. Under 620px the boxes stack and the arrows point down
+// and up between them.
 //
-// mode="run": the same two-station ring, compact, with the request and result chips riding the arcs. Under
-// it, a "conversation tape" that grows one block per piece of text, a "who's working" strip, and a turn
-// card. Next turn plays a turn (about 2.6 s). Turn 2 pauses for a guess first, with last turn's result kept
-// on the card. Every frame is drawn by render(turn, p), a pure function of the turn and its progress p.
-// The card's height is reserved for its tallest state, so the buttons don't jump. Reduced motion jumps to
-// the end of each turn. Without JavaScript all four turns are listed, with the final tape and the guess's
-// answer in a <details>.
+// mode="run": one made-up run as a numbered strip, one card per turn. Each card shows what the model wrote
+// (its notes and the tool request) and what came back. Turn 2's card calls out the branch nobody wrote
+// (script vs agent lines from the data), and the last card is the answer with no tool request, ending in
+// Done. The data is src/data/ai-plainly/ai-plainly-agents.json, which AgentsReel also reads.
 interface Step { title: string }
-interface Turn { wrote: string; tool: string | null; back: string | null; tag?: string; trips: number; wroteSize: number; backSize: number; surprise?: boolean; brainPower?: boolean }
-interface BP { question: string; options: string[]; answer: string; right: string; wrong: string; script: string; agent: string }
-interface RunData { job: string; jobSize: number; turns: Turn[]; brainPower: BP }
-interface Props { mode?: 'diagram' | 'run'; loop: Step[]; run?: RunData; caption?: string }
-const { mode = 'diagram', loop, run, caption } = Astro.props;
+interface Turn { wrote: string; tool: string | null; back: string | null; surprise?: boolean; branch?: boolean }
+interface RunData { job: string; turns: Turn[]; branch: { script: string; agent: string } }
+interface Props { mode?: 'diagram' | 'run'; loop?: Step[]; run?: RunData; caption?: string }
+const { mode = 'diagram', loop = [], run, caption } = Astro.props;
 const titles = loop.map((s) => s.title);
-const dial = '<svg class="lil-dial" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
-const clip = '<svg class="lil-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
-const SCALE = run ? run.jobSize + run.turns.reduce((s, t) => s + t.wroteSize + t.backSize, 0) + 200 : 1;
-const fmt = (n: number) => n.toLocaleString('en-US');
-let total = run?.jobSize ?? 0;
-const sizes = run ? run.turns.map((t) => (total += t.wroteSize + t.backSize)) : [];
+const dial = '<svg class="lil-ico" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
+const clip = '<svg class="lil-ico lil-ico-clip" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="M8.5 11h7M8.5 15h5" /></svg>';
 ---
 {mode === 'diagram' && (
 <figure class="lil lil-diagram panel bleed">
   <div class="lil-ring">
-    <p class="lil-arc lil-arc-top"><span>a tool request</span></p>
-    <section class="lil-box lil-model" data-explain="model" aria-label="The model">
+    <section class="lil-box lil-model lil-fade" style="--i:0" aria-label="The model">
       <p class="lil-head"><Fragment set:html={dial} /><b>The model</b><span class="lil-own lil-own-m">uses the dials</span></p>
       <div class="lil-small">
         <p class="lil-strip" aria-label={`The small loop from part 0: ${titles.join(', ')}, then again`}>
-          {titles.map((t, i) => <span class="lil-step"><span class="lil-pip" data-i={i}>{t}</span><span class="lil-to" aria-hidden="true">{i < titles.length - 1 ? '→' : '↺'}</span></span>)}
+          {titles.map((t, i) => (<span class="lil-step"><span class="lil-pip">{t}</span><span class="lil-to" aria-hidden="true">{i < titles.length - 1 ? '→' : '↺'}</span></span>))}
         </p>
-        <p class="lil-count"><span class="lil-cl">trips</span><b class="lil-n">about 140</b><em class="lil-cn">per turn (made up)</em></p>
+        <p class="lil-per">The part 0 loop. One lap per token, about 140 laps a turn (made up).</p>
       </div>
-      <p class="lil-per">The part 0 loop. One lap per token.</p>
-      <p class="lil-out"><span class="lil-pill lil-pill-think">notes to itself (its thinking)</span><span class="lil-then">then maybe</span><span class="lil-pill lil-pill-req">a tool request</span></p>
-      <p class="lil-note">Both written one token at a time.</p>
+      <p class="lil-writes"><span class="lil-k">It writes</span><span class="lil-pill lil-pill-think">notes to itself</span><span class="lil-then">then maybe</span><span class="lil-pill lil-pill-req">a tool request</span></p>
+      <p class="lil-exit"><span class="lil-exit-t">No tool request?</span><span class="lil-exit-a" aria-hidden="true">→</span><span class="lil-done">Done</span></p>
     </section>
-    <section class="lil-box lil-harness" data-explain="harness" aria-label="The harness">
+    <div class="lil-arrows lil-fade" style="--i:1">
+      <p class="lil-arrow lil-arrow-go"><span>a tool request</span><i aria-hidden="true"></i></p>
+      <p class="lil-arrow lil-arrow-back"><span>the whole conversation, result added</span><i aria-hidden="true"></i></p>
+    </div>
+    <section class="lil-box lil-harness lil-fade" style="--i:2" aria-label="The harness">
       <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b><span class="lil-own lil-own-h">regular program</span></p>
       <p class="lil-aka">the app from part 1</p>
-      <ul class="lil-does">
-        <li>runs the tool</li>
-        <li>pastes the result onto the end of the conversation</li>
-      </ul>
-      <p class="lil-eg"><span class="lil-chip lil-chip-tool">weather, Saturday</span><span class="lil-eg-a" aria-hidden="true">→</span><span class="lil-chip lil-chip-back">Rain 7 to 11 am</span><em>made-up example</em></p>
-      <p class="lil-stamp">This model isn't running here</p>
-      <p class="lil-hand">↑ No background thinking between calls</p>
+      <p class="lil-eg"><span class="lil-chip lil-chip-tool">weather, Saturday</span><span class="lil-eg-a" aria-hidden="true">↓</span><span class="lil-chip lil-chip-back">Rain 7 to 11 am</span></p>
+      <p class="lil-does">Runs the tool and pastes the result onto the end of the conversation.</p>
+      <p class="lil-stamp">The model isn't running here</p>
+      <p class="lil-stop">It can also stop the run (too many turns, too much time or money, or it needs your OK).</p>
     </section>
-    <p class="lil-arc lil-arc-bot"><span>the whole conversation, result added</span></p>
-    <p class="lil-arc-sub">Its next step depends on what came back</p>
-    <p class="lil-mdown" aria-hidden="true"><i class="lil-mdown-line"></i><span>a tool request</span></p>
-    <p class="lil-mret" aria-hidden="true"></p>
-    <p class="lil-mret-l" aria-hidden="true"><b>↺ result added, call the model again</b><small>Its next step depends on what came back</small></p>
-    <p class="lil-exit lil-exit-done"><i class="lil-exit-line"></i><span class="lil-done" data-explain="done">Done</span><span class="lil-exit-t">Wrote an answer with no tool request</span></p>
-    <p class="lil-exit lil-exit-stop"><i class="lil-exit-line"></i><span class="lil-exit-t">or the harness says stop (too many turns, too much time or money, or it needs your OK first)</span></p>
   </div>
-  <p class="lil-foot">One trip around this big ring = one turn</p>
-  <p class="lil-explain" aria-live="polite" hidden></p>
-  <ol class="lil-nojs">
-    <li>The model writes notes to itself and maybe a tool request, one token at a time.</li>
-    <li>The harness runs the tool and pastes the result in.</li>
-    <li>Repeat until the model writes an answer with no tool request, or the harness stops it.</li>
-  </ol>
+  <p class="lil-foot">One trip around = one turn</p>
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 )}
 
 {mode === 'run' && run && (
-<figure class="lil lil-run panel bleed" data-lil-run={JSON.stringify({ ...run, scale: SCALE })}>
-  <div class="lil-live" hidden>
-    <div class="lil-st">
-      <p class="lil-arc lil-arc-top lil-rarc" aria-hidden="true"><span>tool request</span><em class="lil-chip lil-chip-tool"></em></p>
-      <section class="lil-mini lil-mini-m">
-        <p class="lil-head"><Fragment set:html={dial} /><b>The model</b></p>
-        <p class="lil-mc">this turn <b class="lil-rn">0</b> trips</p>
-        <p class="lil-mt">total so far <b class="lil-rt">0</b></p>
-        <p class="lil-rdone">Done</p>
-      </section>
-      <section class="lil-mini lil-mini-h">
-        <p class="lil-head"><Fragment set:html={clip} /><b>The harness</b></p>
-        <p class="lil-mstamp">model not running</p>
-      </section>
-      <p class="lil-arc lil-arc-bot lil-rarc" aria-hidden="true"><span>result added</span><em class="lil-chip lil-chip-back"></em></p>
-      <p class="lil-rret" aria-hidden="true"></p>
-    </div>
-    <p class="lil-lab">The conversation <span class="lil-size"></span></p>
-    <div class="lil-tape" aria-hidden="true">
-      <i class="lil-tb lil-tb-job" style={`width:${(100 * run.jobSize / SCALE).toFixed(2)}%`}></i>
-      {run.turns.map((t, i) => (<><i class="lil-tb lil-tb-m" data-w={i}></i><i class="lil-tb lil-tb-h" data-b={i}>{t.tag && <span>{t.tag}</span>}</i></>))}
-    </div>
-    <p class="lil-legend"><span><i class="lil-sw lil-sw-job"></i>your job</span><span><i class="lil-sw lil-sw-m"></i>the model wrote</span><span><i class="lil-sw lil-sw-h"></i>tool result</span></p>
-    <p class="lil-lab">Who's working</p>
-    <div class="lil-who" aria-hidden="true">
-      {run.turns.map((t, i) => (<><i class="lil-ws lil-ws-m" data-wm={i}></i>{t.tool && <i class="lil-ws lil-ws-h" data-wh={i}><span class="lil-ws-long">model not running</span><span class="lil-ws-short">model off</span></i>}</>))}
-    </div>
-    <div class="lil-card" aria-live="polite">
-      <p class="lil-tn"></p>
-      <p class="lil-row lil-row-job"><span class="lil-k lil-k-job">your job</span><span class="lil-v">{run.job}</span></p>
-      <p class="lil-row lil-row-prev lil-surp"><span class="lil-k lil-k-h">came back last turn</span><span class="lil-v"></span></p>
-      <p class="lil-row lil-row-w"><span class="lil-k lil-k-m">the model wrote (its thinking)</span><span class="lil-v"></span></p>
-      <p class="lil-row lil-row-t"><span class="lil-k lil-k-m">tool request</span><span class="lil-v"></span></p>
-      <p class="lil-row lil-row-b"><span class="lil-k lil-k-h">came back</span><span class="lil-v"></span></p>
-      <div class="lil-bp" hidden>
-        <p class="lil-bp-q"><b>Brain power.</b> {run.brainPower.question}</p>
-        <p class="lil-bp-o">{run.brainPower.options.map((o) => <button type="button" data-pick={o}>{o}</button>)}</p>
-      </div>
-      <p class="lil-bp-r" hidden></p>
-      <div class="lil-vs" hidden>
-        <p class="lil-vs-no"><b><span aria-hidden="true">✗ </span>Script</b>{run.brainPower.script}</p>
-        <p class="lil-vs-yes"><b><span aria-hidden="true">✓ </span>Agent</b>{run.brainPower.agent}</p>
-      </div>
-      <p class="lil-fin" hidden>Done. No tool request, so the harness stops.</p>
-    </div>
-    <div class="lil-ctrl">
-      <button type="button" class="lil-back">Back</button>
-      <span class="lil-cnt"></span>
-      <button type="button" class="lil-next">Next turn</button>
-    </div>
-  </div>
-  <div class="lil-static">
-    <p class="lil-row lil-row-job"><span class="lil-k lil-k-job">your job</span><span class="lil-v">{run.job}</span></p>
-    <ol class="lil-scards">
-      {run.turns.map((t, i) => (
-        <li>
-          <p class="lil-tn">Turn {i + 1} of {run.turns.length} <span class="lil-size">conversation length {fmt(sizes[i])} (made-up units)</span></p>
-          <p class="lil-row"><span class="lil-k lil-k-m">the model wrote (its thinking)</span><span class="lil-v">{t.wrote}</span></p>
-          <p class="lil-row"><span class="lil-k lil-k-m">tool request</span><span class="lil-v">{t.tool ?? 'none'}</span></p>
-          {t.back && <p class="lil-row"><span class="lil-k lil-k-h">came back</span><span class="lil-v">{t.back}</span></p>}
-          {t.brainPower && <details><summary>Brain power. {run.brainPower.question}</summary><p>{run.brainPower.wrong} {run.brainPower.script} {run.brainPower.agent}</p></details>}
-          {!t.tool && <p class="lil-fin">Done. No tool request, so the harness stops.</p>}
-        </li>
-      ))}
-    </ol>
-    <p class="lil-lab">The conversation at the end (made-up units)</p>
-    <div class="lil-tape" aria-hidden="true">
-      <i class="lil-tb lil-tb-job" style={`width:${(100 * run.jobSize / SCALE).toFixed(2)}%`}></i>
-      {run.turns.map((t) => (<><i class="lil-tb lil-tb-m" style={`width:${(100 * t.wroteSize / SCALE).toFixed(2)}%`}></i>{t.backSize > 0 && <i class="lil-tb lil-tb-h" style={`width:${(100 * t.backSize / SCALE).toFixed(2)}%`}>{t.tag && <span>{t.tag}</span>}</i>}</>))}
-    </div>
-    <p class="lil-legend"><span><i class="lil-sw lil-sw-job"></i>your job</span><span><i class="lil-sw lil-sw-m"></i>the model wrote</span><span><i class="lil-sw lil-sw-h"></i>tool result</span></p>
-  </div>
+<figure class="lil lil-run panel bleed">
+  <p class="lil-job lil-fade" style="--i:0"><span class="lil-k">Your job</span><span>{run.job}</span></p>
+  <ol class="lil-turns">
+    {run.turns.map((t, i) => (
+      <li class={`lil-turn lil-fade${t.tool ? '' : ' lil-turn-last'}`} style={`--i:${i + 1}`}>
+        <span class="lil-n">{i + 1}</span>
+        <div class="lil-tbody">
+          <p class="lil-th">Turn {i + 1}</p>
+          {t.tool ? (
+            <p class="lil-line"><span class="lil-k lil-k-m">Notes to itself</span><span class="lil-think">{t.wrote}</span></p>
+          ) : (
+            <p class="lil-line"><span class="lil-k lil-k-m">Its answer</span><span class="lil-answer">{t.wrote}</span></p>
+          )}
+          <p class="lil-line"><span class="lil-k lil-k-m">Tool request</span>{t.tool ? <span class="lil-chip lil-chip-tool">{t.tool}</span> : <span class="lil-chip lil-chip-none">none</span>}</p>
+          {t.back && <p class={`lil-line${t.surprise ? ' lil-surp' : ''}`}><span class="lil-k lil-k-h">Came back</span><span class="lil-chip lil-chip-back">{t.back}</span>{t.surprise && <em class="lil-surp-t">Saturday is out</em>}</p>}
+          {t.branch && (
+            <div class="lil-branch">
+              <p class="lil-branch-h">Nobody wrote this step</p>
+              <p class="lil-vs"><b class="lil-vs-no">Script</b>{run.branch.script}</p>
+              <p class="lil-vs"><b class="lil-vs-yes">Agent</b>{run.branch.agent}</p>
+            </div>
+          )}
+          {!t.tool && <p class="lil-fin"><span class="lil-done">Done</span>Nothing left for the harness to run, so it stops.</p>}
+        </div>
+      </li>
+    ))}
+  </ol>
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 )}
 
 <script>
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const clamp = (x: number) => Math.max(0, Math.min(1, x));
-  const ease = (x: number) => 1 - Math.pow(1 - clamp(x), 3);
-
-  // Diagram mode: tap to explain, and one slow lap of the small loop when the figure scrolls into view.
-  const EXPLAIN: Record<string, string> = {
-    model: 'One call. It writes notes to itself and maybe a tool request, token by token.',
-    harness: 'A regular program. It runs the tool and pastes the result in, then calls the model again.',
-    done: "No tool request means there's nothing for the harness to do, so it stops.",
-  };
-  for (const root of document.querySelectorAll<HTMLElement>('.lil-diagram')) {
-    root.classList.add('lil-js');
-    const say = root.querySelector<HTMLElement>('.lil-explain')!;
-    say.hidden = false;
-    say.textContent = 'Tap the model, the harness, or Done.';
-    const hits = [...root.querySelectorAll<HTMLElement>('[data-explain]')];
-    for (const el of hits) {
-      el.tabIndex = 0;
-      el.setAttribute('role', 'button');
-      el.setAttribute('aria-pressed', 'false');
-      const pick = () => {
-        for (const h of hits) { const on = h === el; h.classList.toggle('lil-on', on); h.setAttribute('aria-pressed', String(on)); }
-        say.textContent = EXPLAIN[el.dataset.explain!];
-      };
-      el.addEventListener('click', (e) => { e.stopPropagation(); pick(); });
-      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-    }
-    if (reduce) continue;
-    const n = root.querySelector<HTMLElement>('.lil-n')!;
-    const cl = root.querySelector<HTMLElement>('.lil-cl')!;
-    const cn = root.querySelector<HTMLElement>('.lil-cn')!;
-    const pips = [...root.querySelectorAll<HTMLElement>('.lil-pip')];
-    const strip = root.querySelector<HTMLElement>('.lil-strip')!;
-    const LAP = 300 * pips.length, FAST = 1500, STEP = 150;
-    n.textContent = '0';
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting) return;
-      io.disconnect();
-      const t0 = performance.now();
-      const tick = (now: number) => {
-        const t = now - t0;
-        if (t < LAP) {
-          // One slow lap: each pill lit for 300 ms, in order. This is trip 1.
-          const i = Math.floor(t / 300);
-          pips.forEach((p, j) => p.classList.toggle('lil-lit', j === i));
-          cl.textContent = 'trip'; n.textContent = '1'; cn.textContent = 'one lap, one token';
-        } else if (t < LAP + FAST) {
-          // Then the same lap again and again. The pills hold a soft fill, and the counter steps every 150 ms.
-          pips.forEach((p) => p.classList.remove('lil-lit'));
-          strip.classList.add('lil-soft');
-          const s = Math.floor((t - LAP) / STEP), steps = Math.floor(FAST / STEP);
-          cl.textContent = 'trips'; n.textContent = String(Math.max(2, Math.round(140 * s / steps)));
-          cn.textContent = 'the same lap again, about 140 times (made up)';
-        } else {
-          strip.classList.remove('lil-soft');
-          cl.textContent = 'trips'; n.textContent = 'about 140'; cn.textContent = 'per turn (made up)';
-          return;
-        }
-        requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    }, { threshold: 0.45 });
+  for (const root of document.querySelectorAll<HTMLElement>('.lil')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('lil-ready');
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { root.classList.add('lil-go'); io.disconnect(); } }, { threshold: 0.12 });
     io.observe(root);
-  }
-
-  // Run mode.
-  type Turn = { wrote: string; tool: string | null; back: string | null; trips: number; wroteSize: number; backSize: number; surprise?: boolean; brainPower?: boolean };
-  type Run = { job: string; jobSize: number; turns: Turn[]; scale: number; brainPower: { answer: string; right: string; wrong: string } };
-  for (const root of document.querySelectorAll<HTMLElement>('.lil-run')) {
-    const R = JSON.parse(root.dataset.lilRun!) as Run;
-    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
-    const $$ = <T extends Element = HTMLElement>(s: string) => [...root.querySelectorAll(s)] as T[];
-    $('.lil-live').hidden = false;
-    $('.lil-static').hidden = true;
-    const N = R.turns.length;
-    const mini = { m: $('.lil-mini-m'), h: $('.lil-mini-h') };
-    const rn = $('.lil-rn'), rt = $('.lil-rt'), rdone = $('.lil-rdone');
-    const chipT = $('.lil-chip-tool'), chipB = $('.lil-chip-back');
-    const arcs = $$('.lil-rarc');
-    const size = $('.lil-live .lil-size');
-    const wBlocks = $$('.lil-live [data-w]'), bBlocks = $$('.lil-live [data-b]');
-    const wm = $$('[data-wm]'), wh = $$('[data-wh]');
-    const card = $('.lil-card');
-    const tn = $('.lil-card .lil-tn');
-    const row = (k: string) => $(`.lil-card .lil-row-${k}`);
-    const val = (k: string) => row(k).querySelector<HTMLElement>('.lil-v')!;
-    const bp = $('.lil-bp'), bpR = $('.lil-bp-r'), vs = $('.lil-vs'), fin = $('.lil-fin');
-    const bpButtons = $$<HTMLButtonElement>('.lil-bp-o button');
-    const back = $<HTMLButtonElement>('.lil-back'), next = $<HTMLButtonElement>('.lil-next'), cnt = $('.lil-cnt');
-    const pct = (n: number) => `${(100 * n / R.scale).toFixed(2)}%`;
-    const fmt = (n: number) => Math.round(n).toLocaleString('en-US');
-    const slide = (el: HTMLElement, x: number) => el.style.setProperty('--x', x.toFixed(4));
-
-    let turn = 0, p = 1, picked = '', asking = false, raf = 0;
-
-    // Everything on screen comes from (turn, p). Turn 0 is the start. In a turn with a tool, the model
-    // writes for p in 0 to 0.4, the request travels 0.4 to 0.55, the harness works 0.55 to 0.8, and the
-    // result travels back and lands 0.8 to 1. The last turn has no tool, so it only writes, then stops.
-    function render(k: number, q: number) {
-      const T = R.turns[k - 1];
-      const hasTool = !!T?.tool;
-      const write = k === 0 ? 1 : hasTool ? clamp(q / 0.4) : clamp(q / 0.7);
-      const go = hasTool ? clamp((q - 0.4) / 0.15) : 0;
-      const work = hasTool ? q >= 0.55 && q < 0.8 : false;
-      const ret = hasTool ? clamp((q - 0.8) / 0.2) : 0;
-      const modelOn = k > 0 && !asking && (hasTool ? q < 0.4 : q < 0.7);
-      const modelOff = hasTool && !asking && q >= 0.4 && q < 1;
-      const done = k === N && q >= 0.7;
-
-      mini.m.classList.toggle('lil-act', modelOn);
-      mini.m.classList.toggle('lil-dim', modelOff);
-      mini.h.classList.toggle('lil-act', work);
-      mini.h.classList.toggle('lil-off', modelOff);
-      const now = k === 0 || asking ? 0 : Math.floor(T.trips * ease(write));
-      rn.textContent = String(now);
-      rt.textContent = String(R.turns.slice(0, Math.max(0, k - 1)).reduce((a, t) => a + t.trips, 0) + now);
-      rdone.classList.toggle('lil-show', done);
-
-      arcs[0].classList.toggle('lil-show', hasTool && !asking && q >= 0.4 && q < 0.8);
-      chipT.textContent = T?.tool ?? '';
-      slide(chipT, ease(go));
-      arcs[1].classList.toggle('lil-show', hasTool && !asking && q >= 0.8);
-      chipB.textContent = T?.back ?? '';
-      chipB.classList.toggle('lil-surp', !!T?.surprise);
-      slide(chipB, 1 - ease(ret));
-
-      // The tape: earlier turns are full, this one grows.
-      let s = R.jobSize;
-      R.turns.forEach((t, i) => {
-        const w = i < k - 1 ? 1 : i === k - 1 && !asking ? ease(write) : 0;
-        const b = i < k - 1 ? 1 : i === k - 1 && !asking ? ease(ret) : 0;
-        wBlocks[i].style.width = pct(t.wroteSize * w);
-        bBlocks[i].style.width = pct(t.backSize * b);
-        s += t.wroteSize * w + t.backSize * b;
-      });
-      size.innerHTML = `length ${fmt(s)} <em>(made-up units)</em>`;
-
-      // Who's working.
-      R.turns.forEach((t, i) => {
-        const past = i < k - 1, cur = i === k - 1 && !asking;
-        wm[i].classList.toggle('lil-show', past || (cur && q > 0));
-        wm[i].classList.toggle('lil-act', cur && modelOn);
-      });
-      let j = 0;
-      R.turns.forEach((t, i) => {
-        if (!t.tool) return;
-        const el = wh[j++];
-        const past = i < k - 1, cur = i === k - 1 && !asking;
-        el.classList.toggle('lil-show', past || (cur && q >= 0.55));
-        el.classList.toggle('lil-act', cur && work);
-      });
-
-      // The turn card.
-      const bpTurn = !!T?.brainPower;
-      const P = R.turns[k - 2];
-      tn.innerHTML = k === 0 ? 'Before turn 1' : `Turn ${k} of ${N}`;
-      row('job').hidden = k !== 0;
-      row('prev').hidden = !(asking && P?.back);
-      val('prev').textContent = P?.back ?? '';
-      row('w').hidden = k === 0 || asking;
-      val('w').textContent = T ? T.wrote.slice(0, Math.ceil(T.wrote.length * write)) : '';
-      row('t').hidden = k === 0 || asking || (hasTool ? q < 0.4 : q < 0.7);
-      val('t').innerHTML = hasTool ? `<span class="lil-chip lil-chip-tool">${T.tool}</span>` : '<span class="lil-chip lil-chip-none">none</span>';
-      row('b').hidden = k === 0 || !hasTool || asking || q < 0.95;
-      val('b').textContent = T?.back ?? '';
-      row('b').classList.toggle('lil-surp', !!T?.surprise);
-      bp.hidden = !(bpTurn && asking);
-      bpR.hidden = vs.hidden = !(bpTurn && picked && !asking);
-      bpR.textContent = picked === R.brainPower.answer ? R.brainPower.right : R.brainPower.wrong;
-      fin.hidden = !done;
-      cnt.textContent = k === 0 ? 'Press Start' : `${k} of ${N}`;
-      back.disabled = k === 0;
-      next.disabled = asking;
-      next.textContent = k === N ? 'Start over' : k === 0 ? 'Start' : 'Next turn';
-    }
-
-    // Reserve the card's tallest state (the brain-power turn, after the guess) so the buttons don't jump.
-    function sizeCard() {
-      const saved = { turn, p, picked, asking };
-      card.style.minHeight = '';
-      let h = 0;
-      R.turns.forEach((t, i) => {
-        for (const ask of t.brainPower ? [true, false] : [false]) {
-          asking = ask; picked = ask ? '' : '(a wrong pick, the longer line)';
-          render(i + 1, 1);
-          h = Math.max(h, card.offsetHeight);
-        }
-      });
-      ({ turn, p, picked, asking } = saved);
-      card.style.minHeight = `${h}px`;
-      render(turn, p);
-    }
-
-    function play(k: number) {
-      cancelAnimationFrame(raf);
-      turn = k;
-      asking = !!R.turns[k - 1]?.brainPower && !picked;
-      if (asking || reduce || k === 0) { p = asking ? 0 : 1; render(turn, p); return; }
-      const t0 = performance.now();
-      const step = (now: number) => {
-        p = clamp((now - t0) / 2600);
-        render(turn, p);
-        if (p < 1) raf = requestAnimationFrame(step);
-      };
-      raf = requestAnimationFrame(step);
-    }
-
-    for (const b of bpButtons) {
-      b.addEventListener('click', () => {
-        picked = b.dataset.pick!;
-        for (const x of bpButtons) {
-          x.disabled = true;
-          x.classList.toggle('lil-right', x.dataset.pick === R.brainPower.answer);
-          x.classList.toggle('lil-chosen', x === b);
-        }
-        play(turn);
-      });
-    }
-    next.addEventListener('click', () => play(turn === N ? 0 : turn + 1));
-    back.addEventListener('click', () => { cancelAnimationFrame(raf); asking = false; turn = Math.max(0, turn - 1); p = 1; render(turn, p); });
-    render(0, 1);
-    sizeCard();
-    let rz = 0;
-    addEventListener('resize', () => { clearTimeout(rz); rz = window.setTimeout(sizeCard, 150); });
   }
 </script>
 
 <style is:global>
-  .lil [hidden] { display: none !important; }
   .lil p { margin: 0; }
-  .lil-dial { width: 22px; height: 22px; flex: none; }
-  .lil-dial circle { fill: none; stroke: currentColor; stroke-width: 2; }
-  .lil-dial line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
-  .lil-clip { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+  .lil-ico { width: 22px; height: 22px; flex: none; }
+  .lil-ico circle { fill: none; stroke: currentColor; stroke-width: 2; }
+  .lil-ico line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+  .lil-ico-clip { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
   .lil-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
   .lil-head b { font: 700 1.3rem/1.15 "Space Grotesk", sans-serif; color: var(--text); }
-  .lil-model .lil-head, .lil-mini-m .lil-head { color: var(--violet); }
-  .lil-harness .lil-head, .lil-mini-h .lil-head { color: var(--teal); }
+  .lil-model .lil-head { color: var(--violet); }
+  .lil-harness .lil-head { color: var(--teal); }
   .lil-own { font: 600 0.82rem/1 Inter, sans-serif; padding: 5px 9px; border-radius: 999px; }
   .lil-own-m { color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); }
   .lil-own-h { color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, transparent); }
-  .lil-chip { display: inline-block; font: 600 0.85rem/1 Inter, sans-serif; font-style: normal; padding: 8px 12px; border-radius: 999px; white-space: nowrap; }
+  .lil-k { display: inline-block; flex: none; padding: 3px 8px; border-radius: 6px; font: 700 0.72rem/1.4 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; background: var(--card); border: 1px solid var(--line); color: var(--muted); }
+  .lil-k-m { color: var(--violet); border-color: color-mix(in srgb, var(--violet) 50%, transparent); }
+  .lil-k-h { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 50%, transparent); }
+  .lil-chip { display: inline-block; max-width: 100%; font: 600 0.92rem/1.25 Inter, sans-serif; padding: 7px 12px; border-radius: 999px; }
   .lil-chip-tool { color: var(--violet); background: var(--card); border: 1.5px dashed var(--violet); }
   .lil-chip-back { color: var(--teal); background: var(--card); border: 1.5px solid var(--teal); }
-  .lil-chip-back.lil-surp { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn); }
-  .lil-chip-none { color: var(--muted) !important; border: 1.5px dashed var(--muted) !important; background: none !important; }
+  .lil-chip-none { color: var(--muted); border: 1.5px dashed var(--muted); }
+  .lil-done { display: inline-block; font: 700 1rem/1 "Space Grotesk", sans-serif; color: var(--bg); background: var(--ok); padding: 8px 16px; border-radius: 999px; }
 
-  /* Diagram: a five-column grid so the arrows can start and end at the middle of each box. */
-  .lil-ring { display: grid; grid-template-columns: 1fr 1fr 44px 1fr 1fr; align-items: stretch; }
-  .lil-box { position: relative; border-radius: 16px; padding: 16px; background: var(--bg-2); border: 3px solid var(--line); display: flex; flex-direction: column; gap: 10px; outline: none; }
-  .lil-js .lil-box { cursor: pointer; }
-  .lil-model { grid-column: 1 / 3; grid-row: 2; border-color: var(--violet); }
-  .lil-harness { grid-column: 4 / 6; grid-row: 2; border-color: var(--teal); }
-  .lil-box:focus-visible, .lil-done:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-  .lil-model.lil-on { background: color-mix(in srgb, var(--violet) 10%, var(--bg-2)); }
-  .lil-harness.lil-on { background: color-mix(in srgb, var(--teal) 10%, var(--bg-2)); }
-  .lil-arc { position: relative; grid-column: 2 / 5; height: 26px; border: 3px solid; }
-  .lil-arc span { position: absolute; left: 50%; transform: translateX(-50%); padding: 0 10px; background: var(--card); font: 600 0.88rem/1.5 Inter, sans-serif; white-space: nowrap; }
-  .lil-arc-top { grid-row: 1; margin-top: 14px; border-color: var(--violet); border-bottom: 0; border-radius: 18px 18px 0 0; }
-  .lil-arc-top span { top: -0.85rem; color: var(--violet); }
-  .lil-arc-top::after { content: ''; position: absolute; right: -9.5px; bottom: -4px; border: 8px solid transparent; border-top: 10px solid var(--violet); border-bottom: 0; }
-  .lil-arc-bot { grid-row: 3; border-color: var(--teal); border-top: 0; border-radius: 0 0 18px 18px; margin-bottom: 14px; }
-  .lil-arc-bot span { bottom: -0.85rem; color: var(--teal); }
-  .lil-arc-bot::after { content: ''; position: absolute; left: -9.5px; top: -4px; border: 8px solid transparent; border-bottom: 10px solid var(--teal); border-top: 0; }
-  .lil-arc-sub { grid-column: 2 / 5; grid-row: 4; text-align: center; font: italic 600 0.88rem/1.3 Inter, sans-serif; color: var(--teal); padding: 2px 8px 0; }
-  .lil-exit { grid-row: 3 / 5; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding-bottom: 4px; }
-  .lil-exit-done { grid-column: 1; }
-  .lil-exit-stop { grid-column: 5; }
-  .lil-exit-line { display: block; width: 3px; height: 26px; position: relative; flex: none; }
-  .lil-exit-line::after { content: ''; position: absolute; left: -6.5px; bottom: -6px; border: 8px solid transparent; border-top: 9px solid; border-top-color: inherit; border-bottom: 0; }
-  .lil-exit-done .lil-exit-line { background: var(--ok); border-top-color: var(--ok); }
-  .lil-exit-stop .lil-exit-line { background: var(--muted); border-top-color: var(--muted); opacity: .7; }
-  .lil-done { margin-top: 4px; font: 700 1rem/1 "Space Grotesk", sans-serif; color: var(--bg); background: var(--ok); padding: 8px 18px; border-radius: 999px; }
-  .lil-js .lil-done { cursor: pointer; }
-  .lil-done.lil-on { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--ok); }
-  .lil-exit-t { font: 600 0.85rem/1.35 Inter, sans-serif; color: var(--ok); }
-  .lil-exit-stop .lil-exit-t { color: var(--muted); font-weight: 500; }
-  .lil-mdown, .lil-mret, .lil-mret-l { display: none; }
-
-  .lil-small { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
-  .lil-strip { flex: 1 1 220px; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
-  .lil-pip { font: 600 0.85rem/1 Inter, sans-serif; padding: 6px 9px; border-radius: 999px; white-space: nowrap; color: var(--violet); background: var(--card); border: 1.5px solid color-mix(in srgb, var(--violet) 55%, var(--line)); transition: background .12s, color .12s; }
+  /* Diagram: model | arrows | harness. */
+  .lil-ring { display: grid; grid-template-columns: minmax(0, 1fr) 124px minmax(0, 1fr); align-items: stretch; }
+  .lil-box { border-radius: 16px; padding: 16px; background: var(--bg-2); border: 3px solid var(--line); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .lil-model { border-color: var(--violet); }
+  .lil-harness { border-color: var(--teal); }
+  .lil-small { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--card); }
+  .lil-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; }
+  .lil-pip { font: 600 0.85rem/1 Inter, sans-serif; padding: 6px 9px; border-radius: 999px; white-space: nowrap; color: var(--violet); border: 1.5px solid color-mix(in srgb, var(--violet) 55%, var(--line)); }
   .lil-step { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
   .lil-to { font: 700 1rem/1 Inter, sans-serif; color: var(--violet); }
-  .lil-pip.lil-lit { color: var(--bg); background: var(--violet); border-color: var(--violet); }
-  .lil-soft .lil-pip { background: color-mix(in srgb, var(--violet) 22%, var(--card)); }
-  .lil-count { display: flex; flex-direction: column; align-items: flex-start; min-width: 90px; max-width: 170px; }
-  .lil-count .lil-cl { font: 600 0.8rem/1 Inter, sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-  .lil-count b { font: 700 1.5rem/1.15 "Space Grotesk", sans-serif; color: var(--violet); font-variant-numeric: tabular-nums; }
-  .lil-count em { font: italic 500 0.8rem/1.25 Inter, sans-serif; color: var(--muted); }
   .lil-per { font: 500 0.88rem/1.35 Inter, sans-serif; color: var(--muted); }
-  .lil-out { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-  .lil-pill { font: 600 0.88rem/1.1 Inter, sans-serif; padding: 7px 11px; border-radius: 999px; }
+  .lil-writes { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+  .lil-pill { font: 600 0.92rem/1.1 Inter, sans-serif; padding: 7px 11px; border-radius: 999px; }
   .lil-pill-think { color: var(--violet); background: color-mix(in srgb, var(--violet) 16%, transparent); border: 1.5px solid var(--violet); }
   .lil-pill-req { color: var(--violet); border: 1.5px dashed var(--violet); }
-  .lil-then { font: 500 0.82rem/1 Inter, sans-serif; color: var(--muted); }
-  .lil-note { font: 500 0.85rem/1.35 Inter, sans-serif; color: var(--muted); }
-  .lil-aka { margin-top: -4px !important; font: italic 500 0.9rem/1.3 Inter, sans-serif; color: var(--muted); }
-  .lil-does { margin: 0 !important; padding: 0 0 0 1.1em !important; display: grid; gap: 6px; }
-  .lil-does li { margin: 0 !important; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text) !important; }
-  .lil-eg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px; border-radius: 12px; background: var(--card); }
-  .lil-eg-a { font: 700 1.1rem/1 Inter, sans-serif; color: var(--muted); }
-  .lil-eg em { flex-basis: 100%; font: italic 500 0.8rem/1.2 Inter, sans-serif; color: var(--muted); }
-  .lil-stamp { margin-top: auto !important; text-align: center; font: 700 1.1rem/1.25 "Space Grotesk", sans-serif; color: var(--muted); border: 2.5px dashed var(--muted); border-radius: 12px; padding: 10px 12px; }
-  .lil-hand { align-self: center; font: italic 600 0.95rem/1.35 Inter, sans-serif; color: var(--text); padding: 2px 10px; border-left: 3px solid var(--muted); }
-  .lil-foot { margin: 16px auto 0 !important; width: fit-content; max-width: 100%; text-align: center; font: 600 0.9rem/1.3 Inter, sans-serif; color: var(--muted); background: var(--bg-2); border-radius: 999px; padding: 8px 16px; }
-  .lil-explain { margin-top: 12px !important; min-height: 3em; text-align: center; font: 600 1rem/1.45 Inter, sans-serif; color: var(--text); }
-  .lil-nojs { margin: 16px 0 0 !important; font-size: 0.95rem; }
-  .lil-js .lil-nojs { display: none; }
+  .lil-then { font: 500 0.88rem/1 Inter, sans-serif; color: var(--muted); }
+  .lil-exit { margin-top: auto !important; display: flex; align-items: center; flex-wrap: nowrap; gap: 8px 10px; padding-top: 10px; border-top: 2px dashed color-mix(in srgb, var(--ok) 60%, transparent); }
+  .lil-exit-t { font: 600 0.95rem/1.3 Inter, sans-serif; color: var(--ok); }
+  .lil-exit-a { font: 700 1.2rem/1 Inter, sans-serif; color: var(--ok); }
+  .lil-aka { margin-top: -6px !important; font: italic 500 0.9rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .lil-eg { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px; border-radius: 12px; background: var(--card); }
+  .lil-eg-a { padding-left: 16px; font: 700 1.1rem/1 Inter, sans-serif; color: var(--muted); }
+  .lil-does { font: 500 1rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-stamp { text-align: center; font: 700 1.05rem/1.25 "Space Grotesk", sans-serif; color: var(--muted); border: 2.5px dashed var(--muted); border-radius: 12px; padding: 9px 12px; }
+  .lil-stop { margin-top: auto !important; padding-top: 10px; border-top: 2px dashed var(--line); font: 500 0.88rem/1.35 Inter, sans-serif; color: var(--muted); }
+  .lil-arrows { display: flex; flex-direction: column; justify-content: center; gap: 40px; padding: 0 8px; }
+  .lil-arrow { display: grid; gap: 6px; text-align: center; font: 600 0.9rem/1.3 Inter, sans-serif; }
+  .lil-arrow i { position: relative; display: block; height: 3px; border-radius: 2px; }
+  .lil-arrow i::after { content: ''; position: absolute; top: -7px; border: 8px solid transparent; }
+  .lil-arrow-go { color: var(--violet); }
+  .lil-arrow-go i { background: var(--violet); margin-right: 8px; }
+  .lil-arrow-go i::after { right: -12px; border-left: 12px solid var(--violet); border-right: 0; }
+  .lil-arrow-back { color: var(--teal); }
+  .lil-arrow-back i { background: var(--teal); margin-left: 8px; order: -1; }
+  .lil-arrow-back i::after { left: -12px; border-right: 12px solid var(--teal); border-left: 0; }
+  .lil-foot { margin: 16px auto 0 !important; width: fit-content; max-width: 100%; text-align: center; font: 600 0.95rem/1.3 Inter, sans-serif; color: var(--muted); background: var(--bg-2); border-radius: 999px; padding: 8px 16px; }
+
+  /* Run: one numbered card per turn. */
+  .lil-job { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-bottom: 14px !important; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--muted) 14%, var(--card)); font: 500 1.02rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-turns { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 12px; }
+  .lil-turn { margin: 0 !important; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); border-left: 4px solid var(--violet); }
+  .lil-turn-last { border-left-color: var(--ok); }
+  .lil-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 700 1.1rem/1 "Space Grotesk", sans-serif; background: color-mix(in srgb, var(--violet) 22%, var(--card)); color: var(--text); }
+  .lil-turn-last .lil-n { background: color-mix(in srgb, var(--ok) 25%, var(--card)); }
+  .lil-tbody { display: grid; gap: 10px; min-width: 0; }
+  .lil-th { font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; color: var(--text); }
+  .lil-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+  .lil-think { font: italic 500 1rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-answer { flex-basis: 100%; padding: 10px 14px; border-radius: 14px; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text); background: color-mix(in srgb, var(--violet) 16%, var(--card)); border: 1px solid color-mix(in srgb, var(--violet) 50%, transparent); }
+  .lil-surp .lil-chip-back { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn); }
+  .lil-surp-t { font: italic 600 0.9rem/1.3 Inter, sans-serif; color: var(--warn); }
+  .lil-branch { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--card)); }
+  .lil-branch-h { font: 700 1rem/1.3 "Space Grotesk", sans-serif; color: var(--warn); }
+  .lil-vs { font: 500 0.95rem/1.4 Inter, sans-serif; color: var(--text); }
+  .lil-vs b { display: inline-block; min-width: 4.4em; margin-right: 6px; font: 700 0.75rem/1.4 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+  .lil-vs-no { color: var(--muted); }
+  .lil-vs-yes { color: var(--violet); }
+  .lil-fin { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font: 600 0.95rem/1.35 Inter, sans-serif; color: var(--ok); }
+
+  .lil-ready .lil-fade { opacity: 0; transform: translateY(10px); }
+  .lil-go .lil-fade { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; transition-delay: calc(var(--i) * .35s); }
 
   @media (max-width: 620px) {
-    .lil-ring { grid-template-columns: 30px minmax(0, 1fr) auto; }
-    .lil-model { grid-column: 2 / 4; grid-row: 1; }
-    .lil-mdown { display: flex; align-items: center; gap: 10px; grid-column: 2; grid-row: 2; padding: 0 0 6px 18%; font: 600 0.9rem/1.3 Inter, sans-serif; color: var(--violet); }
-    .lil-mdown-line { position: relative; display: block; flex: none; width: 3px; height: 40px; background: var(--violet); }
-    .lil-mdown-line::after { content: ''; position: absolute; left: -6.5px; bottom: -6px; border: 8px solid transparent; border-top: 10px solid var(--violet); border-bottom: 0; }
-    .lil-exit-done { grid-column: 3; grid-row: 2; max-width: 128px; padding: 0 4px 10px; gap: 4px; }
-    .lil-exit-done .lil-exit-line { height: 18px; }
-    .lil-done { margin: 2px 0 0; }
-    .lil-harness { grid-column: 2 / 4; grid-row: 3; margin-top: 6px; }
-    .lil-arc, .lil-arc-sub { display: none; }
-    .lil-mret { display: block; position: relative; grid-column: 1; grid-row: 1 / 4; margin: 46px 0 20px; border: 3px solid var(--teal); border-right: 0; border-radius: 16px 0 0 16px; }
-    .lil-mret::after { content: ''; position: absolute; right: -4px; top: -9.5px; border: 8px solid transparent; border-left: 10px solid var(--teal); border-right: 0; }
-    .lil-mret-l { display: flex; flex-direction: column; gap: 2px; grid-column: 1 / 4; grid-row: 4; margin-top: 8px !important; justify-self: start; padding: 7px 12px; border-radius: 12px; border: 2px solid var(--teal); background: color-mix(in srgb, var(--teal) 10%, var(--card)); }
-    .lil-mret-l b { font: 700 0.9rem/1.3 Inter, sans-serif; color: var(--teal); }
-    .lil-mret-l small { font: italic 500 0.82rem/1.3 Inter, sans-serif; color: var(--text); }
-    .lil-exit-stop { grid-column: 2 / 4; grid-row: 5; flex-direction: row; align-items: flex-start; text-align: left; gap: 12px; padding: 10px 0 0 12px; }
-    .lil-exit-stop .lil-exit-t { flex: 1; padding-top: 4px; }
-    .lil-strip { flex-basis: 100%; }
-    .lil-count { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; max-width: none; }
-    .lil-head b { font-size: 1.2rem; }
-  }
-
-  /* Run mode: the same ring, compact. */
-  .lil-st { display: grid; grid-template-columns: 1fr 1fr 44px 1fr 1fr; }
-  .lil-mini { position: relative; border-radius: 14px; padding: 10px 12px; background: var(--bg-2); border: 3px solid var(--line); transition: opacity .2s, background .2s, border-color .2s; display: flex; flex-direction: column; gap: 6px; }
-  .lil-mini .lil-head b { font-size: 1.1rem; }
-  .lil-mini-m { grid-column: 1 / 3; grid-row: 2; border-color: color-mix(in srgb, var(--violet) 35%, var(--line)); }
-  .lil-mini-h { grid-column: 4 / 6; grid-row: 2; border-color: color-mix(in srgb, var(--teal) 35%, var(--line)); }
-  .lil-mini-m.lil-act { border-color: var(--violet); background: color-mix(in srgb, var(--violet) 16%, var(--bg-2)); }
-  .lil-mini-h.lil-act { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 16%, var(--bg-2)); }
-  .lil-mini.lil-dim { opacity: .45; filter: grayscale(1); }
-  .lil-mc, .lil-mt { font: 600 0.88rem/1.1 Inter, sans-serif; color: var(--muted); }
-  .lil-mc b { font: 700 1.35rem/1 "Space Grotesk", sans-serif; color: var(--violet); font-variant-numeric: tabular-nums; margin: 0 2px; }
-  .lil-mt b { color: var(--text); font-variant-numeric: tabular-nums; }
-  .lil-mstamp { margin-top: auto !important; font: 700 0.95rem/1.2 "Space Grotesk", sans-serif; color: var(--muted); border: 2px dashed var(--muted); border-radius: 10px; padding: 6px 8px; text-align: center; opacity: .4; transition: opacity .2s; }
-  .lil-mini-h.lil-off .lil-mstamp { opacity: 1; }
-  .lil-rdone { position: absolute; right: 8px; bottom: 8px; font: 700 0.9rem/1 "Space Grotesk", sans-serif; color: var(--bg); background: var(--ok); padding: 6px 12px; border-radius: 999px; opacity: 0; transition: opacity .2s; }
-  .lil-rdone.lil-show { opacity: 1; }
-  .lil-rarc { opacity: .55; transition: opacity .2s; }
-  .lil-rarc.lil-show { opacity: 1; }
-  .lil-rarc.lil-arc-top { margin-top: 18px; }
-  .lil-rarc.lil-arc-bot { margin-bottom: 18px; }
-  .lil-rarc .lil-chip { position: absolute; left: calc(var(--x, 0) * 100%); transform: translateX(calc(var(--x, 0) * -100%)); visibility: hidden; z-index: 1; }
-  .lil-rarc.lil-arc-top .lil-chip { top: -18px; }
-  .lil-rarc.lil-arc-bot .lil-chip { bottom: -18px; }
-  .lil-rarc.lil-show .lil-chip { visibility: visible; }
-  .lil-rarc.lil-show span { visibility: hidden; }
-  .lil-rret { display: none; }
-  .lil-lab { margin-top: 16px !important; font: 600 0.8rem/1.3 Inter, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; }
-  .lil-size { text-transform: none; letter-spacing: 0; font: 600 0.88rem/1.3 Inter, sans-serif; color: var(--text); }
-  .lil-size em { font-weight: 500; color: var(--muted); margin-left: 4px; }
-  .lil-tape { display: flex; height: 30px; margin-top: 6px; border-radius: 8px; background: var(--bg-2); overflow: hidden; gap: 0; }
-  .lil-tb { display: flex; align-items: center; justify-content: center; height: 100%; flex: none; overflow: hidden; }
-  .lil-tb + .lil-tb { box-shadow: inset 2px 0 0 var(--card); }
-  .lil-tb span { font: 700 0.8rem/1 Inter, sans-serif; font-style: normal; color: var(--bg); white-space: nowrap; padding: 0 4px; }
-  .lil-tb-job { background: color-mix(in srgb, var(--muted) 45%, var(--bg-2)); }
-  .lil-tb-m { background: var(--violet); }
-  .lil-tb-h { background: var(--teal); }
-  .lil-legend { margin-top: 8px !important; display: flex; flex-wrap: wrap; gap: 6px 14px; font: 500 0.85rem/1.2 Inter, sans-serif; color: var(--muted); }
-  .lil-legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .lil-sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
-  .lil-sw-job { background: color-mix(in srgb, var(--muted) 45%, var(--bg-2)); }
-  .lil-sw-m { background: var(--violet); }
-  .lil-sw-h { background: var(--teal); }
-  .lil-who { display: flex; gap: 4px; height: 30px; margin-top: 6px; }
-  .lil-ws { flex: 2 1 0; min-width: 0; border-radius: 6px; background: var(--bg-2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .lil-ws-h { flex-grow: 3; }
-  .lil-ws span { font: 600 0.78rem/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; opacity: 0; }
-  .lil-ws-short { display: none; }
-  .lil-ws-m.lil-show { background: color-mix(in srgb, var(--violet) 55%, var(--bg-2)); }
-  .lil-ws-h.lil-show { background: color-mix(in srgb, var(--teal) 55%, var(--bg-2)); }
-  .lil-ws.lil-show span { opacity: 1; }
-  .lil-ws-m.lil-act { background: var(--violet); }
-  .lil-ws-h.lil-act { background: var(--teal); }
-  .lil-card { margin-top: 16px; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); min-height: 220px; display: flex; flex-direction: column; gap: 10px; }
-  .lil-tn { font: 700 1.35rem/1.2 "Space Grotesk", sans-serif; color: var(--text); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px; }
-  .lil-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 500 1.02rem/1.4 Inter, sans-serif; color: var(--text); }
-  .lil-k { flex: none; font: 600 0.8rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; padding: 5px 8px; border-radius: 6px; }
-  .lil-k-job { color: var(--muted); background: var(--card); border: 1px solid var(--line); }
-  .lil-k-m { color: var(--violet); background: color-mix(in srgb, var(--violet) 14%, transparent); }
-  .lil-k-h { color: var(--teal); background: color-mix(in srgb, var(--teal) 14%, transparent); }
-  .lil-row.lil-surp .lil-v { box-shadow: inset 4px 0 0 var(--warn); padding-left: 10px; }
-  .lil-bp { padding: 12px; border-radius: 12px; border: 2px solid var(--violet); background: var(--card); display: grid; gap: 10px; }
-  .lil-bp-q { font: 600 1.05rem/1.35 Inter, sans-serif; color: var(--text); }
-  .lil-bp-q b { color: var(--violet); }
-  .lil-bp-o { display: flex; flex-wrap: wrap; gap: 8px; }
-  .lil-bp-o button, .lil-ctrl button { font: 600 0.92rem/1 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 12px 16px; min-height: 44px; cursor: pointer; }
-  .lil-bp-o button:disabled { cursor: default; opacity: .5; }
-  .lil-bp-o button.lil-right { opacity: 1; color: var(--bg); background: var(--violet); border-color: var(--violet); }
-  .lil-bp-o button.lil-right::before { content: '✓ '; }
-  .lil-bp-o button.lil-chosen:not(.lil-right) { opacity: 1; border: 2px solid var(--muted); color: var(--muted); }
-  .lil-bp-r { font: 700 1.05rem/1.4 Inter, sans-serif; color: var(--text); padding-left: 12px; border-left: 4px solid var(--violet); }
-  .lil-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .lil-vs p { padding: 10px 12px; border-radius: 10px; font: 500 0.95rem/1.4 Inter, sans-serif; display: flex; flex-direction: column; gap: 4px; }
-  .lil-vs b { font: 700 0.85rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .06em; }
-  .lil-vs-no { color: var(--text); background: var(--card); border: 1px solid var(--line); }
-  .lil-vs-no b { color: var(--muted); }
-  .lil-vs-yes { color: var(--text); border: 2px solid var(--violet); background: color-mix(in srgb, var(--violet) 10%, var(--card)); }
-  .lil-vs-yes b { color: var(--violet); }
-  .lil-fin { font: 700 1.05rem/1.35 "Space Grotesk", sans-serif; color: var(--ok); padding: 10px 12px; border-radius: 10px; border: 2px solid var(--ok); }
-  .lil-ctrl { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
-  .lil-ctrl .lil-next:not(:disabled) { color: var(--bg); background: var(--grad); border-color: transparent; }
-  .lil-ctrl button:disabled { opacity: .45; cursor: default; }
-  .lil-ctrl button:focus-visible, .lil-bp-o button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-  .lil-cnt { font: 500 0.88rem/1 Inter, sans-serif; color: var(--muted); }
-  .lil-scards { list-style: none; margin: 12px 0 0 !important; padding: 0 !important; display: grid; gap: 10px; }
-  .lil-scards > li { margin: 0 !important; padding: 14px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: 8px; }
-  .lil-scards .lil-tn { font-size: 1.1rem; }
-  .lil-static details { font-size: 0.92rem; }
-  .lil-static details summary { cursor: pointer; color: var(--violet); font-weight: 600; }
-  @media (max-width: 620px) {
-    .lil-st { grid-template-columns: 30px minmax(0, 1fr); }
-    .lil-mini-m { grid-column: 2; grid-row: 1; }
-    .lil-mini-h { grid-column: 2; grid-row: 3; }
-    .lil-rarc { grid-column: 2; height: auto; border: 0; border-radius: 0; margin: 0 !important; display: flex; align-items: center; gap: 10px; min-height: 52px; }
-    .lil-rarc::after { display: none; }
-    .lil-rarc span, .lil-rarc .lil-chip { position: static; transform: none; padding: 0; background: none; }
-    .lil-rarc .lil-chip { padding: 7px 10px; background: var(--card); }
-    .lil-rarc.lil-show span { display: none; }
-    .lil-rarc.lil-arc-top { grid-row: 2; padding-left: 16%; }
-    .lil-rarc.lil-arc-top::before { content: ''; flex: none; width: 3px; height: 34px; background: var(--violet); }
-    .lil-rarc.lil-arc-bot { grid-row: 4; padding-left: 4px; }
-    .lil-rarc.lil-arc-bot::before { content: '↺'; font: 700 1.2rem/1 Inter, sans-serif; color: var(--teal); }
-    .lil-rret { display: block; position: relative; grid-column: 1; grid-row: 1 / 5; margin: 40px 0 24px; border: 3px solid var(--teal); border-right: 0; border-radius: 14px 0 0 14px; }
-    .lil-rret::after { content: ''; position: absolute; right: -4px; top: -9.5px; border: 8px solid transparent; border-left: 10px solid var(--teal); border-right: 0; }
-    .lil-vs { grid-template-columns: 1fr; }
-    .lil-ws-long { display: none; }
-    .lil-ws-short { display: inline; }
-    .lil-mini .lil-head b { font-size: 1rem; }
-    .lil-mini .lil-dial, .lil-mini .lil-clip { width: 18px; height: 18px; }
-    .lil-rdone { position: static; align-self: flex-start; }
-    .lil-rdone:not(.lil-show) { display: none; }
-    .lil-chip { font-size: 0.82rem; padding: 8px 10px; }
-    .lil-tb span { display: none; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .lil-mini, .lil-mstamp, .lil-rdone, .lil-rarc, .lil-pip { transition: none; }
+    .lil-ring { grid-template-columns: minmax(0, 1fr); }
+    .lil-arrows { flex-direction: row; justify-content: space-around; gap: 12px; padding: 10px 0; }
+    .lil-arrow { flex: 1; grid-template-columns: auto minmax(0, 1fr); align-items: center; text-align: left; gap: 10px; }
+    .lil-arrow i { width: 3px; height: 44px; margin: 0 !important; order: -1; }
+    .lil-arrow i::after { left: -6.5px; }
+    .lil-arrow-go i::after { top: auto; right: auto; bottom: -10px; border: 8px solid transparent; border-top: 11px solid var(--violet); border-bottom: 0; }
+    .lil-arrow-back i::after { top: -10px; border: 8px solid transparent; border-bottom: 11px solid var(--teal); border-top: 0; }
+    .lil-turn { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 12px; }
+    .lil-n { width: 30px; height: 30px; font-size: 0.95rem; }
   }
 </style>

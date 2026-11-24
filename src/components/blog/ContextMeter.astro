@@ -1,51 +1,51 @@
 ---
-// The conversation as the agent's only memory, drawn as a bar (the notebook) inside a track, with a dashed
-// limit line (the context window). Same color code as LoopInLoop: muted for text the harness or the reader
-// wrote, violet for what the model wrote, teal for tool results, a dashed outline for a summary.
+// The conversation as the agent's only memory, drawn as a bar (the notebook) with a dashed page limit (the
+// context window). Same colors as LoopInLoop: muted for text the harness or the reader wrote, violet for
+// what the model wrote, teal for tool results, a dashed outline for a summary or the work to check. Both
+// states are still pictures with no controls, so they read the same with or without JavaScript.
 //
-// state="grow": a longer made-up job (it has its own title, so it doesn't read as the park run). Next turn
-// adds a pair of blocks (the model wrote, the result came back). Search results are wide on purpose, and a
-// "big bites" note follows the newest one. At turn 5 the next result is drawn as a ghost block sticking
-// out past the line, your job and turns 1 to 4 get an outline, and the reader picks what happens from three
-// buttons. Then the outlined blocks shrink into one dashed summary (0.6 s) and the outline lands on it, with
-// a warning callout. The setup notes stay. Every block is rendered on the server, and the script only
-// changes widths and positions.
+// state="grow": a longer made-up job (it has its own title, so it doesn't read as the park run) as four
+// numbered snapshots read top to bottom. Turn 1, turn 3 (search results take big bites), turn squeezeAt
+// with the next result drawn as a dashed ghost crossing the line, and the fix, where your job and the
+// oldest turns became one summary. Every bar is drawn to the same scale, and the snapshots fade in once on
+// scroll unless the reader prefers less motion.
 //
-// Under 620px the bar is drawn as three stacked rows of the same width (each row is one third of the
-// track: every row holds the whole strip at 300% and shows its own slice), with the limit as a "page
-// limit" tick on the last row. Reduced motion turns the transitions off and shows the bar before and after
-// the squeeze stacked. Without JavaScript, three static bars show turn 1, turn 5 (near the line), and turn 7
-// (after the summary).
-//
-// state="reviewer": a static wrong-vs-right pair. The maker checking itself reads its own long story first
+// state="reviewer": a wrong-vs-right pair. The maker checking itself reads its own long story first
 // (bracketed, panel greyed), and a fresh copy reads a short bar with only the work to check. Same scale for
 // both bars. Under them, one bracket across both says what the fresh copy helps with and what it doesn't.
 interface MTurn { wrote: number; result: number; kind: string }
-interface Guess { question: string; options: string[]; answer: string }
-interface Meter { title?: string; jobText?: string; track: number; limit: number; setup: number; job: number; summary: number; turns: MTurn[]; squeezeAt: number; guess: Guess }
+interface Meter { title?: string; jobText?: string; track: number; limit: number; setup: number; job: number; summary: number; turns: MTurn[]; squeezeAt: number }
 interface RBlock { kind: string; size: number; label: string }
 interface Props { state?: 'grow' | 'reviewer'; meter?: Meter; maker?: RBlock[]; fresh?: RBlock[]; track?: number; caption?: string }
 const { state = 'grow', meter, maker = [], fresh = [], track = 68, caption } = Astro.props;
 const pct = (n: number, t: number) => `${(100 * n / t).toFixed(2)}%`;
-const KIND: Record<string, string> = { search: 'search result', weather: 'weather', map: 'map' };
-const ROWS = [0, 1, 2];
 
-// Block widths for a given point in the story (n turns, squeezed or not), used by the no-JS bars.
-function widths(m: Meter, n: number, squeezed: boolean) {
-  const old = squeezed ? m.squeezeAt - 1 : 0;
-  return {
-    job: squeezed ? 0 : m.job,
-    summary: squeezed ? m.summary : 0,
-    turns: m.turns.map((t, i) => (i < n && i >= old ? t : { wrote: 0, result: 0, kind: t.kind })),
-  };
+// The four snapshots. Each is a list of blocks, a headline, and an optional label pointing at one block.
+type B = { kind: string; size: number; label?: string };
+type Snap = { head: string; blocks: B[]; ghost?: number; point?: { at: number; text: string; end?: boolean }; notes?: { text: string; warn?: boolean }[] };
+const snaps: Snap[] = [];
+if (meter) {
+  const S = meter.squeezeAt;
+  const turnBlocks = (from: number, to: number) => meter.turns.slice(from, to).flatMap((t) => [{ kind: 'm', size: t.wrote }, { kind: 'r', size: t.result, label: t.kind === 'search' ? 'search' : undefined }]);
+  const base = [{ kind: 'setup', size: meter.setup, label: 'setup' }, { kind: 'job', size: meter.job }];
+  const at = (blocks: B[], i: number) => blocks.slice(0, i).reduce((a, b) => a + b.size, 0);
+  const s1 = [...base, ...turnBlocks(0, 1)];
+  const s2 = [...base, ...turnBlocks(0, 3)];
+  const firstSearch = s2.findIndex((b) => b.label === 'search');
+  const s3 = [...base, ...turnBlocks(0, S)];
+  const s4 = [{ kind: 'setup', size: meter.setup, label: 'setup' }, { kind: 'sum', size: meter.summary }, ...turnBlocks(S - 1, S + 1)];
+  snaps.push(
+    { head: 'Turn 1. Setup notes, your job, and one turn.', blocks: s1 },
+    { head: 'Turn 3. Search results take big bites.', blocks: s2, point: firstSearch >= 0 ? { at: at(s2, firstSearch), text: 'a search result' } : undefined },
+    { head: `Turn ${S}. The next result won't fit under the line.`, blocks: s3, ghost: meter.turns[S].wrote + meter.turns[S].result, point: { at: 0, text: `turn ${S + 1} won't fit ↑`, end: true } },
+    {
+      head: `The fix. The model squeezes your job and turns 1 to ${S - 1} into a summary.`, blocks: s4,
+      point: { at: meter.setup, text: 'the summary' },
+      notes: [{ text: 'Small details, even your exact wording, can get lost.', warn: true }, { text: 'Other harnesses drop old results, or just stop.' }],
+    },
+  );
 }
-const snaps = meter ? [
-  { label: 'Turn 1', ...widths(meter, 1, false) },
-  { label: 'Turn 5. Almost at the line', ...widths(meter, 5, false) },
-  { label: 'Turn 7. Your job and the oldest turns became a summary', ...widths(meter, 7, true) },
-] : [];
-// Where the limit falls inside the last of the three phone rows.
-const limitRow = meter ? `${(100 * (3 * meter.limit / meter.track - 2)).toFixed(2)}%` : '0';
+const used = (s: Snap) => s.blocks.reduce((a, b) => a + b.size, 0);
 // The reviewer's bracket: from the maker's first block of its own reasoning to its last.
 const story = (() => {
   let at = 0, a = -1, b = 0;
@@ -54,95 +54,42 @@ const story = (() => {
 })();
 const keys = (list: RBlock[]) => list.filter((b, i, a) => a.findIndex((x) => x.label === b.label) === i);
 const book = '<svg class="cm-book" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2z" /><path d="M5 19a2 2 0 0 1 2-2h12" /><path d="M9 7h6M9 10.5h6" /></svg>';
-const dial = '<svg class="cm-dial" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="8" /><line x1="0" y1="0" x2="4" y2="-6" /></svg>';
 ---
 {state === 'grow' && meter && (
-<figure class="cm cm-grow panel bleed" data-cm={JSON.stringify(meter)}>
+<figure class="cm cm-grow panel bleed">
   {meter.title && <p class="cm-title">{meter.title}</p>}
   {meter.jobText && <p class="cm-jobline"><span class="cm-k">your job</span>{meter.jobText}</p>}
-  <div class="cm-top">
-    <span class="cm-hand"><span>All of this, handed over again every turn</span><i class="cm-arrow" aria-hidden="true"></i></span>
-    <span class="cm-model"><Fragment set:html={dial} />The model</span>
-  </div>
-  <div class="cm-live" hidden>
-    <div class="cm-before" hidden><p class="cm-ba">Before</p><div class="cm-before-bar"></div><p class="cm-ba">After</p></div>
-    <div class="cm-row">
-      <Fragment set:html={book} />
-      <div class="cm-barwrap" style={`--lim:${(meter.limit / meter.track).toFixed(4)}`}>
-        <div class="cm-over">
-          <p class="cm-call" style={`--x:${(meter.setup / meter.track).toFixed(4)}`}><span></span></p>
-          <p class="cm-limit-l" style={`right:${pct(meter.track - meter.limit, meter.track)}`}>The most it can work with at once <small>(counting what it writes next)</small></p>
-        </div>
-        <div class="cm-rows">
-          {ROWS.map((r) => (
-            <div class="cm-track" data-row={r}>
-              <div class="cm-strip" style={`--r:${r}`}>
-                <div class="cm-blocks">
-                  <i class="cm-b cm-b-setup" style={`width:${pct(meter.setup, meter.track)}`} title="setup notes, from the harness"><span>setup</span></i>
-                  <i class="cm-b cm-b-job" data-job style={`width:${pct(meter.job, meter.track)}`} title="your job"><span>job</span></i>
-                  <i class="cm-b cm-b-sum" data-sum title="summary, written by the model"><span>summary</span></i>
-                  {meter.turns.map((t, i) => (<><i class="cm-b cm-b-m" data-tw={i} title="the model wrote"></i><i class={`cm-b cm-b-r cm-b-${t.kind}`} data-tr={i} title={KIND[t.kind] ?? 'result'}>{t.kind === 'search' && <span>search result</span>}</i></>))}
-                </div>
-                <i class="cm-ghost" hidden><span>won't fit</span></i>
-                <i class="cm-brk" hidden></i>
-                <i class="cm-limit" style={`left:${pct(meter.limit, meter.track)}`}></i>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p class="cm-plimit" style={`right:calc(100% - ${limitRow})`}>page limit ↑</p>
-        <p class="cm-bitewrap"><span class="cm-bite" hidden>↑ Search results take big bites</span></p>
-        <p class="cm-under"><span class="cm-booklab">↑ The notebook. Read from page one, every turn.</span></p>
-      </div>
-    </div>
-    <div class="cm-say" aria-live="polite">
-      <p class="cm-msg"></p>
-      <div class="cm-guess" hidden>
-        <p class="cm-guess-q"><b>Brain power.</b> {meter.guess.question}</p>
-        <p class="cm-guess-o">{meter.guess.options.map((o) => <button type="button" data-pick={o}>{o}</button>)}</p>
-      </div>
-      <p class="cm-fix" hidden></p>
-      <p class="cm-foot" hidden>Other harnesses drop old results, or just stop.</p>
-    </div>
-    <div class="cm-ctrl">
-      <span class="cm-turn">Turn 1</span>
-      <button type="button" class="cm-next">Next turn</button>
-    </div>
-  </div>
-  <div class="cm-static">
-    {snaps.map((s) => {
-      const used = meter.setup + s.job + s.summary + s.turns.reduce((a, t) => a + t.wrote + t.result, 0);
-      return (
-        <div class="cm-snap">
-          <p class="cm-snap-l">{s.label}</p>
-          <div class="cm-rows">
-            {ROWS.map((r) => (
-              <div class="cm-track">
-                <div class="cm-strip" style={`--r:${r}`}>
-                  <div class="cm-blocks">
-                    <i class="cm-b cm-b-setup" style={`width:${pct(meter.setup, meter.track)}`}></i>
-                    {s.job > 0 && <i class="cm-b cm-b-job" style={`width:${pct(s.job, meter.track)}`}></i>}
-                    {s.summary > 0 && <i class="cm-b cm-b-sum" style={`width:${pct(s.summary, meter.track)}`}></i>}
-                    {s.turns.map((t) => t.wrote > 0 && (<><i class="cm-b cm-b-m" style={`width:${pct(t.wrote, meter.track)}`}></i><i class={`cm-b cm-b-r cm-b-${t.kind}`} style={`width:${pct(t.result, meter.track)}`}></i></>))}
-                  </div>
-                  <i class="cm-limit" style={`left:${pct(meter.limit, meter.track)}`}></i>
-                </div>
-              </div>
-            ))}
-          </div>
-          <span class="cm-sr">{used} of {meter.limit} made-up units used.</span>
-        </div>
-      );
-    })}
-    <p class="cm-msg">The dashed line is the most it can work with at once. At turn 6 the next result won't fit, so the harness asks the model to write a summary of the conversation so far (one common fix). Small details, even your exact wording, can get lost.</p>
-  </div>
+  <p class="cm-intro"><Fragment set:html={book} />Every turn the model reads the whole notebook, from page one.</p>
   <ul class="cm-legend">
-    <li><i class="cm-sw cm-b-setup"></i><span><b>setup notes</b> from the harness, like which tools exist</span></li>
+    <li><i class="cm-sw cm-b-setup"></i><span><b>setup notes</b> from the harness</span></li>
     <li><i class="cm-sw cm-b-job"></i><span><b>your job</b></span></li>
     <li><i class="cm-sw cm-b-m"></i><span><b>the model wrote</b></span></li>
     <li><i class="cm-sw cm-b-r"></i><span><b>a tool result</b></span></li>
     <li><i class="cm-sw cm-b-sum"></i><span><b>a summary</b></span></li>
   </ul>
+  <ol class="cm-snaps">
+    {snaps.map((s, i) => (
+      <li class={`cm-snap${i === snaps.length - 1 ? ' cm-snap-fix' : ''}`} style={`--i:${i}`}>
+        <span class="cm-n">{i + 1}</span>
+        <div class="cm-sbody">
+          <p class="cm-sh">{s.head}</p>
+          <div class="cm-barbox">
+            <p class="cm-plimit" style={`right:${pct(meter.track - meter.limit, meter.track)}`}>page limit</p>
+            <div class="cm-track">
+              <div class="cm-blocks">
+                {s.blocks.map((b) => <i class={`cm-b cm-b-${b.kind}`} style={`width:${pct(b.size, meter.track)}`}>{b.label && <span>{b.label}</span>}</i>)}
+                {s.ghost && <i class="cm-ghost" style={`width:${pct(Math.min(s.ghost, meter.track - used(s)), meter.track)}`}></i>}
+              </div>
+              <i class="cm-limit" style={`left:${pct(meter.limit, meter.track)}`}></i>
+            </div>
+            {s.point && (s.point.end ? <p class="cm-point cm-point-end">{s.point.text}</p> : <p class="cm-point" style={`margin-left:${pct(s.point.at, meter.track)}`}>↑ {s.point.text}</p>)}
+          </div>
+          {s.notes?.map((n) => <p class={n.warn ? 'cm-note cm-note-warn' : 'cm-note'}>{n.text}</p>)}
+          <span class="cm-sr">{used(s)} of {meter.limit} made-up units used.</span>
+        </div>
+      </li>
+    ))}
+  </ol>
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 )}
@@ -185,165 +132,58 @@ const dial = '<svg class="cm-dial" viewBox="-10 -10 20 20" aria-hidden="true"><c
 )}
 
 <script>
-  type M = { track: number; limit: number; setup: number; job: number; summary: number; turns: { wrote: number; result: number; kind: string }[]; squeezeAt: number; guess: { answer: string } };
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   for (const root of document.querySelectorAll<HTMLElement>('.cm-grow')) {
-    const m = JSON.parse(root.dataset.cm!) as M;
-    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
-    const $$ = (s: string) => [...root.querySelectorAll<HTMLElement>(`.cm-live ${s}`)];
-    $('.cm-live').hidden = false;
-    $('.cm-static').hidden = true;
-    if (reduce) root.classList.add('cm-still');
-    const tw = $$('[data-tw]'), tr = $$('[data-tr]'), jobs = $$('[data-job]'), sums = $$('[data-sum]');
-    const ghosts = $$('.cm-ghost'), brks = $$('.cm-brk');
-    const call = $('.cm-call'), callT = call.querySelector('span')!, bite = $('.cm-bite');
-    const msg = $('.cm-msg'), guess = $('.cm-guess'), fix = $('.cm-fix'), foot = $('.cm-foot');
-    const before = $('.cm-before'), beforeBar = $('.cm-before-bar'), rows = $('.cm-live .cm-rows');
-    const picks = [...root.querySelectorAll<HTMLButtonElement>('.cm-guess-o button')];
-    const turnL = $('.cm-turn'), next = $<HTMLButtonElement>('.cm-next');
-    const pct = (n: number) => `${(100 * n / m.track).toFixed(2)}%`;
-    const N = m.turns.length, S = m.squeezeAt;
-    const turnSize = (i: number) => m.turns[i].wrote + m.turns[i].result;
-    let n = 1, squeezed = false, picked = '';
-
-    function render() {
-      const old = squeezed ? S - 1 : 0;
-      let used = m.setup + (squeezed ? m.summary : m.job), lastSearch = -1;
-      m.turns.forEach((t, i) => {
-        const on = i < n && i >= old;
-        tw.filter((e) => +e.dataset.tw! === i).forEach((e) => (e.style.width = pct(on ? t.wrote : 0)));
-        tr.filter((e) => +e.dataset.tr! === i).forEach((e) => (e.style.width = pct(on ? t.result : 0)));
-        if (on && t.kind === 'search') lastSearch = used + t.wrote;
-        if (on) used += turnSize(i);
-      });
-      jobs.forEach((e) => (e.style.width = pct(squeezed ? 0 : m.job)));
-      sums.forEach((e) => (e.style.width = pct(squeezed ? m.summary : 0)));
-      const full = n === S && !squeezed;
-      const fresh = squeezed && n === S + 1;
-
-      // The next result, drawn where it would go, sticking out past the line.
-      ghosts.forEach((g) => { g.hidden = !full; g.style.left = pct(used); g.style.width = pct(turnSize(S)); });
-      // The outline: your job and the old turns, then (after the squeeze) the summary they became.
-      const oldW = m.job + m.turns.slice(0, S - 1).reduce((a, t, i) => a + turnSize(i), 0);
-      brks.forEach((b) => { b.hidden = !(full || fresh); b.style.left = pct(m.setup); b.style.width = pct(full ? oldW : m.summary); });
-      call.classList.toggle('cm-on', full || fresh);
-      call.classList.toggle('cm-warn', fresh);
-      callT.textContent = full ? '↓ your job and turns 1 to 4' : fresh ? '↓ became this summary. Small details can get lost here.' : '';
-
-      bite.hidden = lastSearch < 0 || full;
-      bite.style.setProperty('--x', String(Math.min(lastSearch / m.track, 0.7)));
-      turnL.textContent = `Turn ${n}`;
-      msg.textContent = full ? "Turn 6 brings a big search result. It won't fit under the line."
-        : fresh ? '' : squeezed ? 'It keeps going from the summary.'
-        : 'Each turn adds what the model wrote and what came back. Nothing comes off.';
-      msg.hidden = fresh;
-      guess.hidden = !full;
-      fix.hidden = foot.hidden = !fresh;
-      fix.textContent = `${picked === m.guess.answer ? 'Right.' : 'Not this time.'} One common fix is a summary of the conversation so far (another model call). Your exact wording can get squeezed too.`;
-      if (!fresh) before.hidden = true;
-      root.classList.toggle('cm-full', full);
-      next.hidden = full;
-      next.textContent = n === N ? 'Start over' : 'Next turn';
-    }
-    for (const b of picks) {
-      b.addEventListener('click', () => {
-        picked = b.dataset.pick!;
-        if (reduce) {
-          // Reduced motion: show the bar before the squeeze above the one after it.
-          beforeBar.replaceChildren(rows.cloneNode(true));
-          before.hidden = false;
-        }
-        squeezed = true; n += 1;
-        render();
-        next.focus();
-      });
-    }
-    next.addEventListener('click', () => {
-      if (n === N) { n = 1; squeezed = false; picked = ''; } else n += 1;
-      render();
-    });
-    render();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('cm-ready');
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { root.classList.add('cm-go'); io.disconnect(); } }, { threshold: 0.12 });
+    io.observe(root);
   }
 </script>
 
 <style is:global>
-  .cm [hidden] { display: none !important; }
   .cm p { margin: 0; }
   .cm-title { font: 700 1.25rem/1.2 "Space Grotesk", sans-serif; color: var(--text); }
   .cm-jobline { margin-top: 8px !important; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 500 1rem/1.4 Inter, sans-serif; color: var(--text); }
   .cm-k { font: 600 0.8rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .05em; padding: 5px 8px; border-radius: 6px; color: var(--muted); background: var(--card); border: 1px solid var(--line); }
-  .cm-dial { width: 18px; height: 18px; flex: none; }
-  .cm-dial circle { fill: none; stroke: currentColor; stroke-width: 2; }
-  .cm-dial line { stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
-  .cm-top { display: flex; align-items: center; gap: 10px; margin: 16px 0 12px; }
-  .cm-hand { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font: 600 0.95rem/1.3 Inter, sans-serif; color: var(--text); }
-  .cm-arrow { position: relative; display: block; height: 4px; border-radius: 2px; background: var(--muted); margin-right: 10px; }
-  .cm-arrow::after { content: ''; position: absolute; right: -12px; top: -7px; border: 9px solid transparent; border-left: 13px solid var(--muted); border-right: 0; }
-  .cm-model { flex: none; display: inline-flex; align-items: center; gap: 6px; font: 700 1rem/1 "Space Grotesk", sans-serif; color: var(--violet); border: 3px solid var(--violet); background: var(--bg-2); border-radius: 12px; padding: 10px 12px; }
-  .cm-row { display: flex; align-items: flex-start; gap: 10px; }
-  .cm-book { flex: none; width: 34px; height: 34px; margin-top: 66px; fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
-  .cm-barwrap { position: relative; flex: 1; min-width: 0; }
-  .cm-over { position: relative; min-height: 4.4rem; margin-bottom: 8px; display: flex; align-items: flex-end; }
-  .cm-call { flex: 1; padding-left: calc(var(--x) * 100%); visibility: hidden; }
-  .cm-call span { display: inline-block; max-width: 40%; font: 700 0.95rem/1.3 Inter, sans-serif; color: var(--text); padding: 4px 8px; border-left: 3px solid var(--text); }
-  .cm-call.cm-on { visibility: visible; }
-  .cm-call.cm-warn span { border-left-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--card)); }
-  .cm-limit-l { position: absolute; bottom: 0; max-width: 44%; text-align: right; font: 600 0.88rem/1.25 Inter, sans-serif; color: var(--warn); padding-right: 6px; }
-  .cm-limit-l small { display: block; font-weight: 500; font-size: 0.8rem; }
-  .cm-rows { display: grid; gap: 10px; }
-  .cm-track { position: relative; height: 44px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
-  .cm-track[data-row="1"], .cm-track[data-row="2"], .cm-rows > .cm-track:not(:first-child) { display: none; }
-  .cm-strip { position: absolute; top: 0; bottom: 0; left: 0; width: 100%; }
-  .cm-blocks { display: flex; height: 100%; overflow: hidden; border-radius: 7px; }
-  .cm-b { display: flex; align-items: center; justify-content: center; flex: none; height: 100%; overflow: hidden; transition: width .6s ease; box-shadow: inset -2px 0 0 var(--card); }
-  .cm-still .cm-b, .cm-still .cm-brk { transition: none; }
-  .cm-b span { font: 600 0.8rem/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; }
-  .cm-b-setup { background: color-mix(in srgb, var(--muted) 38%, var(--bg-2)); }
-  .cm-b-setup span, .cm-b-job span { color: var(--text); }
-  .cm-b-job { background: color-mix(in srgb, var(--muted) 70%, var(--bg-2)); }
-  .cm-b-job span { color: var(--bg); }
-  .cm-b-sum { width: 0; background: var(--card); box-shadow: inset 0 0 0 2px var(--muted); border-radius: 4px; background-clip: padding-box; outline: 2px dashed var(--muted); outline-offset: -4px; }
-  .cm-b-sum span { color: var(--text); }
-  .cm-b-m, .cm-b-wrote { background: var(--violet); }
-  .cm-b-r, .cm-b-result { background: var(--teal); }
-  .cm-live .cm-b-m, .cm-live .cm-b-r { width: 0; }
-  .cm-b-work { background: var(--card); box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -3px; }
-  .cm-b-ask { background: repeating-linear-gradient(135deg, var(--muted) 0 3px, color-mix(in srgb, var(--muted) 30%, var(--bg-2)) 3px 6px); }
-  .cm-ghost { position: absolute; top: 3px; bottom: 3px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--warn); border-radius: 6px; background: color-mix(in srgb, var(--teal) 40%, transparent); }
-  .cm-ghost span { font: 700 0.85rem/1 Inter, sans-serif; color: var(--text); white-space: nowrap; }
-  .cm-brk { position: absolute; top: 0; bottom: 0; border: 3px solid var(--text); border-radius: 6px; transition: left .6s ease, width .6s ease; pointer-events: none; }
-  .cm-limit { position: absolute; top: 0; bottom: 0; width: 0; border-left: 3px dashed var(--warn); }
-  .cm-full .cm-limit { border-left-style: solid; }
-  .cm-plimit { display: none; }
-  .cm-bitewrap { position: relative; min-height: 1.6em; margin-top: 4px !important; }
-  .cm-bite { position: absolute; left: calc(var(--x, 0) * 100%); top: 0; white-space: nowrap; font: 600 0.88rem/1.35 Inter, sans-serif; color: var(--teal); }
-  .cm-under { margin-top: 2px !important; font: italic 500 0.88rem/1.35 Inter, sans-serif; color: var(--muted); }
-  .cm-before { margin: 0 0 10px 44px; display: grid; gap: 6px; }
-  .cm-ba { font: 700 0.85rem/1 Inter, sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .cm-before-bar .cm-brk, .cm-before-bar .cm-ghost { display: none !important; }
-  .cm-say { margin-top: 14px; display: grid; gap: 8px; }
-  .cm-msg, .cm-fix { font: 600 1rem/1.45 Inter, sans-serif; color: var(--text); }
-  .cm-guess { padding: 12px; border-radius: 12px; border: 2px solid var(--warn); background: var(--card); display: grid; gap: 10px; }
-  .cm-guess-q { font: 600 1.02rem/1.35 Inter, sans-serif; color: var(--text); }
-  .cm-guess-q b { color: var(--warn); }
-  .cm-guess-o { display: flex; flex-wrap: wrap; gap: 8px; }
-  .cm-guess-o button { font: 600 0.92rem/1.2 Inter, sans-serif; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 11px 16px; min-height: 44px; cursor: pointer; text-align: left; }
-  .cm-guess-o button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-  .cm-foot { font: 500 0.88rem/1.35 Inter, sans-serif; color: var(--muted); }
-  .cm-ctrl { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
-  .cm-turn { font: 700 1.3rem/1 "Space Grotesk", sans-serif; color: var(--text); }
-  .cm-next { font: 600 0.92rem/1.2 Inter, sans-serif; color: var(--bg); background: var(--grad); border: 0; border-radius: 999px; padding: 12px 18px; min-height: 44px; cursor: pointer; text-align: center; }
-  .cm-next:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
-  .cm-legend { list-style: none; margin: 16px 0 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .cm-intro { margin-top: 14px !important; display: flex; align-items: center; gap: 10px; font: 600 1rem/1.35 Inter, sans-serif; font-style: normal; color: var(--text); }
+  .cm-book { flex: none; width: 28px; height: 28px; fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+  .cm-legend { list-style: none; margin: 12px 0 0 !important; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 6px 16px; }
   .cm-legend li { margin: 0 !important; display: flex; align-items: center; gap: 6px; font: 500 0.88rem/1.3 Inter, sans-serif; color: var(--muted) !important; }
   .cm-legend b { color: var(--text); font-weight: 600; }
+  .cm-snaps { list-style: none; margin: 16px 0 0 !important; padding: 0 !important; display: grid; gap: 12px; }
+  .cm-snap { margin: 0 !important; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); border-left: 4px solid var(--muted); }
+  .cm-snap:nth-child(3) { border-left-color: var(--warn); }
+  .cm-snap-fix { border-left-color: var(--teal); }
+  .cm-n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 700 1.1rem/1 "Space Grotesk", sans-serif; background: var(--card); color: var(--text); }
+  .cm-sbody { display: grid; gap: 10px; min-width: 0; }
+  .cm-sh { font: 700 1.05rem/1.35 "Space Grotesk", sans-serif; color: var(--text); }
+  .cm-barbox { position: relative; }
+  .cm-barbox { padding-top: 1.4rem; }
+  .cm-plimit { position: absolute; top: 0; padding-right: 6px; font: 700 0.82rem/1.2 Inter, sans-serif; color: var(--warn); white-space: nowrap; }
+  .cm-track { position: relative; height: 44px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); }
+  .cm-blocks { display: flex; height: 100%; overflow: hidden; border-radius: 7px; }
+  .cm-b { display: flex; align-items: center; justify-content: center; flex: none; height: 100%; overflow: hidden; box-shadow: inset -2px 0 0 var(--card); }
+  .cm-b span { font: 600 0.78rem/1 Inter, sans-serif; color: var(--bg); white-space: nowrap; }
+  .cm-b-setup { background: color-mix(in srgb, var(--muted) 38%, var(--bg-2)); }
+  .cm-b-setup span { color: var(--text); }
+  .cm-b-job { background: color-mix(in srgb, var(--muted) 70%, var(--bg-2)); }
+  .cm-b-sum { background: var(--card); box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -4px; }
+  .cm-b-m, .cm-b-wrote { background: var(--violet); }
+  .cm-b-r, .cm-b-result { background: var(--teal); }
+  .cm-b-work { background: var(--card); box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -3px; }
+  .cm-b-ask { background: repeating-linear-gradient(135deg, var(--muted) 0 3px, color-mix(in srgb, var(--muted) 30%, var(--bg-2)) 3px 6px); }
+  .cm-ghost { flex: none; display: flex; align-items: center; justify-content: center; margin: 3px 0; border: 2px dashed var(--warn); border-radius: 6px; background: color-mix(in srgb, var(--teal) 30%, transparent); }
+  .cm-limit { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 3px dashed var(--warn); }
+  .cm-point { margin-top: 4px !important; width: fit-content; font: 600 0.88rem/1.3 Inter, sans-serif; color: var(--text); }
+  .cm-point-end { margin-left: auto !important; color: var(--warn); }
+  .cm-note { font: 500 0.92rem/1.4 Inter, sans-serif; color: var(--muted); }
+  .cm-note-warn { font-weight: 600; color: var(--text); padding: 6px 10px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 12%, var(--card)); border-radius: 0 8px 8px 0; }
   .cm-sw { display: inline-block; flex: none; width: 16px !important; height: 16px; border-radius: 4px; }
   .cm-sw.cm-b-sum { background: none; box-shadow: none; outline: 2px dashed var(--muted); outline-offset: -2px; }
   .cm-sw.cm-b-work { outline-offset: -2px; }
-  .cm-snap { margin-bottom: 18px; }
-  .cm-snap .cm-rows { margin-top: 10px; }
-  .cm-snap-l { font: 600 0.92rem/1.3 Inter, sans-serif; color: var(--text); }
   .cm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .cm-ready .cm-snap { opacity: 0; transform: translateY(10px); }
+  .cm-go .cm-snap { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; transition-delay: calc(var(--i) * .4s); }
 
   .cm-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .cm-side { position: relative; padding: 16px; border-radius: 14px; background: var(--bg-2); border: 2px solid var(--line); display: grid; gap: 10px; align-content: start; }
@@ -372,20 +212,9 @@ const dial = '<svg class="cm-dial" viewBox="-10 -10 20 20" aria-hidden="true"><c
   .cm-chip { margin: 12px auto 0 !important; width: fit-content; max-width: 100%; text-align: center; font: 500 0.9rem/1.35 Inter, sans-serif; color: var(--muted); background: var(--bg-2); border-radius: 999px; padding: 8px 14px; }
   @media (max-width: 620px) {
     .cm-pair { grid-template-columns: 1fr; }
-    .cm-book { display: none; }
-    .cm-before { margin-left: 0; }
-    .cm-limit-l { display: none; }
-    .cm-track[data-row="1"], .cm-track[data-row="2"], .cm-rows > .cm-track:not(:first-child) { display: block; }
-    .cm-strip { width: 300%; left: calc(var(--r) * -100%); }
-    .cm-over { min-height: 4.4rem; }
-    .cm-call { padding-left: calc(var(--x) * 300%); }
-    .cm-call span { max-width: 80%; }
-    .cm-plimit { display: block; position: relative; margin-top: 4px !important; text-align: right; font: 700 0.88rem/1.2 Inter, sans-serif; color: var(--warn); }
-    .cm-plimit { width: fit-content; margin-left: auto !important; }
-    .cm-bitewrap { min-height: 0; }
-    .cm-bite { position: static; white-space: normal; }
-    .cm-hand { font-size: 0.9rem; }
-    .cm-ctrl { flex-wrap: wrap; }
     .cm-same-r b { display: block; min-width: 0; }
+    .cm-snap { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 12px; }
+    .cm-n { width: 30px; height: 30px; font-size: 0.95rem; }
+    .cm-b span { display: none; }
   }
 </style>

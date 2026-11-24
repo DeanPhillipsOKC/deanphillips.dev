@@ -19,8 +19,8 @@
       "trips": 50,
       "wroteSize": 200,
       "backSize": 500,
-      "brainPower": true,
-      "tag": "dry Sun"
+      "tag": "dry Sun",
+      "branch": true
     },
     {
       "wrote": "Sunday works. Is the park open?",
@@ -40,18 +40,9 @@
       "backSize": 0
     }
   ],
-  "brainPower": {
-    "question": "Rain Saturday. What should it do next?",
-    "options": [
-      "Go ahead anyway",
-      "Check Sunday",
-      "Give up"
-    ],
-    "answer": "Check Sunday",
+  "branch": {
     "script": "Checks Sunday only if someone thought to write that step ahead of time.",
-    "agent": "Read the rain and wrote the Sunday step itself.",
-    "right": "Right. It checks Sunday.",
-    "wrong": "The agent checked Sunday, because the result said rain."
+    "agent": "Read the rain and wrote the Sunday step itself."
   },
   "meter": {
     "title": "A longer made-up job, same loop",
@@ -98,16 +89,7 @@
         "kind": "weather"
       }
     ],
-    "squeezeAt": 5,
-    "guess": {
-      "question": "What happens now?",
-      "options": [
-        "It crashes",
-        "It squeezes old turns into a summary",
-        "It forgets the job"
-      ],
-      "answer": "It squeezes old turns into a summary"
-    }
+    "squeezeAt": 5
   },
   "reviewer": {
     "maker": [

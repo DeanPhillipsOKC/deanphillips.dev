@@ -3,8 +3,8 @@ title: "What makes an AI an agent"
 titleAccent: "an agent"
 tabTitle: "AI, Plainly: Agents"
 partTitle: "Agents, or the bigger loop"
-description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Step through a made-up run, fill the notebook, and see why checks matter. Part 2 of AI, plainly.
-dek: An agent is the same word-guessing model, called again and again by a regular program, with nothing to remember but the conversation. Watch one run turn by turn, then fill its notebook.
+description: A plain-English, picture-first explanation of AI agents. The same word-guessing model, wrapped in a bigger loop by an ordinary program called the harness, with the conversation as its only memory. Follow a made-up run turn by turn, watch the notebook fill up, and see why checks matter. Part 2 of AI, plainly.
+dek: An agent is the same word-guessing model, called again and again by a regular program, with nothing to remember but the conversation. Here's one run, turn by turn, and its notebook filling up.
 eyebrow: "AI, plainly"
 date: 2026-11-24
 readMinutes: 5
@@ -48,15 +48,14 @@ One trip around the big ring is a **turn**. People call this the agentic loop. (
   { q: 'Is the thinking a separate hidden brain?', a: "No. It's more text the model writes, the same way it writes answers, even when an app hides it from you." },
 ]} />
 
-## Watch one run
+## One run, turn by turn
 
-Press Start, then Next turn. Turn 2 stops and asks you first.
+Four made-up turns, read top to bottom. Each card is one trip around the loop.
 
 <LoopInLoop
   mode="run"
-  loop={story.loop}
   run={d}
-  caption="A made-up run, one tool request per turn. Real ones often run many more turns. Trip counts and sizes are made up."
+  caption="A made-up run, one tool request per turn. Real ones often run many more turns."
 />
 
 Turn 2 is the one to watch. Nothing in the job said to check Sunday. A script only follows the branches someone wrote ahead of time, and nobody wrote this one. The model wrote it after reading the result.
