@@ -22,6 +22,28 @@ has results).
   the weights of a tiny network for a toy problem (XOR, a small digit set), check it against a trained
   one, and write up how it went about it. Material exists only once the experiment has been run.
 
+## AI, plainly (series queue)
+
+Explainers for people who use AI but haven't looked under the hood, developers included. Keep the
+visuals plain and readable for someone who hasn't read anything yet (see the 3D note under the
+inference post). Owner's ideas, 2026-11-24. Suggested order:
+
+- **Tools** (promised at the end of part 0): why a model that can only guess words can still search
+  the web, read files, and run code. The model writes a request, a regular program does the work, and
+  the result is pasted into the conversation. Search tools are also where "find the nearest match in a
+  big space of numbers" really happens (retrieval), so the owner's original picture of inference
+  belongs here.
+- **The agentic loop**: the inference loop wrapped in a bigger loop of think, use a tool, read the
+  result, repeat, until the job is done. Can link the Gesso agent-loop post as a real example.
+- **The math, with nothing past arithmetic**: weights as "how much one thing pushes another", slope
+  as "how far up for each step over" (no formulas or symbols), training as nudging a line until it
+  fits the points, and distance and "lining up" in a space with many directions as comparing two
+  long lists of numbers item by item. The punchline is that it's multiplying and adding, billions of
+  times. Builds on the DialDemo (a dial is a slope).
+- **Format idea**: a card-based "AI, plainly" field guide in the style of the OWASP page (one concept
+  per card, same parts on every card, each card shareable on its own), with each card linking to the
+  post that goes deep. Decide with the owner before building.
+
 ## Drafted
 
 - **AI, plainly: inference** (owner's idea, 2026-11-23): `ai-plainly`, part 0 of a new `ai-plainly`
