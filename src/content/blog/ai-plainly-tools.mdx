@@ -11,6 +11,7 @@ readMinutes: 5
 series: ai-plainly
 part: 1
 draft: true
+image: /img/og/ai-plainly-tools.jpg
 ---
 import TrustSwitch from '../../components/blog/TrustSwitch.astro';
 import NextWord from '../../components/blog/NextWord.astro';
@@ -21,6 +22,7 @@ import QuoteCheck from '../../components/blog/QuoteCheck.astro';
 import SearchMap from '../../components/blog/SearchMap.astro';
 import FixSplit from '../../components/blog/FixSplit.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
+import ToolsReel from '../../components/blog/ToolsReel.astro';
 import d from '../../data/ai-plainly/ai-plainly-tools.json';
 
 This is part 1 of [AI, plainly](/blog/ai-plainly/), and it starts where the overview stopped. The overview said a model can only guess the next word. It can't look anything up. So how can a chatbot tell you it's searching the web?
@@ -151,3 +153,5 @@ Can you explain the round trip back to someone? Here's a warmup first.
 One note, one reply. Now picture the model reading that reply and writing another note. And another, until the job is done. That's an agent, and it's the next post.
 
 It never touched the internet. It just got very good at writing notes.
+
+<ToolsReel q={{ ...d.relay.questions[0], result: 'Tulsa now 54°F, cloudy' }} guesses={d.request.steps[0].options} />
