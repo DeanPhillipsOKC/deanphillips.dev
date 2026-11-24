@@ -52,10 +52,10 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-agents-reel.mp4']);
 
-// The link preview: the harness doing the job while the model sits greyed out, under the title.
+// The link preview: the regular program doing the job while the model waits, under the title.
 const og = await open(1200, 630, 'og');
 await og.evaluate(() => {
-  window.__agentsReel.draw(9.8);
+  window.__agentsReel.draw(4.2);
   const hl = document.querySelectorAll('.arl-hl');
   hl[0].querySelector('.arl-h1').textContent = 'What makes an AI an agent?';
   hl[0].querySelector('.arl-h2').innerHTML = 'The model writes a request.<br>A regular program does it.';
