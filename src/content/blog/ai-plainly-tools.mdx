@@ -15,7 +15,7 @@ image: /img/og/ai-plainly-tools.jpg
 ---
 import TrustSwitch from '../../components/blog/TrustSwitch.astro';
 import NextWord from '../../components/blog/NextWord.astro';
-import GroupChat from '../../components/blog/GroupChat.astro';
+import TextThreads from '../../components/blog/TextThreads.astro';
 import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
@@ -67,19 +67,18 @@ How does it know the tools exist? The app slips in a hidden list of them (you'll
 
 ## A regular program does the work
 
-**The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip for one question, as a group chat you'd never normally get to see.
+**The app** is the ordinary program you type into. It runs the model, spots its notes, and hands them to tools. Here's the whole round trip for one question, as the texts that fly back and forth.
 
-<GroupChat
-  title="Weather question"
-  items={d.chat}
+<TextThreads
+  threads={d.threads}
   others={[
     { label: 'Big math', note: 'run_code(print(48271 * 9358))' },
     { label: 'Your file', note: 'read_file(packing-list.txt)' },
   ]}
-  caption="The whole group chat, as if you could see all of it. A real chat app shows you only your question and the last answer. The highlighted line is what's new. The weather is made up."
+  caption="You only ever see the top and bottom chats. The three in the middle happen out of sight. The highlighted line is what's new. The weather is made up."
 />
 
-Look at who does the remembering. It's the app. The model is just a token predictor, and it has no memory at all. Every time the app starts it, the app pastes the whole conversation into one message. The model guesses from that message, then stops and keeps nothing.
+Look at who does the remembering. It's the app. The model is just a token predictor, and it has no memory at all. Every time the app texts it, it's a brand new chat, so the app pastes the whole conversation into one message. The model guesses from that message, then stops and keeps nothing.
 
 So while the tool works, the model isn't waiting. It isn't running at all. When the result comes back, the app starts it fresh and hands it everything again, result included.
 

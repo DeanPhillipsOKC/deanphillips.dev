@@ -265,152 +265,146 @@
       }
     ]
   },
-  "chat": [
+  "threads": [
     {
-      "kind": "msg",
-      "who": "you",
-      "to": "app",
-      "lines": [
+      "me": "you",
+      "them": "app",
+      "sub": "your chat",
+      "msgs": [
         {
-          "text": "What's the weather in Tulsa right now?"
+          "who": "you",
+          "lines": [
+            {
+              "text": "What's the weather in Tulsa right now?"
+            }
+          ]
         }
       ]
     },
     {
-      "kind": "event",
-      "text": "The app starts the model"
-    },
-    {
-      "kind": "msg",
-      "who": "app",
-      "to": "model",
+      "link": "The app opens a new chat with the model.",
+      "me": "app",
+      "them": "model",
+      "sub": "new chat",
       "hidden": true,
-      "lines": [
+      "banner": "New chat. The model has no memory, so this message has to carry everything it needs.",
+      "msgs": [
         {
-          "tag": "Tools",
-          "text": "search the web, run code, read a shared file"
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Tools",
+              "text": "search the web, run code, read a shared file"
+            },
+            {
+              "tag": "You",
+              "text": "What's the weather in Tulsa right now?"
+            }
+          ]
         },
         {
-          "tag": "You",
-          "text": "What's the weather in Tulsa right now?"
-        }
-      ]
-    },
-    {
-      "kind": "think",
-      "who": "model",
-      "hidden": true,
-      "lines": [
-        {
-          "text": "Nothing. Only the message it was just handed."
+          "who": "model",
+          "lines": [
+            {
+              "tag": "Note",
+              "text": "search(Tulsa weather now)",
+              "code": true
+            }
+          ]
         }
       ],
-      "label": "The model remembers"
+      "end": "Chat over. The model keeps nothing."
     },
     {
-      "kind": "msg",
-      "who": "model",
-      "to": "app",
+      "link": "The app texts the note to the tool.",
+      "me": "app",
+      "them": "tool",
+      "sub": "tool chat",
       "hidden": true,
-      "lines": [
+      "msgs": [
         {
-          "tag": "Note",
-          "text": "search(Tulsa weather now)",
-          "code": true
-        }
-      ]
-    },
-    {
-      "kind": "event",
-      "text": "The model stops running"
-    },
-    {
-      "kind": "msg",
-      "who": "app",
-      "to": "tool",
-      "hidden": true,
-      "lines": [
-        {
-          "text": "search(Tulsa weather now)",
-          "code": true
-        }
-      ]
-    },
-    {
-      "kind": "msg",
-      "who": "tool",
-      "to": "app",
-      "hidden": true,
-      "lines": [
-        {
-          "tag": "Result",
-          "text": "Tulsa now 54°F, cloudy"
-        }
-      ]
-    },
-    {
-      "kind": "event",
-      "text": "The app starts the model again. It remembers nothing."
-    },
-    {
-      "kind": "msg",
-      "who": "app",
-      "to": "model",
-      "hidden": true,
-      "lines": [
-        {
-          "tag": "Tools",
-          "text": "search the web, run code, read a shared file"
+          "who": "app",
+          "lines": [
+            {
+              "text": "search(Tulsa weather now)",
+              "code": true
+            }
+          ]
         },
         {
-          "tag": "You",
-          "text": "What's the weather in Tulsa right now?"
-        },
-        {
-          "tag": "Note",
-          "text": "search(Tulsa weather now)",
-          "code": true
-        },
-        {
-          "tag": "Result",
-          "text": "Tulsa now 54°F, cloudy",
-          "fresh": true
+          "who": "tool",
+          "lines": [
+            {
+              "tag": "Result",
+              "text": "Tulsa now 54°F, cloudy"
+            }
+          ]
         }
       ]
     },
     {
-      "kind": "think",
-      "who": "model",
+      "link": "The app opens another new chat with the model. It's empty again.",
+      "me": "app",
+      "them": "model",
+      "sub": "new chat",
       "hidden": true,
-      "lines": [
+      "banner": "New chat. Nothing from the first one is here, so the app pastes in the whole conversation.",
+      "msgs": [
         {
-          "text": "Nothing. Only the message it was just handed."
+          "who": "app",
+          "lines": [
+            {
+              "tag": "Tools",
+              "text": "search the web, run code, read a shared file"
+            },
+            {
+              "tag": "You",
+              "text": "What's the weather in Tulsa right now?"
+            },
+            {
+              "tag": "Note",
+              "text": "search(Tulsa weather now)",
+              "code": true
+            },
+            {
+              "tag": "Result",
+              "text": "Tulsa now 54°F, cloudy",
+              "fresh": true
+            }
+          ]
+        },
+        {
+          "who": "model",
+          "lines": [
+            {
+              "text": "It's 54°F and cloudy in Tulsa right now."
+            }
+          ]
         }
       ],
-      "label": "The model remembers"
+      "end": "Chat over. The model keeps nothing."
     },
     {
-      "kind": "msg",
-      "who": "model",
-      "to": "app",
-      "hidden": true,
-      "lines": [
+      "link": "The app texts you back.",
+      "me": "you",
+      "them": "app",
+      "sub": "your chat",
+      "msgs": [
         {
-          "text": "It's 54°F and cloudy in Tulsa right now."
-        }
-      ]
-    },
-    {
-      "kind": "event",
-      "text": "The model stops running"
-    },
-    {
-      "kind": "msg",
-      "who": "app",
-      "to": "you",
-      "lines": [
+          "who": "you",
+          "lines": [
+            {
+              "text": "What's the weather in Tulsa right now?"
+            }
+          ]
+        },
         {
-          "text": "It's 54°F and cloudy in Tulsa right now."
+          "who": "app",
+          "lines": [
+            {
+              "text": "It's 54°F and cloudy in Tulsa right now."
+            }
+          ]
         }
       ]
     }
