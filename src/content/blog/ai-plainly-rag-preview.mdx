@@ -1,0 +1,21 @@
+---
+title: "Retrieval picture preview"
+description: A draft preview of a new retrieval picture for the tools post, for the owner to try before it replaces the current one.
+dek: A try-out of the step-by-step retrieval map. Tap the dots, then tap Next.
+eyebrow: "AI, plainly"
+date: 2026-11-25
+readMinutes: 1
+draft: true
+---
+import RagStory from '../../components/blog/RagStory.astro';
+import d from '../../data/ai-plainly/ai-plainly-tools.json';
+
+This is a preview of a new picture for the search section of [part 2](/blog/ai-plainly-tools/). It isn't in the post yet.
+
+<RagStory
+  passages={d.ragPassages}
+  good={d.ragStory.good}
+  bad={d.ragStory.bad}
+  question={d.ragStory.question}
+  caption="Every position and passage is made up. Real maps have hundreds or thousands of directions."
+/>

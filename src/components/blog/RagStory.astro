@@ -1,0 +1,255 @@
+---
+// Retrieval as a short story on one map, one tap of Next at a time.
+//   0. The map. Every dot is a stored passage, and tapping a dot shows its text.
+//   1. A search types into the bar at the top, collapses into a ball, and flies to its own spot.
+//   2. A ring grows around it and the closest passages light up, numbered.
+//   3. The app pastes those passages into its chat with the model.
+//   4. The model answers from what it was handed.
+//   5. A second search lands nearest the wrong page, and the answer comes out smooth and made up.
+// Only one thing changes per step, and the step's headline sits above the map. Back shows a step's
+// finished state with no animation. With reduced motion, Next also jumps straight to the finished state.
+// Without JavaScript, the controls stay hidden and a plain list of the steps shows under the map.
+interface P { label: string; x: number; y: number; text: string }
+interface Search { note: string; x: number; y: number; answer: string; verdict?: string }
+interface Props { passages: P[]; good: Search; bad: Search; question: string; k?: number; caption?: string }
+const { passages, good, bad, question, k = 3, caption } = Astro.props;
+const TOP = 18; // the search bar sits above the map, in the same drawing
+const H = TOP + 76;
+const right = (p: P) => p.x > 80;
+const bare = (n: string) => n.replace(/^search\((.*)\)$/, '$1');
+const near = (s: Search) => passages.map((q, i) => ({ i, d: Math.hypot(q.x - s.x, q.y - s.y) })).sort((a, b) => a.d - b.d).slice(0, k);
+const data = { passages, good: { ...good, note: bare(good.note), near: near(good) }, bad: { ...bad, note: bare(bad.note), near: near(bad) }, question, k, TOP };
+const steps = [
+  'Each dot is a passage from a store’s help docs.',
+  'Your search gets a spot on the same map.',
+  `Grab the ${k} closest.`,
+  'The app pastes them into its chat with the model.',
+  'The model answers from what it was handed.',
+  'Closest isn’t always right.',
+];
+---
+<figure class="rs panel bleed">
+  <div class="rs-box">
+    <div class="rs-ctl" hidden>
+      <button type="button" class="rs-back">Back</button>
+      <span class="rs-count">1 of {steps.length}</span>
+      <button type="button" class="rs-next">Next</button>
+    </div>
+    <p class="rs-head" aria-live="polite">{steps[0]}</p>
+    <svg class="rs-map" viewBox={`0 0 100 ${H}`} role="img" aria-label="A map of stored passages with a search bar above it.">
+      <rect class="rs-bar" x="2" y="2" width="96" height="11" rx="5.5" />
+      <text class="rs-q" x="7" y="9.4"><tspan class="rs-ph">Search the help docs</tspan></text>
+      <defs><clipPath id="rs-clip"><rect x="0" y={TOP - 2} width="100" height={H - TOP + 2} rx="3" /></clipPath></defs>
+      <rect class="rs-mapbg" x="0" y={TOP - 2} width="100" height={H - TOP + 2} rx="3" />
+      <g clip-path="url(#rs-clip)"><circle class="rs-ring" cx="0" cy="0" r="1" /></g>
+      <g class="rs-lines"></g>
+      {passages.map((q, i) => (
+        <g class="rs-dot" data-i={i} tabindex="0" role="button" aria-label={`${q.label}. Show this passage.`}>
+          <circle class="rs-hit" cx={q.x} cy={q.y + TOP} r="5.5" />
+          <circle class="rs-pt" cx={q.x} cy={q.y + TOP} r="1.8" />
+          <text x={right(q) ? q.x - 3 : q.x + 3} y={q.y + TOP + 1.3} text-anchor={right(q) ? 'end' : 'start'}><tspan class="rs-num"></tspan>{q.label}</text>
+        </g>
+      ))}
+      <g class="rs-ball"><circle r="2.6" /></g>
+    </svg>
+    <div class="rs-card" aria-live="polite">
+      <p class="rs-hint">Tap any dot to read its passage.</p>
+    </div>
+    <ol class="rs-static">
+      {steps.map((s) => <li>{s}</li>)}
+    </ol>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+  <script type="application/json" class="rs-data" set:html={JSON.stringify({ ...data, steps })} />
+</figure>
+
+<script>
+  type P = { label: string; x: number; y: number; text: string };
+  type S = { note: string; x: number; y: number; answer: string; verdict?: string; near: { i: number; d: number }[] };
+  const NS = 'http://www.w3.org/2000/svg';
+  for (const root of document.querySelectorAll<HTMLElement>('.rs')) {
+    const D = JSON.parse(root.querySelector('.rs-data')!.textContent!) as { passages: P[]; good: S; bad: S; question: string; k: number; TOP: number; steps: string[] };
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const head = $<HTMLElement>('.rs-head'), card = $<HTMLElement>('.rs-card');
+    const q = $<SVGTextElement>('.rs-q'), ring = $<SVGCircleElement>('.rs-ring'), lines = $<SVGGElement>('.rs-lines');
+    const ball = $<SVGGElement>('.rs-ball'), back = $<HTMLButtonElement>('.rs-back'), next = $<HTMLButtonElement>('.rs-next');
+    const count = $<HTMLElement>('.rs-count');
+    const dots = [...root.querySelectorAll<SVGGElement>('.rs-dot')];
+    $<HTMLElement>('.rs-ctl').hidden = false;
+    $<HTMLElement>('.rs-static').hidden = true;
+    root.classList.add('rs-js');
+    let step = 0, timers: number[] = [];
+    const later = (ms: number, f: () => void) => timers.push(window.setTimeout(f, reduce ? 0 : ms));
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+
+    function setQuery(text: string | null) {
+      q.textContent = '';
+      const t = document.createElementNS(NS, 'tspan');
+      if (text === null) { t.setAttribute('class', 'rs-ph'); t.textContent = 'Search the help docs'; } else t.textContent = text;
+      q.append(t);
+      q.style.opacity = '1';
+    }
+    function typeQuery(text: string, done: () => void) {
+      if (reduce) { setQuery(text); done(); return; }
+      let n = 0;
+      const tick = () => { setQuery(text.slice(0, ++n) + (n < text.length ? '▍' : '')); if (n < text.length) later(38, tick); else later(350, done); };
+      tick();
+    }
+    function placeBall(s: S | null, from = false) {
+      ball.classList.toggle('rs-on', !!s);
+      ball.classList.toggle('rs-move', !from && !reduce);
+      ball.style.transform = s ? `translate(${s.x}px, ${s.y + D.TOP}px)` : 'translate(50px, 7.5px)';
+    }
+    function flyBall(s: S, done: () => void) {
+      if (reduce) { placeBall(s); done(); return; }
+      ball.classList.remove('rs-move');
+      ball.style.transform = 'translate(50px, 7.5px) scale(.2)';
+      ball.classList.add('rs-on');
+      q.style.opacity = '0.55';
+      void ball.getBoundingClientRect();
+      later(30, () => { ball.classList.add('rs-move'); ball.style.transform = `translate(${s.x}px, ${s.y + D.TOP}px)`; });
+      later(1000, done);
+    }
+    function showNear(s: S | null, warn = false) {
+      lines.replaceChildren();
+      dots.forEach((g) => { g.classList.remove('rs-near', 'rs-far', 'rs-wrong'); g.querySelector('.rs-num')!.textContent = ''; });
+      ring.classList.remove('rs-on');
+      if (!s) return;
+      const r = s.near[s.near.length - 1].d + 3;
+      ring.setAttribute('cx', String(s.x)); ring.setAttribute('cy', String(s.y + D.TOP)); ring.setAttribute('r', String(r));
+      ring.classList.add('rs-on');
+      s.near.forEach((n, j) => {
+        const p = D.passages[n.i];
+        const l = document.createElementNS(NS, 'line');
+        l.setAttribute('x1', String(s.x)); l.setAttribute('y1', String(s.y + D.TOP));
+        l.setAttribute('x2', String(p.x)); l.setAttribute('y2', String(p.y + D.TOP));
+        lines.append(l);
+        const g = dots[n.i];
+        g.classList.add('rs-near'); if (warn && j === 0) g.classList.add('rs-wrong');
+        g.querySelector('.rs-num')!.textContent = `${j + 1}. `;
+      });
+      dots.forEach((g, i) => { if (!s.near.some((n) => n.i === i)) g.classList.add('rs-far'); });
+    }
+    const passageList = (s: S) => s.near.map((n, j) => `<li><b>${j + 1}. ${esc(D.passages[n.i].label)}</b> ${esc(D.passages[n.i].text)}</li>`).join('');
+    const chat = (s: S) => `
+      <div class="rs-chat">
+        <p class="rs-who">The app to the model</p>
+        <div class="rs-bub rs-app"><p class="rs-tag">Found passages</p><ol>${passageList(s)}</ol><p><span class="rs-tag">You</span> ${esc(D.question)}</p></div>
+      </div>`;
+    const answer = (s: S, warn = false) => `
+      <div class="rs-chat">
+        <p class="rs-who">The model to the app</p>
+        <div class="rs-bub rs-model"><p>${esc(s.answer)}</p></div>
+        ${s.verdict ? `<p class="rs-verdict${warn ? ' rs-v-warn' : ''}">${esc(s.verdict)}</p>` : ''}
+      </div>`;
+
+    function render(n: number, animate: boolean) {
+      clear();
+      step = n;
+      head.textContent = D.steps[n];
+      count.textContent = `${n + 1} of ${D.steps.length}`;
+      back.disabled = n === 0;
+      next.textContent = n === D.steps.length - 1 ? 'Start over' : 'Next';
+      root.dataset.step = String(n);
+      const s = n === 5 ? D.bad : D.good;
+      if (n === 0) {
+        setQuery(null); placeBall(null, true); showNear(null);
+        card.innerHTML = '<p class="rs-hint">Tap any dot to read its passage. Passages about similar things sit close together.</p>';
+        return;
+      }
+      if (n === 1 || n === 5) {
+        showNear(null);
+        card.innerHTML = n === 1
+          ? '<p class="rs-say">The model’s search note goes through the same map maker as the passages, so it gets a spot too. It lands near passages that mean something similar.</p>'
+          : '<p class="rs-say">A different search, about a Model 7 blender.</p>';
+        const finish = () => {
+          if (n === 5) { showNear(s, true); card.innerHTML = answer(s, true); }
+        };
+        if (animate) { placeBall(null, true); typeQuery(s.note, () => flyBall(s, () => later(300, finish))); }
+        else { setQuery(s.note); placeBall(s, true); q.style.opacity = '0.55'; finish(); }
+        return;
+      }
+      setQuery(s.note); q.style.opacity = '0.55'; placeBall(s, true); showNear(s);
+      if (n === 2) card.innerHTML = `<p class="rs-say">The tool grabs the ${D.k} passages sitting nearest the search.</p><ol class="rs-list">${passageList(s)}</ol><p class="rs-say rs-small">The closest one shares no words with the search. It’s just close in meaning.</p>`;
+      if (n === 3) card.innerHTML = chat(s);
+      if (n === 4) card.innerHTML = answer(s);
+    }
+
+    function peek(i: number) {
+      const p = D.passages[i];
+      card.innerHTML = `<p class="rs-peek"><b>${esc(p.label)}</b> <q>${esc(p.text)}</q></p>`
+        + (step > 0 ? '<p class="rs-small">Tap Next to keep going.</p>' : '<p class="rs-hint">Tap another dot, or Next to search.</p>');
+      dots.forEach((g, j) => g.classList.toggle('rs-picked', j === i));
+    }
+    dots.forEach((g, i) => {
+      g.addEventListener('click', () => peek(i));
+      g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); peek(i); } });
+    });
+    next.addEventListener('click', () => { dots.forEach((g) => g.classList.remove('rs-picked')); render(step === D.steps.length - 1 ? 0 : step + 1, true); });
+    back.addEventListener('click', () => { dots.forEach((g) => g.classList.remove('rs-picked')); if (step > 0) render(step - 1, false); });
+    render(0, false);
+  }
+</script>
+
+<style is:global>
+  .rs p { margin: 0; }
+  .rs-box { max-width: 520px; margin: 0 auto; display: grid; gap: 12px; }
+  .rs-head { font: 700 1.2rem/1.3 "Space Grotesk", sans-serif; min-height: 2.6em; display: flex; align-items: flex-start; }
+  .rs-map { width: 100%; height: auto; display: block; overflow: visible; }
+  .rs-bar { fill: var(--card); stroke: var(--violet); stroke-width: 0.5; }
+  .rs-q { font: 700 3.6px ui-monospace, SFMono-Regular, Menlo, monospace; fill: var(--violet); transition: opacity .4s; }
+  .rs-ph { fill: var(--muted); font-weight: 500; font-family: Inter, sans-serif; }
+  .rs-mapbg { fill: var(--bg-2); stroke: var(--line); stroke-width: 0.3; }
+  .rs-pt { fill: var(--teal); transition: fill .3s; }
+  .rs-hit { fill: transparent; }
+  .rs-dot { cursor: pointer; outline: none; }
+  .rs-dot text { font: 600 3.4px Inter, sans-serif; fill: var(--text); transition: fill .3s; }
+  .rs-dot:focus-visible .rs-pt, .rs-picked .rs-pt { stroke: var(--text); stroke-width: 0.7; }
+  .rs-picked text { text-decoration: underline; }
+  .rs-far .rs-pt { fill: var(--muted); }
+  .rs-far text { fill: var(--muted); font-weight: 500; }
+  .rs-near text { font-weight: 800; }
+  .rs-wrong .rs-pt { fill: var(--warn); }
+  .rs-wrong text { fill: var(--warn); }
+  .rs-ball { opacity: 0; }
+  .rs-ball circle { fill: var(--violet); stroke: var(--bg); stroke-width: 0.6; }
+  .rs-ball.rs-on { opacity: 1; }
+  .rs-ball.rs-move { transition: transform .9s cubic-bezier(.45, 0, .2, 1); }
+  .rs-ring { fill: color-mix(in srgb, var(--violet) 10%, transparent); stroke: var(--violet); stroke-width: 0.5; stroke-dasharray: 1.6 1.2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .rs-ring.rs-on { opacity: 1; animation: rs-grow .6s ease-out; }
+  .rs-lines line { stroke: var(--violet); stroke-width: 0.6; stroke-dasharray: 80; animation: rs-draw .6s ease-out; }
+  @keyframes rs-grow { from { transform: scale(.1); } }
+  @keyframes rs-draw { from { stroke-dashoffset: 80; } to { stroke-dashoffset: 0; } }
+  .rs-card { min-height: 7.5em; display: grid; gap: 8px; align-content: start; }
+  .rs-hint, .rs-small { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
+  .rs-say { font-size: 1rem; line-height: 1.5; }
+  .rs-peek { font-size: 1rem; line-height: 1.5; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--teal) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--teal) 45%, transparent); }
+  .rs-peek b { display: block; font: 700 0.75rem/1.4 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--teal); }
+  .rs-list, .rs-bub ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .rs-list li, .rs-bub li { font-size: 0.95rem; line-height: 1.4; }
+  .rs-list b, .rs-bub li b { display: block; font: 700 0.72rem/1.4 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .rs-chat { display: grid; gap: 6px; }
+  .rs-who { font: 700 0.75rem/1.3 Inter, sans-serif; color: var(--muted); }
+  .rs-bub { display: grid; gap: 8px; padding: 10px 12px; border-radius: 16px; font-size: 0.97rem; line-height: 1.45; animation: rs-pop .35s ease-out; }
+  .rs-app { background: color-mix(in srgb, var(--warn) 15%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--warn) 50%, transparent); border-bottom-right-radius: 4px; }
+  .rs-model { background: color-mix(in srgb, var(--violet) 15%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--violet) 50%, transparent); border-bottom-left-radius: 4px; }
+  .rs-tag { justify-self: start; display: inline-block; padding: 1px 6px; border-radius: 5px; font: 700 0.64rem/1.5 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); }
+  .rs-verdict { font-size: 0.95rem; line-height: 1.45; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
+  @keyframes rs-pop { from { opacity: 0; transform: translateY(6px); } }
+  .rs-ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .rs-ctl[hidden] { display: none; }
+  .rs-ctl button { font: 700 1rem/1 Inter, sans-serif; padding: 12px 20px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .rs-next { border-color: var(--violet) !important; background: color-mix(in srgb, var(--violet) 22%, var(--card)) !important; }
+  .rs-ctl button:disabled { opacity: .4; cursor: default; }
+  .rs-count { font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
+  .rs-static { margin: 0; padding-left: 1.2em; font-size: 0.95rem; line-height: 1.5; }
+  .rs-static[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) { .rs-ring.rs-on, .rs-lines line, .rs-bub { animation: none; } }
+  @media (max-width: 560px) {
+    .rs-dot text { font-size: 4.2px; }
+    .rs-q { font-size: 3.9px; }
+    .rs-head { font-size: 1.1rem; }
+  }
+</style>
