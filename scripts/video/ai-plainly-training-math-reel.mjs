@@ -26,13 +26,13 @@ async function open(width, height, mode) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: 'dark' });
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
-  await page.evaluate((m) => { document.querySelector('.trl').dataset[m] = '1'; document.body.style.overflow = 'hidden'; }, mode);
+  await page.evaluate((m) => { document.querySelector('.tnr').dataset[m] = '1'; document.body.style.overflow = 'hidden'; }, mode);
   return page;
 }
 
-// The video: a poster frame (dots, a wild guess, its misses), measuring the misses, why each is multiplied by
-// itself, the score, then 40 rounds of real training with two dials turning,
-// ending on the takeaway.
+// The video: the hook over part 1's tiny model guessing (the poster frame), what it should have been, the
+// nudge receipt, then rounds of the same sentence with blue climbing and its nudge shrinking, ending on the
+// takeaway.
 const page = await open(1080, 1350, 'reel');
 const total = await page.evaluate(() => window.__trainingReel.total);
 if (process.env.REEL_STILLS) {
@@ -55,10 +55,9 @@ mkdirSync('public/video', { recursive: true });
 execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(work, 'f%05d.png'),
   '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', 'public/video/ai-plainly-training-math-reel.mp4']);
 
-// The link preview: "Nobody drew the line." beside the settled line, with the first guess drawn faintly
-// (the figure jumps to just after the last round of training whatever time it is given).
+// The link preview: the hook beside the full nudge receipt (data-og shows every row whatever time it is given).
 const og = await open(1200, 630, 'og');
-await og.evaluate(() => window.__trainingReel.draw(25));
+await og.evaluate(() => window.__trainingReel.draw(0));
 await og.screenshot({ path: join(work, 'og.png') });
 await og.close();
 mkdirSync('public/img/og', { recursive: true });

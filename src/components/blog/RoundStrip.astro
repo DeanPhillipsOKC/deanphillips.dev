@@ -1,0 +1,52 @@
+---
+// "Do it again", as a still strip read top to bottom. The same sentence, round after round, from the same
+// made-up starting dials as the receipt (round 1 is the receipt). Each row is one round: the chance it gave
+// the right answer as a bar, and the turn that round gave blue's dials, as a teal arrow whose length is the
+// turn. The chance climbs and the arrows shrink, because should minus guessed gets small near 100%. The
+// rounds come from rounds() in src/lib/tiny-model.ts. Static HTML, no JavaScript.
+import { rounds, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sentence: Sentence; n?: number; caption?: string }
+const { model, sentence, n = 6, caption } = Astro.props;
+const ri = model.answers.indexOf(sentence.answer);
+const rs = rounds(model, sentence, n);
+const max = rs[0].turn[ri];
+---
+<figure class="rnd panel bleed">
+  <div class="rnd-box">
+    <p class="rnd-head">"{sentence.text}&nbsp;___", round after round</p>
+    <div class="rnd-key" aria-hidden="true"><span>#</span><span>chance of {sentence.answer}</span><span>turn up, by size</span></div>
+    <ol class="rnd-list">
+      {rs.map((r, i) => (
+        <li>
+          <span class="rnd-n">{i + 1}</span>
+          <span class="rnd-bar" aria-label={`${r.pct[ri]}% ${sentence.answer}`}><i style={`width:${r.pct[ri]}%`}></i><b>{r.pct[ri]}%</b></span>
+          <span class="rnd-turn" aria-label={`turn up ${r.turn[ri].toFixed(2)}`}>
+            <i style={`width:${Math.max(6, (r.turn[ri] / max) * 100)}%`}></i>
+            <b>+{r.turn[ri].toFixed(2)}</b>
+          </span>
+        </li>
+      ))}
+    </ol>
+    <p class="rnd-foot">Should minus guessed: {rs.map((r) => r.diff[ri]).join(', ')}. Close to the answer, there's little left to fix.</p>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .rnd p { margin: 0; }
+  .rnd-box { max-width: 520px; margin: 0 auto; display: grid; gap: 10px; }
+  .rnd-head { font: 700 1.2rem/1.3 "Space Grotesk", sans-serif; }
+  .rnd-key, .rnd-list li { display: grid; grid-template-columns: 2.2em 1.25fr 1fr; gap: 10px; align-items: center; }
+  .rnd-key span { font: 700 0.7rem/1.3 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .rnd-list { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 10px; }
+  .rnd-list li { margin: 0 !important; }
+  .rnd-n { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--bg-2); border: 1.5px solid var(--line); font: 700 0.95rem Inter, sans-serif; }
+  .rnd-bar { position: relative; height: 30px; border-radius: 8px; background: var(--bg-2); overflow: hidden; }
+  .rnd-bar i { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--teal) 55%, var(--bg-2)); border-radius: inherit; }
+  .rnd-bar b { position: relative; display: block; padding: 0 8px; font: 700 1rem/30px Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .rnd-turn { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .rnd-turn i { position: relative; height: 8px; background: var(--teal); border-radius: 4px 0 0 4px; flex: 0 1 auto; max-width: calc(100% - 4.2em); }
+  .rnd-turn i::after { content: ""; position: absolute; right: -9px; top: -6px; border: 10px solid transparent; border-left: 10px solid var(--teal); border-right: 0; }
+  .rnd-turn b { flex: none; margin-left: 10px; font: 700 0.98rem Inter, sans-serif; font-variant-numeric: tabular-nums; color: var(--teal); }
+  .rnd-foot { color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
+</style>

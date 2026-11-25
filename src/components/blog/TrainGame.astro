@@ -1,0 +1,234 @@
+---
+// Part 4's one hands-on piece, the token-model version of the old bean FitLine game the owner liked. Part 1's
+// three sentences with their right answers (each as one bar split into its three answers, the right one
+// teal, with the right answer's chance big beside it), three dials the reader can turn (sky to blue, grass to green,
+// night to black, the ones that matter), and one big scoreboard number, the total wrongness (each
+// sentence's surprise, added up). Every other dial and every start stays at zero in this game, so three
+// sliders are enough on a phone.
+//
+// "Your turn": drag a dial and watch each sentence's bars and the total move. The night sentence is the
+// catch: "sky" is in it too, so night to black has to beat sky to blue. "Let it learn" starts the dials
+// over at zero and runs real rounds (gameRound in src/lib/tiny-model.ts: guess each sentence, nudge right
+// after it by step times should minus guessed, the same rule and step as the receipt). A round counter, a
+// trail of the total (3.30, 2.40, 1.84, ...), and an arrow on each dial sized by that round's turn show the
+// nudges shrinking. The first five rounds go slowly, then faster. The reader's best total stays on the
+// board so the end reads you against training. Reset puts it all back. It isn't DialDemo: no grid of nine
+// knobs, and the lesson is the scoreboard, the rounds, and the arrows.
+//
+// Reduced motion: no bar or arrow transitions, and Let it learn jumps through rounds 1, 2, 3, 5, 10, 20 and
+// 30 with a pause at each. Without JavaScript, a still before and after (worked out here at build time)
+// shows instead.
+import { gameProbs, gameRound, gameWrong, type Moving, type Sentence } from '../../lib/tiny-model';
+interface Props { answers: string[]; sentences: Sentence[]; moving: Moving; step: number; rounds: number; min: number; max: number; caption?: string }
+const { answers, sentences, moving, step, rounds, min, max, caption } = Astro.props;
+const zero = Object.fromEntries(Object.keys(moving).map((c) => [c, 0]));
+let d = { ...zero };
+for (let i = 0; i < rounds; i++) d = gameRound(d, moving, answers, sentences, step).d;
+const before = gameWrong(zero, moving, answers, sentences), after = gameWrong(d, moving, answers, sentences);
+const right = (x: Record<string, number>, s: Sentence) => Math.round(gameProbs(x, moving, answers, s)[answers.indexOf(s.answer)] * 100);
+const cfg = { answers, sentences, moving, step, rounds };
+---
+<figure class="tgm panel bleed" data-cfg={JSON.stringify(cfg)}>
+  <div class="tgm-box">
+    <div class="tgm-board">
+      <p class="tgm-score"><span>Total wrongness</span><b class="tgm-total">{before.toFixed(2)}</b><small class="tgm-best" hidden></small></p>
+      <p class="tgm-round"><span>Round</span><b class="tgm-rn">0</b></p>
+    </div>
+    <p class="tgm-trail" aria-hidden="true"></p>
+
+    <ol class="tgm-sents">
+      {sentences.map((s, si) => (
+        <li class="tgm-sent" data-si={si}>
+          <p class="tgm-st">{s.text}&nbsp;<b>___</b> <span>wants <em>{s.answer}</em></span></p>
+          <p class="tgm-pc">{Math.round(100 / answers.length)}%</p>
+          <span class="tgm-seg">
+            {answers.map((a, ai) => (
+              <i class={a === s.answer ? 'tgm-ok' : `tgm-x${ai % 2}`} data-a={a} style={`width:${100 / answers.length}%`}><b>{a}</b></i>
+            ))}
+          </span>
+        </li>
+      ))}
+    </ol>
+
+    <div class="tgm-live" hidden>
+      <p class="tgm-label">The dials <span>(the rest stay at zero)</span></p>
+      <div class="tgm-dials">
+        {Object.entries(moving).map(([c, a]) => (
+          <label class="tgm-dial" data-c={c}>
+            <span class="tgm-dn">{c} → {a}</span>
+            <input type="range" min={min} max={max} step="0.1" value="0" aria-label={`Dial from ${c} to ${a}`} />
+            <output class="tgm-v">0.0</output>
+            <span class="tgm-nudge" aria-hidden="true"><i></i><b></b></span>
+          </label>
+        ))}
+      </div>
+      <div class="tgm-ctl">
+        <button type="button" class="tgm-learn">Let it learn</button>
+        <button type="button" class="tgm-reset">Reset</button>
+      </div>
+      <p class="tgm-status" aria-live="polite">Your turn. Drag a dial and get the total wrongness down. Then press Let it learn.</p>
+    </div>
+
+    <table class="tgm-still">
+      <caption>Before and after {rounds} rounds of nudges</caption>
+      <thead><tr><th scope="col"></th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        {Object.entries(moving).map(([c, a]) => <tr><th scope="row">{c} → {a} dial</th><td>0.0</td><td>{d[c].toFixed(1)}</td></tr>)}
+        {sentences.map((s) => <tr><th scope="row">"{s.text}" gives {s.answer}</th><td>{right(zero, s)}%</td><td>{right(d, s)}%</td></tr>)}
+        <tr class="tgm-tot"><th scope="row">Total wrongness</th><td>{before.toFixed(2)}</td><td>{after.toFixed(2)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  import { gameProbs, gameRound, gameWrong, type Moving, type Sentence } from '../../lib/tiny-model';
+  type Cfg = { answers: string[]; sentences: Sentence[]; moving: Moving; step: number; rounds: number };
+  for (const root of document.querySelectorAll<HTMLElement>('.tgm')) {
+    const C: Cfg = JSON.parse(root.dataset.cfg!);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $('.tgm-live').hidden = false;
+    $('.tgm-still').hidden = true;
+    root.classList.add('tgm-js');
+    const total = $('.tgm-total'), rn = $('.tgm-rn'), trail = $('.tgm-trail'), status = $('.tgm-status'), best = $('.tgm-best');
+    const learn = $<HTMLButtonElement>('.tgm-learn');
+    const dials = [...root.querySelectorAll<HTMLElement>('.tgm-dial')];
+    const zero = () => Object.fromEntries(Object.keys(C.moving).map((c) => [c, 0]));
+    let d: Record<string, number> = zero();
+    let round = 0, timer = 0, mine = Infinity, hist: number[] = [];
+
+    function render(turn?: Record<string, number>) {
+      const w = gameWrong(d, C.moving, C.answers, C.sentences);
+      total.textContent = w.toFixed(2);
+      rn.textContent = String(round);
+      C.sentences.forEach((s, si) => {
+        const p = gameProbs(d, C.moving, C.answers, s);
+        const li = root.querySelector<HTMLElement>(`.tgm-sent[data-si="${si}"]`)!;
+        const top = p.indexOf(Math.max(...p));
+        li.classList.toggle('tgm-won', C.answers[top] === s.answer);
+        li.querySelectorAll<HTMLElement>('.tgm-seg i').forEach((b, i) => {
+          b.style.width = `${p[i] * 100}%`;
+          b.querySelector('b')!.textContent = p[i] >= 0.17 ? `${C.answers[i]} ${Math.round(p[i] * 100)}%` : '';
+        });
+        li.querySelector('.tgm-pc')!.textContent = `${Math.round(p[C.answers.indexOf(s.answer)] * 100)}%`;
+      });
+      for (const el of dials) {
+        const c = el.dataset.c!;
+        const inp = el.querySelector('input')!;
+        inp.value = String(Math.max(+inp.min, Math.min(+inp.max, d[c])));
+        el.querySelector('output')!.textContent = d[c].toFixed(1);
+        const nd = el.querySelector<HTMLElement>('.tgm-nudge')!;
+        const t = turn?.[c];
+        nd.classList.toggle('tgm-on', t !== undefined);
+        if (t !== undefined) {
+          nd.classList.toggle('tgm-neg', t < 0);
+          nd.querySelector('b')!.textContent = `${t >= 0 ? '↑ +' : '↓ −'}${Math.abs(t).toFixed(2)}`;
+          nd.querySelector<HTMLElement>('i')!.style.width = `${Math.min(100, Math.abs(t) * 100)}%`;
+        }
+      }
+      trail.textContent = hist.length ? hist.slice(0, 7).map((v) => v.toFixed(2)).join(' → ') + (hist.length > 7 ? ` → … → ${hist[hist.length - 1].toFixed(2)}` : '') : '';
+      return w;
+    }
+    function stop() { clearTimeout(timer); timer = 0; learn.textContent = 'Let it learn'; }
+    function step() {
+      const r = gameRound(d, C.moving, C.answers, C.sentences, C.step);
+      d = r.d; round++;
+      hist.push(gameWrong(d, C.moving, C.answers, C.sentences));
+      render(r.turn);
+      return r.turn;
+    }
+    // Slow for the first five rounds, then faster. Reduced motion shows only some rounds, with a pause at each.
+    const SHOW = [1, 2, 3, 5, 10, 20, 30];
+    function tick() {
+      let turn: Record<string, number>;
+      if (reduce) { const goal = SHOW.find((n) => n > round) ?? C.rounds; while (round < goal - 1) { d = gameRound(d, C.moving, C.answers, C.sentences, C.step).d; round++; hist.push(gameWrong(d, C.moving, C.answers, C.sentences)); } }
+      turn = step();
+      const big = Math.max(...Object.values(turn).map(Math.abs));
+      status.textContent = round <= 5
+        ? `Round ${round}. It guessed all three sentences and turned each dial by its should minus guessed. Biggest turn this round, ${big.toFixed(2)}.`
+        : `Round ${round}. The guesses are close now, so the turns are small (biggest ${big.toFixed(2)}).`;
+      if (round >= C.rounds) {
+        stop();
+        status.textContent = `Done after ${round} rounds. Total wrongness ${hist[hist.length - 1].toFixed(2)}${mine < Infinity ? `, and your best was ${mine.toFixed(2)}` : ''}. Nobody told it where the dials go. It only had should minus guessed.`;
+        return;
+      }
+      timer = window.setTimeout(tick, reduce ? 1100 : round < 5 ? 900 : 160);
+    }
+    learn.addEventListener('click', () => {
+      if (timer) { stop(); return; }
+      if (round >= C.rounds || round === 0) { d = zero(); round = 0; hist = [gameWrong(d, C.moving, C.answers, C.sentences)]; render(); }
+      learn.textContent = 'Pause';
+      timer = window.setTimeout(tick, reduce ? 300 : 500);
+    });
+    $('.tgm-reset').addEventListener('click', () => {
+      stop(); d = zero(); round = 0; hist = []; render();
+      status.textContent = 'Back to zero. Drag a dial, or press Let it learn.';
+    });
+    for (const el of dials) {
+      el.querySelector('input')!.addEventListener('input', (e) => {
+        stop();
+        d[el.dataset.c!] = +(e.target as HTMLInputElement).value;
+        round = 0; hist = [];
+        const w = render();
+        mine = Math.min(mine, w);
+        best.hidden = false;
+        best.textContent = `Your best: ${mine.toFixed(2)}`;
+        const wrong = C.sentences.filter((s) => { const p = gameProbs(d, C.moving, C.answers, s); return C.answers[p.indexOf(Math.max(...p))] !== s.answer; });
+        status.textContent = wrong.length ? `Still wrong: "${wrong.map((s) => s.text).join('", "')}".` : 'All three right. Can you get the total lower?';
+      });
+    }
+    render();
+  }
+</script>
+
+<style is:global>
+  .tgm p { margin: 0; }
+  .tgm-box { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+  .tgm-board { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line); }
+  .tgm-score, .tgm-round { display: grid; gap: 2px; }
+  .tgm-score span, .tgm-round span, .tgm-label { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .tgm-label span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .tgm-total { font: 700 2.8rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; color: var(--warn); }
+  .tgm-best { font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
+  .tgm-round { text-align: right; }
+  .tgm-rn { font: 700 2rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; }
+  .tgm-trail { min-height: 0; font: 600 0.9rem/1.4 ui-monospace, Menlo, monospace; color: var(--muted); overflow-wrap: anywhere; }
+  .tgm-sents { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tgm-sent { margin: 0 !important; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: start; }
+  .tgm-won { border-color: color-mix(in srgb, var(--teal) 60%, var(--line)); }
+  .tgm-st { font: 700 1rem/1.25 "Space Grotesk", sans-serif; }
+  .tgm-st span { display: block; font: 600 0.8rem Inter, sans-serif; color: var(--muted); }
+  .tgm-st em { font-style: normal; color: var(--teal); }
+  .tgm-pc { font: 700 1.5rem/1 "Space Grotesk", sans-serif; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .tgm-seg { grid-column: 1 / -1; display: flex; height: 26px; border-radius: 7px; overflow: hidden; background: var(--bg-2); }
+  .tgm-seg i { display: flex; align-items: center; justify-content: center; min-width: 0; overflow: hidden; transition: width .3s; border-right: 2px solid var(--card); }
+  .tgm-seg i:last-child { border-right: 0; }
+  .tgm-seg b { font: 700 0.75rem/1 Inter, sans-serif; white-space: nowrap; }
+  .tgm-seg .tgm-ok { background: var(--teal); color: var(--bg); }
+  .tgm-seg .tgm-x0 { background: color-mix(in srgb, var(--muted) 45%, var(--card)); color: var(--text); }
+  .tgm-seg .tgm-x1 { background: color-mix(in srgb, var(--muted) 25%, var(--card)); color: var(--text); }
+  .tgm-dials { display: grid; gap: 4px; margin-top: 4px; }
+  .tgm-dial { display: grid; grid-template-columns: 7.4em 1fr 2.6em; grid-template-areas: "n r v" ". g g"; gap: 2px 10px; align-items: center; }
+  .tgm-dn { grid-area: n; font: 700 1rem "Space Grotesk", sans-serif; }
+  .tgm-dial input { grid-area: r; width: 100%; height: 44px; margin: 0; accent-color: var(--teal); cursor: pointer; }
+  .tgm-v { grid-area: v; text-align: right; font: 700 1rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .tgm-nudge { grid-area: g; display: flex; align-items: center; gap: 8px; min-height: 16px; margin-top: -6px; visibility: hidden; }
+  .tgm-nudge.tgm-on { visibility: visible; }
+  .tgm-nudge i { height: 6px; border-radius: 3px; background: var(--teal); transition: width .3s; min-width: 3px; }
+  .tgm-nudge b { font: 700 0.85rem Inter, sans-serif; color: var(--teal); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tgm-nudge.tgm-neg i { background: var(--pink); } .tgm-nudge.tgm-neg b { color: var(--pink); }
+  .tgm-ctl { display: flex; flex-wrap: wrap; gap: 10px; }
+  .tgm-ctl button { font: 700 1rem/1 Inter, sans-serif; padding: 12px 20px; min-height: 46px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .tgm-learn { border-color: var(--teal) !important; background: color-mix(in srgb, var(--teal) 20%, var(--card)) !important; }
+  .tgm-status { font-size: 0.95rem; line-height: 1.45; min-height: 4.4em; }
+  .tgm-still { width: 100%; border-collapse: collapse; margin: 0 !important; font-size: 0.95rem; }
+  .tgm-still[hidden] { display: none; }
+  .tgm-still caption { text-align: left; font: 700 1rem "Space Grotesk", sans-serif; padding-bottom: 6px; }
+  .tgm-still th, .tgm-still td { border: 0 !important; border-bottom: 1px solid var(--line) !important; background: none !important; padding: 6px 4px; text-align: left; }
+  .tgm-still td { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .tgm-tot th, .tgm-tot td { color: var(--warn); }
+  @media (max-width: 620px) { .tgm-sents { grid-template-columns: 1fr; } .tgm-box { gap: 10px; } .tgm-sent { padding: 8px 10px; gap: 6px; } }
+  @media (prefers-reduced-motion: reduce) { .tgm-seg i, .tgm-nudge i { transition: none; } }
+</style>
