@@ -75,7 +75,18 @@ inference post). Owner's ideas, 2026-11-24. Suggested order:
   brain. After the inference math post.
 - **Steering the guess**: why examples, context, and roles in a prompt change what comes next.
   Its own post, or a section of the chatbot post.
-- **How AI makes pictures** (later): a different machine from next-word guessing, as a contrast.
+- **How AI makes and edits pictures** (the owner asked for it, 2026-11-25): a different machine from
+  next-word guessing, as a contrast. One post, or two if it runs long (making, then editing).
+  - Making: most image generators start from pure static and remove a little noise at a time,
+    steered by your words, until a picture is left (diffusion). Training is the reverse. Add noise
+    to real photos, and learn to guess the noise. A natural visual is a strip of frames going from
+    static to a picture.
+  - Editing: noise only the part you painted over, and let the rest steer it back (inpainting).
+    "Make the sky purple" edits work the same way, steered by the new words.
+  - Accuracy: not every generator is diffusion. Some newer ones build an image piece by piece, a
+    lot like next-word guessing, so say "most", and check what's current before writing.
+  - Optional: how a chatbot "sees" a photo you upload (the image is chopped into patches that
+    become tokens, part 1's idea again). It could be its own short post instead.
 - **Format idea**: a card-based "AI, plainly" field guide in the style of the OWASP page (one concept
   per card, same parts on every card, each card shareable on its own), with each card linking to the
   post that goes deep. Decide with the owner before building.
