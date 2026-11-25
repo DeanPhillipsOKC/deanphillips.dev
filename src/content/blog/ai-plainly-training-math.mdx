@@ -3,7 +3,7 @@ title: "How an AI learns, with nothing past arithmetic"
 titleAccent: "nothing past arithmetic"
 tabTitle: "AI, Plainly: Training math"
 partTitle: "Training, or how the dials get set"
-description: A plain-English, picture-first explanation of how AI training sets a model's dials, using only arithmetic. Part 1's tiny next-word model makes a guess, a dial turns out to be a slope, and one subtraction (should minus guessed) says which way to turn each dial and how far. Then you try it yourself and watch it learn. Part 4 of AI, plainly.
+description: A plain-English, picture-first explanation of how AI training sets a model's dials, using only arithmetic. Part 1's tiny next-word model makes a guess, each dial's slope says what a small turn would do, and one subtraction (should minus guessed) says which way to turn each dial and how far. Then you try it yourself and watch it learn. Part 4 of AI, plainly.
 dek: In part 1 you turned the dials yourself. Training is a computer doing the same thing, with billions of dials and nobody watching. Here's how it knows which way to turn each one, using one guess and one subtraction.
 eyebrow: "AI, plainly"
 date: 2026-11-24
@@ -13,7 +13,7 @@ part: 4
 draft: true
 image: /img/og/ai-plainly-training-math.jpg
 ---
-import GuessScore from '../../components/blog/GuessScore.astro';
+import GuessBars from '../../components/blog/GuessBars.astro';
 import SlopeLadder from '../../components/blog/SlopeLadder.astro';
 import NudgeReceipt from '../../components/blog/NudgeReceipt.astro';
 import RoundStrip from '../../components/blog/RoundStrip.astro';
@@ -25,48 +25,45 @@ import TrainingReel from '../../components/blog/TrainingReel.astro';
 import d from '../../data/ai-plainly/ai-plainly-training-math.json';
 import story from '../../data/ai-plainly/inference.json';
 
-export const [sky, , night] = story.dials.sentences;
+export const [sky] = story.dials.sentences;
 
 This is part 4 of AI, plainly. New to the series? Start with [part 1](/blog/ai-plainly/). [Part 3](/blog/ai-plainly-agents/) ended on a loose end. Every turn of an agent runs through the same dials, set during training. So how do they get set?
 
 In part 1 you turned the dials yourself. Training is a computer doing exactly that, with nobody watching and billions of dials. Part 1 said every wrong guess nudges them. When I tried to explain what a nudge is, I got stuck. So this post follows one guess from start to finish, with nothing past arithmetic.
 
-## One guess, scored
+## One guess
 
 Here's part 1's tiny model again, with the same clue words (sky, grass, night) and the same three answers.
 
-<GuessScore
+<GuessBars
   model={d.model}
   sentence={sky}
-  caption="The starting dials are made up, so the guess is too. The surprise numbers are the real score for each chance."
+  caption="The starting dials are made up, so the guess is too."
 />
 
-The score says how wrong the guess was. It doesn't say which dial to turn. For that, you need to see how the guess got made.
+Blue is the right answer, and it only got 41%. It should have been 100%. So which dials should turn, which way, and how far?
 
-## How a guess gets made
+## A dial's slope
 
 <SlopeLadder
   model={d.model}
-  sky={sky}
-  night={night}
-  caption="Tap Next. The dial settings are made up, and they're the same ones the rest of this post turns."
+  sentence={sky}
+  small={d.ladder.small}
+  big={d.ladder.big}
+  caption="Drag the dial in step 1, then tap Next. The dial settings are made up, and they're the same ones the rest of this post turns."
 />
-
-Every dial is a slope, and training's whole job is setting the slopes. Here's how it turns them.
 
 ## The nudge
 
-After a guess, go answer by answer. The right answer should have been 100%. The others should have been 0%. The nudge for each answer is what it **should** have been minus what it **guessed**.
+Here's that subtraction for real. Each answer's dial turns by what it **should** have been minus what it **guessed**, times a small step size.
 
 <NudgeReceipt
   model={d.model}
   sentence={sky}
-  caption="Made-up starting dials, real arithmetic. The step size is 0.01 here."
+  caption="Made-up starting dials, real arithmetic. The step size is 0.005 here."
 />
 
-That one subtraction says which way to turn (the sign) and how far (the size). The step size is picked by a person, not by training. Too small and it crawls. Too big and it overshoots.
-
-Should minus guessed is also the slope of the wrongness for that dial. Turn the sky to blue dial up a hair and the surprise score drops, at a rate set by that 59. So the sign points downhill, and the size says how steep it is right here. Nudging every dial by its own should minus guessed, over and over, has a name. It's **gradient descent**.
+That one subtraction says which way to turn (the sign) and how far (the size). The step size is picked by a person, not by training. It's small on purpose, because the slope only predicts small turns well.
 
 ## Again, and again
 
@@ -81,7 +78,7 @@ Big turns while it's far off, small ones once it's close. Nobody tells it to slo
 
 ## Your turn
 
-Now three sentences at once. The big number is the surprise from all three, added up. Get it down yourself, then press Let it learn and watch the nudges do it.
+Now three sentences at once. The big number is how far off it is, added up. For each sentence, that's 100 minus the chance it gave the right answer. Get it down yourself, then press Let it learn and watch the nudges do it.
 
 <TrainGame
   answers={d.model.answers}
@@ -91,7 +88,7 @@ Now three sentences at once. The big number is the surprise from all three, adde
   rounds={d.game.rounds}
   min={d.game.min}
   max={d.game.max}
-  caption="Same rule and step size as the receipt. Each round guesses all three sentences and nudges after each one. To keep it to three sliders, the other dials stay at zero."
+  caption="Same rule and step size as the receipt. Each round guesses all three sentences and nudges after each one. The big number is just a readout. The nudges still come from should minus guessed. To keep it to three sliders, the other dials stay at zero."
 />
 
 Watch the sky to blue dial. "The sky is" pulls it up, and "The sky at night is" pulls it back down, since "sky" is in that one too. Part 1 showed the same tug. The dials end up where all three sentences come out right.
@@ -100,7 +97,7 @@ Watch the sky to blue dial. "The sky is" pulls it up, and "The sky at night is" 
 
 A real model runs the same rule. A few things get bigger.
 
-- Its clues aren't single words. They're its whole worked-over reading of the text so far, after many layers (part 1's layers). That's the thousands of directions from the ladder.
+- Its clues aren't single words. They're its whole worked-over reading of the text so far, after many layers (part 1's layers).
 - Its answers are every token it knows, over 100,000 of them in newer models.
 - Its dials sit in every layer, not only at the end. So the should minus guessed numbers at the end get passed backward through the layers, and every dial gets its own which way and how far. People call that **backpropagation**.
 - It doesn't nudge after every guess. It makes a batch of millions of guesses, averages their nudges, then nudges once.
@@ -110,7 +107,7 @@ A real model runs the same rule. A few things get bigger.
 <NoDumbQuestions items={[
   { q: 'Do big models use exactly this rule?', a: "The which way and how far come from the same slopes. Most big models then use a smarter stepper (a popular one is called Adam) that keeps a running average of each dial's recent nudges and sizes the step from that. Still downhill, just steadier." },
   { q: 'Where do the starting dials come from?', a: "Small random numbers. That's why a brand new model's first guesses are nonsense." },
-  { q: 'When does training stop?', a: "When people say so. They pick how much text it reads ahead of time, and they keep checking its wrongness on text it never trained on." },
+  { q: 'When does training stop?', a: "When people say so. They pick how much text it reads ahead of time, and they keep checking how far off it is on text it never trained on." },
 ]} />
 
 ## Check yourself
@@ -128,6 +125,6 @@ Five quick ones.
 
 So what are those 16,000 chips doing all day? Mostly multiplying and adding. And they started out in video games. That's part 5, the math of inference, and why everyone talks about Nvidia.
 
-The tiny model's 12 dials took a blink. The other 404,999,999,988 take a little longer.
+The tiny model's 9 dials took a blink. The other 404,999,999,991 take a little longer.
 
 <TrainingReel model={d.model} sentence={sky} />

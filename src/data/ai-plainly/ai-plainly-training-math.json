@@ -1,31 +1,50 @@
 {
   "model": {
-    "answers": ["blue", "green", "black"],
-    "start": { "blue": 0.5, "green": 0.8, "black": 1.0 },
+    "answers": [
+      "blue",
+      "green",
+      "black"
+    ],
     "dials": {
-      "sky": { "blue": 1.0, "green": 0.5, "black": 0.0 },
-      "grass": { "blue": -0.2, "green": 1.0, "black": 0.0 },
-      "night": { "blue": -0.5, "green": 0.0, "black": 1.0 }
+      "sky": {
+        "blue": 0.5,
+        "green": 0.3,
+        "black": 0.0
+      },
+      "grass": {
+        "blue": -0.2,
+        "green": 0.8,
+        "black": 0.0
+      },
+      "night": {
+        "blue": -0.5,
+        "green": 0.0,
+        "black": 1.0
+      }
     },
-    "step": 0.01
+    "step": 0.005
   },
   "strip": 6,
   "game": {
-    "moving": { "sky": "blue", "grass": "green", "night": "black" },
-    "rounds": 30,
+    "moving": {
+      "sky": "blue",
+      "grass": "green",
+      "night": "black"
+    },
+    "rounds": 60,
     "min": -2,
     "max": 8
   },
   "quiz": [
     {
-      "prompt": "A dial is a slope.",
+      "prompt": "A dial's slope says what a small turn will do to the guess.",
       "answer": "Fact",
-      "why": "Each time its clue word shows up, the answer's score goes up (or down) by the dial's amount."
+      "why": "Turn it one click and the chance moves by about the slope. That's all training needs to pick a direction."
     },
     {
       "prompt": "Training turns every dial on every guess.",
       "answer": "Myth",
-      "why": "Only the dials for clue words in the sentence move. The rest had no part in the guess."
+      "why": "Only the dials for clue words in the sentence move. The rest had no part in the guess, so their slope is zero."
     },
     {
       "prompt": "The nudge gets smaller as the guess gets closer.",
@@ -33,14 +52,18 @@
       "why": "Should minus guessed shrinks as the guess nears 100%. Small miss, small turn."
     },
     {
-      "prompt": "The computer tries every setting to find the best one.",
+      "prompt": "The computer needs the whole curve to know which way to turn.",
       "answer": "Myth",
-      "why": "It only knows the slope where it is now, from should minus guessed. Then it takes a small step."
+      "why": "It only needs the slope where the dial is now. Then it takes a small step and looks again."
     },
     {
-      "prompt": "Training picks its own step size.",
+      "prompt": "Bigger steps are always better.",
       "answer": "Myth",
-      "why": "A person picks it. Too small is slow, and too big overshoots."
+      "why": "The slope only predicts small turns well. A big jump can land somewhere the slope didn't promise."
     }
-  ]
+  ],
+  "ladder": {
+    "small": 0.3,
+    "big": 3.0
+  }
 }

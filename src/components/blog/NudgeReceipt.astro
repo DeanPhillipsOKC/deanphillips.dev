@@ -2,7 +2,7 @@
 // The heart of part 4: one nudge, laid out like a receipt (the same paper look as TrainingReceipt). One block
 // per answer, stacked so it fits a phone: should, guessed, should minus guessed, times the step size, and
 // the turn, with an arrow whose length is the size of the turn (teal up, pink down). Under that, which dials
-// the turn goes to (the answer's start and its sky dial, since "sky" is the only clue word in the sentence)
+// the turn goes to (the answer's sky dial, since "sky" is the only clue word in the sentence)
 // and the guess after the nudge. All of it comes from nudge() in src/lib/tiny-model.ts on the post's
 // made-up starting dials, so it's real arithmetic that adds up as printed. Static HTML, no JavaScript.
 import { nudge, pcts, type Model, type Sentence } from '../../lib/tiny-model';
@@ -26,7 +26,7 @@ const others = Object.keys(model.dials).filter((c) => !sentence.clues.includes(c
         <p class="nrc-math">{r.should[i]} − {r.pct[i]} = <b class="nrc-diff">{sg(r.diff[i])}</b></p>
         <p class="nrc-turn">
           <span>× {model.step} =</span>
-          <b>{sg(r.turn[i], 2)}</b>
+          <b>{sg(r.turn[i], 3)}</b>
           <svg class="nrc-arrow" viewBox="0 0 24 60" aria-hidden="true" style={`height:${18 + (Math.abs(r.turn[i]) / max) * 42}px`} preserveAspectRatio="none">
             {r.turn[i] >= 0 ? <path d="M12 2 L22 18 H15 V58 H9 V18 H2 Z" /> : <path d="M12 58 L22 42 H15 V2 H9 V42 H2 Z" />}
           </svg>
@@ -34,7 +34,7 @@ const others = Object.keys(model.dials).filter((c) => !sentence.clues.includes(c
         </p>
       </div>
     ))}
-    <p class="nrc-which">Each turn goes to two dials, the answer's start and its {sentence.clues.join(' and ')} dial. {others.map((c) => `"${c}"`).join(' and ')} {others.length > 1 ? "aren't" : "isn't"} in the sentence, so {others.length > 1 ? 'those dials sit' : 'that dial sits'} still.</p>
+    <p class="nrc-which">Each turn goes to that answer's {sentence.clues.join(' and ')} dial. {others.map((c) => `"${c}"`).join(' and ')} {others.length > 1 ? "aren't" : "isn't"} in the sentence, so {others.length > 1 ? 'those dials sit' : 'that dial sits'} still.</p>
     <p class="nrc-total"><span>Guess again</span><span class="nrc-again">{sentence.answer} {r.pct[ri]}% → <b>{after[ri]}%</b></span></p>
     <svg class="nrc-tear" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L0 4 L10 10 L20 4 L30 10 L40 4 L50 10 L60 4 L70 10 L80 4 L90 10 L100 4 L110 10 L120 4 L130 10 L140 4 L150 10 L160 4 L170 10 L180 4 L190 10 L200 4 L200 0 Z" /></svg>
   </div>

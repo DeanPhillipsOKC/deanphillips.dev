@@ -20,9 +20,9 @@ const max = rs[0].turn[ri];
         <li>
           <span class="rnd-n">{i + 1}</span>
           <span class="rnd-bar" aria-label={`${r.pct[ri]}% ${sentence.answer}`}><i style={`width:${r.pct[ri]}%`}></i><b>{r.pct[ri]}%</b></span>
-          <span class="rnd-turn" aria-label={`turn up ${r.turn[ri].toFixed(2)}`}>
+          <span class="rnd-turn" aria-label={`turn up ${r.turn[ri].toFixed(3)}`}>
             <i style={`width:${Math.max(6, (r.turn[ri] / max) * 100)}%`}></i>
-            <b>+{r.turn[ri].toFixed(2)}</b>
+            <b>+{r.turn[ri].toFixed(3)}</b>
           </span>
         </li>
       ))}
