@@ -1,0 +1,72 @@
+---
+// The heart of part 4: one nudge, laid out like a receipt (the same paper look as TrainingReceipt). One block
+// per answer, stacked so it fits a phone: should, guessed, should minus guessed, times the step size, and
+// the turn, with an arrow whose length is the size of the turn (teal up, pink down). Under that, which dials
+// the turn goes to (the answer's start and its sky dial, since "sky" is the only clue word in the sentence)
+// and the guess after the nudge. All of it comes from nudge() in src/lib/tiny-model.ts on the post's
+// made-up starting dials, so it's real arithmetic that adds up as printed. Static HTML, no JavaScript.
+import { nudge, pcts, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sentence: Sentence; caption?: string }
+const { model, sentence, caption } = Astro.props;
+const r = nudge(model, sentence);
+const after = pcts(r.after, sentence.clues);
+const ri = model.answers.indexOf(sentence.answer);
+const sg = (x: number, d = 0) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+const max = Math.max(...r.turn.map(Math.abs));
+const others = Object.keys(model.dials).filter((c) => !sentence.clues.includes(c));
+---
+<figure class="nrc panel bleed">
+  <div class="nrc-receipt">
+    <p class="nrc-head">NUDGE RECEIPT</p>
+    <p class="nrc-sent">"{sentence.text}&nbsp;___" <span>right answer <b>{sentence.answer}</b></span></p>
+    <p class="nrc-key">should − guessed = miss</p>
+    {model.answers.map((a, i) => (
+      <div class={`nrc-row ${r.turn[i] >= 0 ? 'nrc-up' : 'nrc-down'}`}>
+        <p class="nrc-a">{a}{a === sentence.answer && ' ✓'}</p>
+        <p class="nrc-math">{r.should[i]} − {r.pct[i]} = <b class="nrc-diff">{sg(r.diff[i])}</b></p>
+        <p class="nrc-turn">
+          <span>× {model.step} =</span>
+          <b>{sg(r.turn[i], 2)}</b>
+          <svg class="nrc-arrow" viewBox="0 0 24 60" aria-hidden="true" style={`height:${18 + (Math.abs(r.turn[i]) / max) * 42}px`} preserveAspectRatio="none">
+            {r.turn[i] >= 0 ? <path d="M12 2 L22 18 H15 V58 H9 V18 H2 Z" /> : <path d="M12 58 L22 42 H15 V2 H9 V42 H2 Z" />}
+          </svg>
+          <em>{r.turn[i] >= 0 ? 'turn up' : 'turn down'}</em>
+        </p>
+      </div>
+    ))}
+    <p class="nrc-which">Each turn goes to two dials, the answer's start and its {sentence.clues.join(' and ')} dial. {others.map((c) => `"${c}"`).join(' and ')} {others.length > 1 ? "aren't" : "isn't"} in the sentence, so {others.length > 1 ? 'those dials sit' : 'that dial sits'} still.</p>
+    <p class="nrc-total"><span>Guess again</span><span class="nrc-again">{sentence.answer} {r.pct[ri]}% → <b>{after[ri]}%</b></span></p>
+    <svg class="nrc-tear" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 L0 4 L10 10 L20 4 L30 10 L40 4 L50 10 L60 4 L70 10 L80 4 L90 10 L100 4 L110 10 L120 4 L130 10 L140 4 L150 10 L160 4 L170 10 L180 4 L190 10 L200 4 L200 0 Z" /></svg>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .nrc p { margin: 0; }
+  .nrc-receipt { position: relative; max-width: 480px; margin: 0 auto 10px; background: var(--bg-2); border: 1px solid var(--line); border-bottom: 0; border-radius: 10px 10px 0 0; padding: 18px 16px 16px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; display: grid; gap: 4px; }
+  .nrc-head { font: 700 1.05rem/1.2 ui-monospace, Menlo, monospace; letter-spacing: .1em; text-align: center; padding-bottom: 10px !important; border-bottom: 2px dashed var(--line); }
+  .nrc-sent { font: 700 1.15rem/1.3 "Space Grotesk", sans-serif; padding: 10px 0 4px !important; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+  .nrc-sent span { font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
+  .nrc-sent b { color: var(--teal); }
+  .nrc-row { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "a turn" "math turn"; gap: 4px 12px; align-items: center; padding: 12px 0; border-bottom: 1px dotted var(--line); }
+  .nrc-a { grid-area: a; font: 700 1.15rem/1.2 "Space Grotesk", sans-serif; }
+  .nrc-up .nrc-a { color: var(--teal); }
+  .nrc-key { font: 700 0.7rem/1.3 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding-top: 4px !important; }
+  .nrc-math { grid-area: math; font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nrc-diff { color: var(--teal); }
+  .nrc-down .nrc-diff { color: var(--pink); }
+  .nrc-turn { grid-area: turn; display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto auto; justify-items: center; align-items: center; column-gap: 6px; }
+  .nrc-turn > span { grid-column: 1 / 3; font-size: 0.8rem; color: var(--muted); }
+  .nrc-turn b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .nrc-arrow { width: 18px; grid-row: 2; grid-column: 2; }
+  .nrc-up .nrc-arrow path, .nrc-up .nrc-turn b { fill: var(--teal); color: var(--teal); }
+  .nrc-down .nrc-arrow path, .nrc-down .nrc-turn b { fill: var(--pink); color: var(--pink); }
+  .nrc-turn em { grid-column: 1 / 3; font: 700 0.72rem Inter, sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .nrc-which { font: 500 0.9rem/1.4 Inter, sans-serif; color: var(--violet); padding-top: 10px !important; }
+  .nrc-total { margin-top: 8px !important; padding-top: 10px; border-top: 2px dashed var(--line); font: 700 1.3rem/1.3 "Space Grotesk", sans-serif; display: grid; gap: 2px; }
+  .nrc-total .nrc-again { font: inherit; letter-spacing: 0; text-transform: none; color: var(--text); white-space: nowrap; }
+  .nrc-total span:first-child { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .nrc-total b { color: var(--teal); }
+  .nrc-tear { position: absolute; left: -1px; bottom: -10px; width: calc(100% + 2px); height: 10px; }
+  .nrc-tear path { fill: var(--bg-2); stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+</style>

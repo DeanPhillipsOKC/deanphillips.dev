@@ -1,0 +1,78 @@
+---
+// Part 4's opening picture, read top to bottom as two numbered panels. 1: part 1's tiny model mid-guess
+// on "The sky is ___", with its three bars (worked out with the real softmax from the post's made-up
+// starting dials, so it's the same 41% the ladder and the receipt use). 2: the score, which is how surprised
+// it was, meaning how low a chance it gave the right word. Four chances for the right word, each with its
+// surprise as a bar drawn to scale (cross-entropy, written as a plain number, no logs), and this guess's
+// row marked. The point is that the score grows fast as the chance gets small. Static HTML, no JavaScript,
+// so there's nothing to fall back from and nothing that moves.
+import { pcts, surprise, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sentence: Sentence; caption?: string }
+const { model, sentence, caption } = Astro.props;
+const pct = pcts(model, sentence.clues);
+const right = pct[model.answers.indexOf(sentence.answer)];
+const rows = [90, right, 10, 1].map((c) => ({ c, s: surprise(c / 100), me: c === right }));
+const max = rows[rows.length - 1].s;
+---
+<figure class="gsc panel bleed">
+  <div class="gsc-panel">
+    <p class="gsc-step"><span>1</span> It guesses</p>
+    <p class="gsc-sent">{sentence.text} <b>___</b></p>
+    <ol class="gsc-bars">
+      {model.answers.map((a, i) => (
+        <li class={a === sentence.answer ? 'gsc-right' : ''}>
+          <span class="gsc-w">{a}{a === sentence.answer && <em> ✓ right</em>}</span>
+          <span class="gsc-bar"><i style={`width:${pct[i]}%`}></i></span>
+          <span class="gsc-p">{pct[i]}%</span>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <div class="gsc-panel">
+    <p class="gsc-step"><span>2</span> Score it. How surprised was it?</p>
+    <p class="gsc-sub">Only the right answer's chance counts.</p>
+    <table class="gsc-tab">
+      <thead><tr><th scope="col">Chance it gave {sentence.answer}</th><th scope="col">Surprise</th></tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class={r.me ? 'gsc-me' : ''}>
+            <th scope="row">{r.c}%{r.me && <em>this guess</em>}</th>
+            <td><span class="gsc-sbar"><i style={`width:${Math.max(2, (r.s / max) * 100)}%`}></i></span><b>{r.s.toFixed(1)}</b></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="gsc-note">A sure, right guess scores near zero. As the chance gets small, the surprise shoots up.</p>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .gsc p { margin: 0; }
+  .gsc { display: grid; gap: 18px; }
+  .gsc-panel { max-width: 520px; width: 100%; margin: 0 auto; display: grid; gap: 10px; }
+  .gsc-panel + .gsc-panel { padding-top: 18px; border-top: 2px dashed var(--line); }
+  .gsc-step { font: 700 1.15rem/1.3 "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 10px; }
+  .gsc-step span { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--violet) 22%, var(--card)); border: 2px solid var(--violet); font-size: 0.95rem; }
+  .gsc-sub, .gsc-note { color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
+  .gsc-sent { font: 700 1.5rem/1.2 "Space Grotesk", sans-serif; }
+  .gsc-sent b { color: var(--teal); }
+  .gsc-bars { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 10px; }
+  .gsc-bars li { margin: 0 !important; display: grid; grid-template-columns: 6.4em 1fr 3em; gap: 10px; align-items: center; font: 600 1.05rem/1.2 "Space Grotesk", sans-serif; }
+  .gsc-w em { font: 700 0.72rem/1 Inter, sans-serif; font-style: normal; color: var(--teal); }
+  .gsc-bar, .gsc-sbar { height: 14px; border-radius: 999px; background: var(--bg-2); overflow: hidden; display: block; }
+  .gsc-bar i, .gsc-sbar i { display: block; height: 100%; border-radius: inherit; background: color-mix(in srgb, var(--muted) 55%, transparent); }
+  .gsc-right .gsc-bar i { background: var(--teal); }
+  .gsc-p { text-align: right; font: 700 1rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .gsc-tab { width: 100%; border-collapse: collapse; margin: 0 !important; font-size: 1rem; }
+  .gsc-tab th, .gsc-tab td { border: 0 !important; background: none !important; padding: 7px 4px; text-align: left; vertical-align: middle; }
+  .gsc-tab thead th { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .gsc-tab tbody th { font: 700 1.05rem/1.2 Inter, sans-serif; font-variant-numeric: tabular-nums; width: 38%; white-space: nowrap; }
+  .gsc-tab tbody th em { display: block; font: 700 0.72rem/1.3 Inter, sans-serif; font-style: normal; color: var(--warn); }
+  .gsc-tab td { display: flex; align-items: center; gap: 10px; }
+  .gsc-tab td .gsc-sbar { flex: 1; }
+  .gsc-tab td b { flex: none; width: 2.4em; text-align: right; font: 700 1.05rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .gsc-sbar i { background: color-mix(in srgb, var(--warn) 70%, transparent); }
+  .gsc-me { outline: 2px solid var(--warn); outline-offset: -2px; border-radius: 10px; }
+  .gsc-me td b { color: var(--warn); }
+</style>

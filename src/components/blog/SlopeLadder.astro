@@ -1,0 +1,225 @@
+---
+// How the tiny model makes a score, one rung at a time, so the nudge receipt that follows has something to
+// turn. The owner's ladder: a slope, then a slope with a starting point, then two directions, then more than
+// you can draw, then percentages. One picture, a Next button, one change per step (RagStory style).
+//   1. A dial is a slope. Blue's score against "sky" (not there, there). Steepness is the sky to blue dial.
+//   2. Add a start (a bias). The same line, lifted to the start, with step 1's line left as a ghost.
+//   3. Two clues. A 2 by 2 grid of blue's score (sky across, night down) with each direction's slope on its
+//      arrow. It's the flat tilted sheet seen from above, which reads better on a phone than a 3D drawing.
+//   4. Three clues and more. Can't draw it, so it's an "add the pushes" table for one sentence.
+//   5. Every answer, then percentages, landing on the opening picture's 41%.
+// Every number comes from the post's made-up starting dials (the same ones the receipt turns) through
+// src/lib/tiny-model.ts. Without JavaScript all five steps show as a still strip, top to bottom. Reduced
+// motion drops the fade between steps.
+import { pcts, scores, r2, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sky: Sentence; night: Sentence; caption?: string }
+const { model, sky, night, caption } = Astro.props;
+const A = 'blue';
+const s0 = model.start[A], ks = model.dials.sky[A], kn = model.dials.night[A], kg = model.dials.grass[A];
+const f = (x: number) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(1);
+const n1 = (x: number) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(1);
+// "0.5 + 1.0 − 0.5", the way you'd say it out loud.
+const sum = (xs: number[]) => xs.map((x, i) => (i === 0 ? n1(x) : `${x < 0 ? '−' : '+'} ${Math.abs(x).toFixed(1)}`)).join(' ');
+
+// Chart for steps 1 and 2: x is "sky" not there (0) or there (1), y is blue's score.
+const W = 320, H = 236, L = 46, R = 300, T = 18, B = 186;
+const Y0 = 0, Y1 = 2;
+const sx = (x: number) => L + 24 + x * (R - L - 48);
+const sy = (y: number) => B - ((y - Y0) / (Y1 - Y0)) * (B - T);
+const ticks = [0, 0.5, 1, 1.5, 2];
+
+const nightRow = [
+  { name: 'start', v: s0, inS: true },
+  { name: 'sky', v: ks, inS: night.clues.includes('sky') },
+  { name: 'night', v: kn, inS: night.clues.includes('night') },
+  { name: 'grass', v: kg, inS: night.clues.includes('grass') },
+];
+const nightTotal = r2(nightRow.reduce((t, r) => t + (r.inS ? r.v : 0), 0));
+const skyScores = scores(model, sky.clues);
+const skyPct = pcts(model, sky.clues);
+const heads = [
+  'A dial is a slope.',
+  'Add a starting score.',
+  'Two clues, two slopes.',
+  'Three clues, then thousands.',
+  'Every answer, then percentages.',
+];
+---
+<figure class="sld panel bleed">
+  <div class="sld-box">
+    <div class="sld-ctl" hidden>
+      <button type="button" class="sld-back">Back</button>
+      <span class="sld-count">1 of {heads.length}</span>
+      <button type="button" class="sld-next">Next</button>
+    </div>
+    <ol class="sld-steps">
+      <li class="sld-step" data-i="0">
+        <p class="sld-head"><span>1</span>{heads[0]}</p>
+        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Blue's score is 0 without sky and ${n1(ks)} with sky. The line rises ${n1(ks)} for one sky.`}>
+          {ticks.map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="sld-tick" x={L - 8} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
+          <text class="sld-tick" x={sx(0)} y={B + 20} text-anchor="middle">no sky</text>
+          <text class="sld-tick" x={sx(1)} y={B + 20} text-anchor="middle">sky</text>
+          <text class="sld-axis" x={(L + R) / 2} y={H - 6} text-anchor="middle">Is "sky" in the sentence?</text>
+          <text class="sld-axis" x="12" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + B) / 2})`}>blue's score</text>
+          <line class="sld-run" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(0)} />
+          <line class="sld-rise" x1={sx(1)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
+          <line class="sld-line" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
+          <circle class="sld-pt" cx={sx(0)} cy={sy(0)} r="6" /><circle class="sld-pt" cx={sx(1)} cy={sy(ks)} r="6" />
+          <text class="sld-lab" x={sx(0) + 10} y={sy(0) - 10}>0</text>
+          <text class="sld-lab" x={sx(1) - 10} y={sy(ks) - 12} text-anchor="end">{n1(ks)}</text>
+          <text class="sld-lab sld-teal" x={sx(1) - 10} y={sy(ks / 2) + 14} text-anchor="end">up {n1(ks)}</text>
+          <text class="sld-lab sld-muted" x={(sx(0) + sx(1)) / 2} y={sy(0) - 8} text-anchor="middle">one step over</text>
+        </svg>
+        <p class="sld-say">The sky to blue dial is {n1(ks)}. Each time "sky" shows up, blue's score goes up {n1(ks)}. Up for each step over is a <b>slope</b>, and that's all a dial is.</p>
+      </li>
+      <li class="sld-step" data-i="1">
+        <p class="sld-head"><span>2</span>{heads[1]}</p>
+        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The same line, lifted so it starts at ${n1(s0)}. Blue's score is ${n1(s0)} without sky and ${n1(s0 + ks)} with sky.`}>
+          {ticks.map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="sld-tick" x={L - 8} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
+          <text class="sld-tick" x={sx(0)} y={B + 20} text-anchor="middle">no sky</text>
+          <text class="sld-tick" x={sx(1)} y={B + 20} text-anchor="middle">sky</text>
+          <text class="sld-axis" x={(L + R) / 2} y={H - 6} text-anchor="middle">Is "sky" in the sentence?</text>
+          <text class="sld-axis" x="12" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + B) / 2})`}>blue's score</text>
+          <line class="sld-line sld-ghost" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
+          <line class="sld-rise sld-start" x1={sx(0)} y1={sy(0)} x2={sx(0)} y2={sy(s0)} />
+          <line class="sld-line" x1={sx(0)} y1={sy(s0)} x2={sx(1)} y2={sy(s0 + ks)} />
+          <circle class="sld-pt sld-pt-start" cx={sx(0)} cy={sy(s0)} r="7" /><circle class="sld-pt" cx={sx(1)} cy={sy(s0 + ks)} r="6" />
+          <text class="sld-lab sld-violet" x={sx(0) + 12} y={sy(s0) + 5}>start {n1(s0)}</text>
+          <text class="sld-lab" x={sx(1) - 10} y={sy(s0 + ks) - 12} text-anchor="end">{n1(s0 + ks)}</text>
+          <text class="sld-lab sld-muted" x={sx(0.78)} y={sy(ks * 0.78) + 30} text-anchor="middle">step 1's line</text>
+        </svg>
+        <p class="sld-say">Blue gets a starting score of {n1(s0)}, the point the line starts from. Then add {n1(ks)} if "sky" shows up. Same slope, higher start. (People call the start a <b>bias</b>. Part 1's dials left it at zero.)</p>
+      </li>
+      <li class="sld-step" data-i="2">
+        <p class="sld-head"><span>3</span>{heads[2]}</p>
+        <div class="sld-sheet" role="img" aria-label={`Blue's score with and without sky and night. No clues ${n1(s0)}. Sky only ${n1(s0 + ks)}. Night only ${n1(s0 + kn)}. Both ${n1(s0 + ks + kn)}.`}>
+          <span></span><span class="sld-across">sky's slope <b>{f(ks)}</b> →</span><span></span>
+          <span></span><span class="sld-colh">no sky</span><span class="sld-colh">sky</span><span></span>
+          <span class="sld-rowh">no night</span>
+          <b class="sld-cell" style={`--v:${(s0) / 2}`}>{n1(s0)}</b>
+          <b class="sld-cell" style={`--v:${(s0 + ks) / 2}`}>{n1(s0 + ks)}</b>
+          <span class="sld-down">night's slope <b>{f(kn)}</b> ↓</span>
+          <span class="sld-rowh">night</span>
+          <b class="sld-cell" style={`--v:${(s0 + kn) / 2}`}>{n1(s0 + kn)}</b>
+          <b class="sld-cell sld-both" style={`--v:${(s0 + ks + kn) / 2}`}>{n1(s0 + ks + kn)}</b>
+        </div>
+        <p class="sld-say">"The sky at night" has two clues, so two dials push on blue. Each direction has its own slope, and the pushes add. Bottom right is {sum([s0, ks, kn])} = {n1(s0 + ks + kn)}.</p>
+      </li>
+      <li class="sld-step" data-i="3">
+        <p class="sld-head"><span>4</span>{heads[3]}</p>
+        <table class="sld-add">
+          <caption>Blue, for "{night.text}&nbsp;___"</caption>
+          <thead><tr><th scope="col">clue</th><th scope="col">dial</th><th scope="col">in it?</th><th scope="col">adds</th></tr></thead>
+          <tbody>
+            {nightRow.map((r) => (
+              <tr class={r.inS ? '' : 'sld-off'}>
+                <th scope="row">{r.name}</th>
+                <td class="sld-n">{f(r.v)}</td>
+                <td>{r.name === 'start' ? 'always' : r.inS ? 'yes' : 'no'}</td>
+                <td class="sld-n">{r.inS ? f(r.v) : '0'}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot><tr><th scope="row" colspan="3">blue's score</th><td class="sld-n">{n1(nightTotal)}</td></tr></tfoot>
+        </table>
+        <p class="sld-say">A third clue would need a third direction, and you can't draw that on a page. The rule doesn't change, though. Start, plus each clue's slope, added up. A real model adds up thousands of directions for every answer.</p>
+      </li>
+      <li class="sld-step" data-i="4">
+        <p class="sld-head"><span>5</span>{heads[4]}</p>
+        <table class="sld-add sld-pct">
+          <caption>"{sky.text}&nbsp;___"</caption>
+          <thead><tr><th scope="col">answer</th><th scope="col">start + sky</th><th scope="col">score</th><th scope="col">chance</th></tr></thead>
+          <tbody>
+            {model.answers.map((a, i) => (
+              <tr class={a === sky.answer ? 'sld-me' : ''}>
+                <th scope="row">{a}</th>
+                <td>{sum([model.start[a], model.dials.sky[a]])}</td>
+                <td class="sld-n">{n1(skyScores[i])}</td>
+                <td class="sld-n sld-big">{skyPct[i]}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="sld-say">Do the same for every answer, then turn the scores into shares the way part 1 did. Bigger score, bigger share. That's the {skyPct[model.answers.indexOf(sky.answer)]}% from the top.</p>
+      </li>
+    </ol>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.sld')) {
+    const steps = [...root.querySelectorAll<HTMLElement>('.sld-step')];
+    const back = root.querySelector<HTMLButtonElement>('.sld-back')!, next = root.querySelector<HTMLButtonElement>('.sld-next')!;
+    const count = root.querySelector<HTMLElement>('.sld-count')!;
+    root.querySelector<HTMLElement>('.sld-ctl')!.hidden = false;
+    root.classList.add('sld-js');
+    let cur = 0;
+    function show(n: number) {
+      cur = n;
+      steps.forEach((s, i) => { s.hidden = i !== n; });
+      count.textContent = `${n + 1} of ${steps.length}`;
+      back.disabled = n === 0;
+      next.textContent = n === steps.length - 1 ? 'Start over' : 'Next';
+    }
+    next.addEventListener('click', () => show(cur === steps.length - 1 ? 0 : cur + 1));
+    back.addEventListener('click', () => { if (cur > 0) show(cur - 1); });
+    show(0);
+  }
+</script>
+
+<style is:global>
+  .sld p { margin: 0; }
+  .sld-box { max-width: 520px; margin: 0 auto; display: grid; gap: 14px; }
+  .sld-steps { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 28px; }
+  .sld-step { margin: 0 !important; display: grid; gap: 12px; }
+  .sld-js .sld-step { animation: sld-in .3s ease-out; }
+  .sld-js .sld-step[hidden] { display: none; }
+  .sld:not(.sld-js) .sld-step + .sld-step { padding-top: 22px; border-top: 2px dashed var(--line); }
+  @keyframes sld-in { from { opacity: 0; } }
+  .sld-head { font: 700 1.25rem/1.3 "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 10px; }
+  .sld-head span { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--violet) 22%, var(--card)); border: 2px solid var(--violet); font-size: 0.95rem; }
+  .sld-say { font-size: 1rem; line-height: 1.5; }
+  .sld-chart { width: 100%; height: auto; display: block; }
+  .sld-grid { stroke: var(--line); stroke-width: 1; }
+  .sld-tick { font: 600 13px Inter, sans-serif; fill: var(--muted); }
+  .sld-axis { font: 700 13px Inter, sans-serif; fill: var(--text); }
+  .sld-line { stroke: var(--teal); stroke-width: 4; stroke-linecap: round; }
+  .sld-ghost { stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 6 6; opacity: .7; }
+  .sld-run, .sld-rise { stroke: var(--text); stroke-width: 2; stroke-dasharray: 4 4; opacity: .7; }
+  .sld-rise { stroke: var(--teal); opacity: 1; stroke-width: 3; }
+  .sld-start { stroke: var(--violet); }
+  .sld-pt { fill: var(--teal); stroke: var(--card); stroke-width: 2; }
+  .sld-pt-start { fill: var(--violet); }
+  .sld-lab { font: 700 15px "Space Grotesk", sans-serif; fill: var(--text); }
+  .sld-teal { fill: var(--teal); } .sld-violet { fill: var(--violet); } .sld-muted { fill: var(--muted); font-size: 12px; font-weight: 600; }
+  .sld-sheet { display: grid; grid-template-columns: auto 1fr 1fr 3.6em; gap: 8px; align-items: center; }
+  .sld-colh, .sld-rowh { font: 700 0.9rem/1.2 Inter, sans-serif; color: var(--muted); text-align: center; }
+  .sld-rowh { text-align: right; padding-right: 4px; }
+  .sld-cell { display: grid; place-items: center; min-height: 72px; border-radius: 14px; font: 700 1.6rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums;
+    background: color-mix(in srgb, var(--teal) calc(var(--v) * 60%), var(--bg-2)); border: 2px solid color-mix(in srgb, var(--teal) 40%, var(--line)); }
+  .sld-both { border-color: var(--teal); }
+  .sld-across { grid-column: 2 / 4; text-align: center; font: 700 0.95rem Inter, sans-serif; color: var(--teal); }
+  .sld-down { grid-column: 4; grid-row: 3 / 5; align-self: stretch; display: grid; place-content: center; text-align: center; line-height: 1.3; }
+  .sld-down { font: 700 0.85rem Inter, sans-serif; color: var(--pink); }
+  .sld-down b { display: block; }
+  .sld-across b, .sld-down b { font-size: 1.1rem; }
+  .sld-add { width: 100%; border-collapse: collapse; margin: 0 !important; font: 600 1rem/1.3 Inter, sans-serif; }
+  .sld-add caption { text-align: left; font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; padding-bottom: 8px; caption-side: top; }
+  .sld-add th, .sld-add td { border: 0 !important; background: none !important; padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--line) !important; }
+  .sld-add thead th { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .sld-add tbody th, .sld-add tfoot th { font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; }
+  .sld-n { text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.1rem; }
+  .sld-off { color: var(--muted); }
+  .sld-off td { font-weight: 500; }
+  .sld-add tfoot th, .sld-add tfoot td { border-bottom: 0 !important; border-top: 2px solid var(--text) !important; color: var(--teal); }
+  .sld-big { font-size: 1.25rem; }
+  .sld-me th, .sld-me .sld-big { color: var(--teal); }
+  .sld-ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .sld-ctl[hidden] { display: none; }
+  .sld-ctl button { font: 700 1rem/1 Inter, sans-serif; padding: 12px 20px; min-height: 44px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .sld-next { border-color: var(--violet) !important; background: color-mix(in srgb, var(--violet) 22%, var(--card)) !important; }
+  .sld-ctl button:disabled { opacity: .4; cursor: default; }
+  .sld-count { font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { .sld-js .sld-step { animation: none; } }
+</style>

@@ -1,192 +1,46 @@
 {
-  "beans": {
-    "weeks": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8
-    ],
-    "heights": [
-      3,
-      4.5,
-      7.5,
-      8,
-      11.5,
-      12,
-      15.5,
-      16
-    ],
-    "bad": {
-      "tilt": 0.5,
-      "start": 10
+  "model": {
+    "answers": ["blue", "green", "black"],
+    "start": { "blue": 0.5, "green": 0.8, "black": 1.0 },
+    "dials": {
+      "sky": { "blue": 1.0, "green": 0.5, "black": 0.0 },
+      "grass": { "blue": -0.2, "green": 1.0, "black": 0.0 },
+      "night": { "blue": -0.5, "green": 0.0, "black": 1.0 }
     },
-    "best": {
-      "tilt": 1.94,
-      "start": 1.02
-    },
-    "step": 0.05,
-    "rounds": 40
+    "step": 0.01
   },
-  "hill": {
-    "start": 1.02,
-    "frames": [
-      {
-        "tilt": 0,
-        "from": null,
-        "think": "Steep here. Downhill is right.",
-        "label": "1. Way off. Steep ground.",
-        "mark": "downhill"
-      },
-      {
-        "tilt": 0.633,
-        "from": 0,
-        "think": "Still downhill.",
-        "label": "2. Steep ground, big step.",
-        "mark": "big step"
-      },
-      {
-        "tilt": 1.347,
-        "from": 1.06,
-        "think": "Flatter now.",
-        "label": "3. Flatter ground, smaller step.",
-        "mark": "small step"
-      },
-      {
-        "tilt": 1.94,
-        "from": null,
-        "think": "Flat. Done.",
-        "label": "4. Bottom of the valley.",
-        "mark": ""
-      }
-    ],
-    "steps": [
-      {
-        "name": "Tiny steps",
-        "size": 0.0004,
-        "hops": 5,
-        "tag": "After 5 steps, still halfway.",
-        "tone": "teal"
-      },
-      {
-        "name": "Good steps",
-        "size": 0.0035,
-        "hops": 5,
-        "tag": "Wobbles a little, then lands.",
-        "tone": "teal"
-      },
-      {
-        "name": "Too big",
-        "size": 0.0052,
-        "hops": 3,
-        "tag": "Each jump lands higher. It flies off.",
-        "tone": "pink"
-      }
-    ],
-    "feel": {
-      "a": 0,
-      "b": 0.1
-    }
-  },
-  "wordMiss": {
-    "prompt": "The sky is ___",
-    "right": "blue",
-    "cards": [
-      {
-        "bars": [
-          [
-            "blue",
-            10
-          ],
-          [
-            "green",
-            60
-          ],
-          [
-            "black",
-            30
-          ]
-        ],
-        "tag": "Gave the right word 10%. Big miss.",
-        "tone": "warn",
-        "label": "Bad guess"
-      },
-      {
-        "bars": [
-          [
-            "blue",
-            90
-          ],
-          [
-            "green",
-            6
-          ],
-          [
-            "black",
-            4
-          ]
-        ],
-        "tag": "Gave the right word 90%. Small miss.",
-        "tone": "ok",
-        "label": "Good guess"
-      }
-    ]
+  "strip": 6,
+  "game": {
+    "moving": { "sky": "blue", "grass": "green", "night": "black" },
+    "rounds": 30,
+    "min": -2,
+    "max": 8
   },
   "quiz": [
     {
-      "prompt": "A dial below zero pulls instead of pushes.",
+      "prompt": "A dial is a slope.",
       "answer": "Fact",
-      "why": "Below zero the stairs go downhill, so more of the clue means less push."
+      "why": "Each time its clue word shows up, the answer's score goes up (or down) by the dial's amount."
     },
     {
-      "prompt": "Training changes the dials in one big jump.",
+      "prompt": "Training turns every dial on every guess.",
       "answer": "Myth",
-      "why": "It takes many small steps downhill. Big jumps fly off."
+      "why": "Only the dials for clue words in the sentence move. The rest had no part in the guess."
     },
     {
-      "prompt": "Bigger steps always learn faster.",
-      "answer": "Myth",
-      "why": "Too big and every jump lands higher up the hill."
+      "prompt": "The nudge gets smaller as the guess gets closer.",
+      "answer": "Fact",
+      "why": "Should minus guessed shrinks as the guess nears 100%. Small miss, small turn."
     },
     {
-      "prompt": "Someone tells the model the right line.",
+      "prompt": "The computer tries every setting to find the best one.",
       "answer": "Myth",
-      "why": "It only gets the dots and how far off it is from each."
+      "why": "It only knows the slope where it is now, from should minus guessed. Then it takes a small step."
     },
     {
-      "prompt": "The computer can see the whole valley.",
+      "prompt": "Training picks its own step size.",
       "answer": "Myth",
-      "why": "It only feels how steep the ground is right where it stands."
+      "why": "A person picks it. Too small is slow, and too big overshoots."
     }
-  ],
-  "same": [
-    [
-      "The dots",
-      "8 bean heights",
-      "sentences from the training text"
-    ],
-    [
-      "The guess",
-      "height at a week",
-      "the next word"
-    ],
-    [
-      "The dials",
-      "2",
-      "billions"
-    ],
-    [
-      "The miss",
-      "how far the dot is from the line",
-      "how low a chance the right word got"
-    ],
-    [
-      "The nudge",
-      "a small step downhill",
-      "the same small step downhill"
-    ]
   ]
 }

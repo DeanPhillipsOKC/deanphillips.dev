@@ -1,350 +1,241 @@
 ---
-// The silent social video for the training math post (part 4 of "AI, plainly"). It is never shown to readers.
-// The figure stays display:none unless a recording script sets data-reel (or data-og) on it, and it is
-// aria-hidden. It retells the post's one interactive (FitLine) as a 4:5 clip. The first frame is a poster
-// (the made-up bean dots, a wild first guess and its amber misses, under a big hook). The misses pull back,
-// then grow again one by one as "Measure every miss." A card shows why each miss is multiplied by itself, in
-// two beats (MissMath's 3 plus minus 3 that looks perfect, then 9 plus 9 that is honest). Only then does the
-// scoreboard appear and count up to the guess's total miss, so the number on screen is always the one the
-// video has explained. Training then plays out round by round, slow for the first 10 rounds and faster after,
-// while two labeled dials under the chart (slope and start height, the post's two dials) turn with the line,
-// until it settles at round 40. An end card gives the takeaway, a small copy of the fitted line, and the site.
-// One headline per beat on top (about 80px at 1080 wide, bigger for the hook) with a short line under it. The
-// old headline fades fully out before the new one rises in, so two never overlap. Post colors throughout
-// (line teal, dots in the text color, misses amber, pink only for the wrong sum, green for the honest one).
+// The silent social video for the training math post (part 4 of "AI, plainly"). It is never shown to readers:
+// the figure stays display:none unless a recording script sets data-reel (or data-og) on it, and it is
+// aria-hidden. It tells the post's story in the same look and pacing as ToolsReel and AgentsReel, so the
+// videos read as a set. The hook, "How does an AI learn?", over part 1's tiny model guessing "The sky is ___"
+// (blue only 41%). What it should have been (100, 0, 0) drops in beside each guess. The nudge receipt prints
+// one row per answer (should minus guessed, times the step size, the turn, with an arrow sized by it). Then
+// the rounds stack up like the post's RoundStrip, blue climbing while its nudge arrow shrinks. An end card:
+// "Should minus guessed. Billions of times." then the series and the site. One big headline per beat on top
+// (8.2cqw, about 88px at 1080 wide), body type about 45px, post colors (teal up, pink down, amber surprise).
 //
-// The dots, the bad line, the step size and the round count come from the post's data
-// (src/data/ai-plainly/ai-plainly-training-math.json, `beans`), and every round is real training, the same
-// centered update FitLine runs (weeks measured from the middle, average squared miss, step 0.05). All 40
-// rounds are worked out once up front, so the line at any moment is exact and can't drift from the post.
+// Every number comes from the post's own made-up starting dials through src/lib/tiny-model.ts (nudge and
+// rounds, the same calls the post's receipt and strip make), so the video can't drift from the post.
 //
 // Everything is drawn as a pure function of time, so scripts/video/ai-plainly-training-math-reel.mjs can
-// record it frame by frame. It sets data-reel (or data-og for the link preview) and calls
+// record it frame by frame: it sets data-reel (or data-og for the link preview) and calls
 // window.__trainingReel.draw(seconds). There is no loop and no timer, so reduced motion has nothing to stop,
-// and without JavaScript nothing shows (the figure is hidden either way).
-interface Beans { weeks: number[]; heights: number[]; bad: { tilt: number; start: number }; step: number; rounds: number }
-interface Props { beans: Beans }
-const { beans } = Astro.props;
-
-// Chart geometry, in viewBox units (shared with the script through data attributes).
-const W = 1000, H = 600, L = 128, R = 978, T = 26, B = 486;
-const X0 = 0.4, X1 = 8.6, Y1 = 20;
-const sx = (w: number) => L + ((w - X0) / (X1 - X0)) * (R - L);
-const sy = (h: number) => B - (h / Y1) * (B - T);
-const yTicks = [0, 10, 20];
-// The end card's small copy of the fitted line (no axes).
-const ex = (w: number) => 20 + ((w - X0) / (X1 - X0)) * 560;
-const ey = (h: number) => 250 - (h / Y1) * 230;
-const dial = (name: string, cls: string) => ({ name, cls });
-const dials = [dial('slope', 'trl-d-tilt'), dial('start height', 'trl-d-start')];
+// and without JavaScript nothing shows (the figure is hidden either way). Each element that appears carries
+// its time in data-at.
+import { nudge, rounds, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sentence: Sentence }
+const { model, sentence } = Astro.props;
+const ri = model.answers.indexOf(sentence.answer);
+const first = nudge(model, sentence);
+const rs = rounds(model, sentence, 6);
+const sg = (x: number, d = 0) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+const maxTurn = Math.max(...first.turn.map(Math.abs));
+// Timings (seconds). Kept here so the markup and the script agree.
+const T = { should: 6.6, rows: [10.4, 12.0, 13.4], step: 15.2, roundsIn: 19.6, round0: 20.4, roundGap: 1.45, end: 31.2, total: 36 };
+const rowAt = rs.map((_, i) => +(T.round0 + i * T.roundGap).toFixed(2));
 ---
-<figure class="trl" aria-hidden="true" data-beans={JSON.stringify(beans)}>
-  <div class="trl-main">
-    <div class="trl-head">
-      <div class="trl-layer"><p class="trl-hl"></p><p class="trl-sub"></p></div>
+<figure class="tnr" aria-hidden="true" data-t={JSON.stringify({ ...T, rowAt, right: first.pct[ri], answer: sentence.answer })}>
+  <div class="tnr-main">
+    <div class="tnr-head">
+      <p class="tnr-hl" data-layer="a"><span></span></p>
+      <p class="tnr-hl" data-layer="b"><span></span></p>
     </div>
-    <div class="trl-board">
-      <p class="trl-score"><span>Total miss</span><b class="trl-total">0</b></p>
-      <p class="trl-round"><span>Round</span><b class="trl-rn">0</b></p>
+    <div class="tnr-stage">
+      <section class="tnr-card tnr-guess" data-in="0" data-out={T.rows[0] - 0.6} data-og="1">
+        <p class="tnr-tag">part 1's tiny model</p>
+        <p class="tnr-sent">{sentence.text} <b>___</b></p>
+        <ol class="tnr-bars">
+          {model.answers.map((a, i) => (
+            <li class={a === sentence.answer ? 'tnr-ok' : ''}>
+              <span class="tnr-w">{a}</span>
+              <span class="tnr-bar"><i style={`width:${first.pct[i]}%`}></i><s class="tnr-pop" data-at={T.should} style={`left:${first.should[i]}%`}></s><em class="tnr-pop" data-at={T.should}>should be {first.should[i]}%</em></span>
+              <span class="tnr-p"><b>{first.pct[i]}%</b></span>
+            </li>
+          ))}
+        </ol>
+        <p class="tnr-foot">Its guess. The right answer is <b>{sentence.answer}</b>.</p>
+      </section>
+
+      <section class="tnr-card tnr-rec" data-in={T.rows[0] - 0.6} data-out={T.roundsIn}>
+        <p class="tnr-rhead">NUDGE RECEIPT</p>
+        {model.answers.map((a, i) => (
+          <div class={`tnr-row tnr-pop ${first.turn[i] >= 0 ? 'tnr-up' : 'tnr-down'}`} data-at={T.rows[i]}>
+            <p class="tnr-a">{a}</p>
+            <p class="tnr-math">{first.should[i]} − {first.pct[i]} = <b>{sg(first.diff[i])}</b></p>
+            <p class="tnr-turn tnr-pop" data-at={T.step + i * 0.35}>
+              <span>× {model.step}</span><b>{sg(first.turn[i], 2)}</b>
+              <svg viewBox="0 0 24 60" preserveAspectRatio="none" style={`height:${4 + (Math.abs(first.turn[i]) / maxTurn) * 9}cqw`}>
+                {first.turn[i] >= 0 ? <path d="M12 2 L22 18 H15 V58 H9 V18 H2 Z" /> : <path d="M12 58 L22 42 H15 V2 H9 V42 H2 Z" />}
+              </svg>
+            </p>
+          </div>
+        ))}
+        <p class="tnr-key"><span>should</span><span>−</span><span>guessed</span></p>
+      </section>
+
+      <section class="tnr-card tnr-rounds" data-in={T.roundsIn} data-out={T.end}>
+        <p class="tnr-tag">"{sentence.text} ___", again and again</p>
+        <div class="tnr-rkey"><span>#</span><span>{sentence.answer}</span><span>turn up</span></div>
+        <ol class="tnr-rlist">
+          {rs.map((r, i) => (
+            <li class="tnr-pop" data-at={rowAt[i]}>
+              <span class="tnr-n">{i + 1}</span>
+              <span class="tnr-rbar"><i style={`width:${r.pct[ri]}%`}></i><b>{r.pct[ri]}%</b></span>
+              <span class="tnr-rturn"><i style={`width:${Math.max(8, (r.turn[ri] / rs[0].turn[ri]) * 100)}%`}></i><b>+{r.turn[ri].toFixed(2)}</b></span>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
-    <div class="trl-stage">
-      <svg class="trl-chart" viewBox={`0 0 ${W} ${H}`}>
-        <defs><clipPath id="trl-clip"><rect x={L} y={T} width={R - L} height={B - T} /></clipPath></defs>
-        {yTicks.map((v) => <g><line class="trl-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="trl-tick" x={L - 16} y={sy(v) + 16} text-anchor="end">{v}</text></g>)}
-        {beans.weeks.map((w) => <text class="trl-tick" x={sx(w)} y={B + 54} text-anchor="middle">{w}</text>)}
-        <text class="trl-axis" x={(L + R) / 2} y={H - 4} text-anchor="middle">week</text>
-        <text class="trl-axis" x="34" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 34 ${(T + B) / 2})`}>height (cm)</text>
-        <g clip-path="url(#trl-clip)">
-          <line class="trl-line trl-ghost" />
-          {beans.weeks.map(() => <line class="trl-miss" />)}
-          <line class="trl-line trl-cur" />
-        </g>
-        {beans.weeks.map((w, i) => <circle class="trl-dot" cx={sx(w)} cy={sy(beans.heights[i])} r="14" />)}
-        <text class="trl-lab trl-ghostlab" x={sx(0.7)} y={sy(14.6)}>first guess</text>
-      </svg>
-      <div class="trl-card">
-        <svg class="trl-mini" viewBox="0 0 760 230">
-          <line class="trl-line" x1="20" y1="115" x2="740" y2="115" />
-          <line class="trl-miss" x1="250" y1="115" x2="250" y2="36" />
-          <line class="trl-miss" x1="510" y1="115" x2="510" y2="194" />
-          <circle class="trl-dot" cx="250" cy="36" r="17" />
-          <circle class="trl-dot" cx="510" cy="194" r="17" />
-          <text class="trl-minilab" x="280" y="88">up 3</text>
-          <text class="trl-minilab" x="480" y="172" text-anchor="end">down 3</text>
-        </svg>
-        <p class="trl-row trl-wrong"><span class="trl-k">Just add them</span><span class="trl-sum">3 plus (minus 3) = 0</span><i class="trl-strike"></i></p>
-        <p class="trl-stamp trl-stamp-bad">Looks perfect. Isn't.</p>
-        <p class="trl-row trl-right"><span class="trl-k">Each times itself (3 × 3 = 9)</span><span class="trl-sum">9 plus 9 = 18</span></p>
-        <p class="trl-stamp trl-stamp-good">Honest. Big misses count extra.</p>
-      </div>
-    </div>
-    <div class="trl-dials">
-      {dials.map((x) => (
-        <div class={`trl-dial ${x.cls}`}>
-          <svg viewBox="0 0 120 120"><circle class="trl-knob" cx="60" cy="60" r="50" /><line class="trl-needle" x1="60" y1="60" x2="60" y2="20" /><circle class="trl-hub" cx="60" cy="60" r="8" /></svg>
-          <p><span>{x.name}</span><b>0</b></p>
-        </div>
-      ))}
-    </div>
-    <p class="trl-foot">A bean plant's height each week. The numbers are made up.</p>
+    <p class="tnr-sub">The starting dials are made up. The math is real.</p>
   </div>
-  <div class="trl-end">
-    <p class="trl-end-1">Guess. Measure the miss. Nudge. <span>Repeat.</span></p>
-    <svg class="trl-end-pic" viewBox="0 0 600 270">
-      <line class="trl-grid" x1="20" x2="580" y1={ey(0)} y2={ey(0)} />
-      <line class="trl-line trl-end-line" />
-      {beans.weeks.map((w, i) => <circle class="trl-dot" cx={ex(w)} cy={ey(beans.heights[i])} r="11" />)}
-    </svg>
-    <p class="trl-end-2">A real AI turns billions of dials the same way.</p>
-    <p class="trl-end-3"><b>deanphillips.dev</b><br />Part 4 of AI, plainly. Try nudging the line yourself.</p>
-  </div>
-  <div class="trl-og">
-    <p class="trl-og-1">Nobody drew <span>the line.</span></p>
-    <p class="trl-og-2">A computer found it by nudging a wild guess, 40 times.</p>
-    <p class="trl-og-3">How an AI learns, with nothing past arithmetic</p>
+  <div class="tnr-end">
+    <p class="tnr-end-1">Should minus guessed.</p>
+    <p class="tnr-end-2"><span>Billions of times.</span></p>
+    <p class="tnr-end-3">Part 4 of AI, plainly<br /><b>deanphillips.dev</b></p>
   </div>
 </figure>
 
 <script>
-  type Beans = { weeks: number[]; heights: number[]; bad: { tilt: number; start: number }; step: number; rounds: number };
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const ease = (x: number) => 1 - (1 - clamp(x)) ** 3;
-  const inOut = (x: number) => { const c = clamp(x); return c < 0.5 ? 4 * c ** 3 : 1 - (-2 * c + 2) ** 3 / 2; };
+  const pop = (x: number) => { const c = clamp(x); return 1 + 2.2 * (c - 1) ** 3 + 1.2 * (c - 1) ** 2; };
 
-  const TOTAL = 31.6;
-  const END = 27.4; // the end card starts
-  const OUT = 0.22, IN = 0.32; // the old headline fades out fully, then the new one rises in
-  const RETRACT = 3.0, MISS = 5.6, CARD = 8.6, BEAT2 = 11.4, CARD_OUT = 14.0, SCORE = 14.4;
-  const TRAIN = 16.8, SLOW = 0.4, FAST = 0.15, SLOW_N = 10;
-  // Dial ranges, mapped to a 270 degree sweep.
-  const TILT_MAX = 2.5, START_MAX = 12;
-
-  const root = document.querySelector<HTMLElement>('.trl');
+  const root = document.querySelector<HTMLElement>('.tnr');
   if (root) {
-    const d: Beans = JSON.parse(root.dataset.beans!);
-    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
-    const $$ = <T extends Element>(s: string) => [...root.querySelectorAll<T>(s)];
-    const L = 128, R = 978, T = 26, B = 486, X0 = 0.4, X1 = 8.6, Y1 = 20;
-    const sx = (w: number) => L + ((w - X0) / (X1 - X0)) * (R - L);
-    const sy = (h: number) => B - (h / Y1) * (B - T);
-    const sse = (t: number, b: number) => d.weeks.reduce((s, w, i) => s + (t * w + b - d.heights[i]) ** 2, 0);
-    const first = sse(d.bad.tilt, d.bad.start);
-
-    // One headline (and a short line under it) per beat, by start time.
-    const SHOTS: [number, string, string][] = [
-      [0, 'How does an AI learn?', 'By being wrong, then less wrong.'],
-      [RETRACT, 'Nobody gives it the right line.', 'It starts with a wild guess.'],
-      [MISS, 'Measure every miss.', 'The gap from each dot to the line.'],
-      [CARD, 'Just add the misses up?', 'Misses above and below cancel out.'],
-      [BEAT2, 'Multiply each miss by itself.', 'Then nothing cancels.'],
-      [SCORE, `This guess scores ${first.toFixed(1)}.`, "Each miss times itself, added up."],
-      [TRAIN, 'Nudge the line a little.', 'Each nudge turns two dials.'],
-      [TRAIN + SLOW_N * SLOW, 'Again, and again.', 'Smaller nudges as it gets close.'],
-      [0, 'Nobody drew this line.', 'It only had the dots and its misses.'],
+    const T = JSON.parse(root.dataset.t!) as { right: number; answer: string; should: number; rows: number[]; step: number; roundsIn: number; end: number; total: number; rowAt: number[] };
+    // One big headline per beat: start time and words.
+    const SHOTS: [number, string][] = [
+      [0, 'How does an AI learn?'],
+      [3.2, `It guesses. ${T.answer[0].toUpperCase() + T.answer.slice(1)} gets only ${T.right}%.`],
+      [T.should - 0.2, `${T.answer[0].toUpperCase() + T.answer.slice(1)} should have been 100%.`],
+      [T.rows[0] - 0.6, 'Should minus guessed.'],
+      [T.step - 0.2, 'Times a small step. Turn the dial.'],
+      [T.roundsIn, 'Then guess again. And again.'],
+      [T.rowAt[2] + 0.2, 'Close to right, the nudges shrink.'],
+      [T.end, ''],
     ];
-
-    // Every round of real training, worked out once (the same centered update as FitLine).
-    const states: { tilt: number; start: number }[] = [{ ...d.bad }];
-    {
-      let tilt = d.bad.tilt, c = d.bad.start + d.bad.tilt * 4.5;
-      for (let r = 0; r < d.rounds; r++) {
-        let gt = 0, gc = 0;
-        d.weeks.forEach((w, i) => { const e = tilt * (w - 4.5) + c - d.heights[i]; gt += (2 * e * (w - 4.5)) / d.weeks.length; gc += (2 * e) / d.weeks.length; });
-        tilt -= d.step * gt; c -= d.step * gc;
-        states.push({ tilt, start: c - tilt * 4.5 });
-      }
+    const XF = 0.35, SLIDE = 0.5;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const $$ = <T extends HTMLElement>(s: string, el: ParentNode = root) => [...el.querySelectorAll<T>(s)];
+    const main = $('.tnr-main'), end = $('.tnr-end');
+    const layers = $$('.tnr-hl'), cards = $$('.tnr-card');
+    const num = (el: HTMLElement, k: string) => Number(el.dataset[k]);
+    function headline(el: HTMLElement, s: number, v: number) {
+      el.firstElementChild!.textContent = SHOTS[s][1];
+      el.classList.toggle('is-hook', s === 0);
+      el.style.opacity = String(v);
     }
-    const TRAIN_END = TRAIN + SLOW_N * SLOW + (d.rounds - SLOW_N) * FAST;
-    SHOTS[SHOTS.length - 1][0] = TRAIN_END;
-    // Where training is at time t: a round number and how far the line has moved toward it.
-    function roundAt(t: number): [number, number] {
-      const a = t - TRAIN;
-      if (a < 0) return [0, 1];
-      if (a < SLOW_N * SLOW) { const k = Math.floor(a / SLOW); return [k + 1, inOut((a - k * SLOW) / (SLOW * 0.7))]; }
-      const b = a - SLOW_N * SLOW;
-      const k = Math.min(d.rounds - SLOW_N - 1, Math.floor(b / FAST));
-      return [SLOW_N + k + 1, b >= (d.rounds - SLOW_N) * FAST ? 1 : inOut((b - k * FAST) / (FAST * 0.8))];
-    }
-
-    const main = $<HTMLElement>('.trl-main'), end = $<HTMLElement>('.trl-end');
-    const layer = $<HTMLElement>('.trl-layer');
-    const cur = $<SVGLineElement>('.trl-cur'), ghost = $<SVGLineElement>('.trl-ghost'), ghostLab = $<SVGTextElement>('.trl-ghostlab');
-    const misses = $$<SVGLineElement>('.trl-chart .trl-miss');
-    const total = $<HTMLElement>('.trl-total'), rn = $<HTMLElement>('.trl-rn');
-    const score = $<HTMLElement>('.trl-score'), roundBox = $<HTMLElement>('.trl-round');
-    const chart = $<SVGElement>('.trl-chart'), card = $<HTMLElement>('.trl-card'), foot = $<HTMLElement>('.trl-foot');
-    const dialsBox = $<HTMLElement>('.trl-dials');
-    const needles = $$<SVGLineElement>('.trl-needle'), dialVals = $$<HTMLElement>('.trl-dial b');
-    const setLine = (el: SVGLineElement, tilt: number, start: number, x = sx, y = sy) => {
-      el.setAttribute('x1', String(x(X0))); el.setAttribute('y1', String(y(start + tilt * X0)));
-      el.setAttribute('x2', String(x(X1))); el.setAttribute('y2', String(y(start + tilt * X1)));
-    };
-    setLine(ghost, d.bad.tilt, d.bad.start);
-    const fin = states[states.length - 1];
-    setLine($<SVGLineElement>('.trl-end-line'), fin.tilt, fin.start, (w) => 20 + ((w - X0) / (X1 - X0)) * 560, (h) => 250 - (h / Y1) * 230);
-    const turn = (i: number, v: number, max: number) => {
-      const ang = ((-135 + 270 * clamp(v / max)) * Math.PI) / 180;
-      needles[i].setAttribute('x2', String(60 + 38 * Math.sin(ang)));
-      needles[i].setAttribute('y2', String(60 - 38 * Math.cos(ang)));
-    };
-
     function draw(t: number) {
-      t = Math.max(0, Math.min(TOTAL, t));
+      t = Math.max(0, Math.min(T.total, t));
       const og = 'og' in root!.dataset;
-      if (og) t = TRAIN_END + 0.5;
-
-      // Headline: the old one fades fully out, then the new one rises in, so the two never overlap.
       let s = 0;
       while (s + 1 < SHOTS.length && t >= SHOTS[s + 1][0]) s++;
-      const dt = t - SHOTS[s][0];
-      const showPrev = s > 0 && dt < OUT;
-      const shot = SHOTS[showPrev ? s - 1 : s];
-      layer.children[0].textContent = shot[1];
-      layer.children[1].textContent = shot[2];
-      layer.classList.toggle('is-hook', (showPrev ? s - 1 : s) === 0);
-      const v = s === 0 ? 1 : showPrev ? 1 - ease(dt / OUT) : ease((dt - OUT) / IN);
-      layer.style.opacity = String(v);
-      layer.style.transform = showPrev || s === 0 ? 'none' : `translateY(${(1 - v) * 3}cqw)`;
-
-      // The line: the wild guess from the first frame, then training moves it round by round.
-      const [k, f] = roundAt(t);
-      const a = states[Math.max(0, k - 1)], b = states[k];
-      const tilt = k ? a.tilt + (b.tilt - a.tilt) * f : d.bad.tilt;
-      const start = k ? a.start + (b.start - a.start) * f : d.bad.start;
-      setLine(cur, tilt, start);
-      const g = t >= TRAIN ? ease((t - TRAIN) / 0.6) : 0;
-      ghost.style.opacity = String(0.6 * g);
-      ghostLab.style.opacity = String(g);
-
-      // The misses: shown on the poster frame, pulled back, then grown again one by one.
-      d.weeks.forEach((w, i) => {
-        const grow = t < MISS ? 1 - ease((t - RETRACT - 0.2) / 0.4) : ease((t - MISS - 0.35 - i * 0.16) / 0.45);
-        const yd = sy(d.heights[i]), yl = sy(start + tilt * w);
-        const m = misses[i];
-        m.setAttribute('x1', String(sx(w))); m.setAttribute('x2', String(sx(w)));
-        m.setAttribute('y1', String(yd)); m.setAttribute('y2', String(yd + (yl - yd) * grow));
-        m.style.opacity = grow > 0.01 ? '1' : '0';
-      });
-
-      // The scoreboard waits until the squaring is explained, then counts up to the guess's total miss.
-      const shown = t >= TRAIN ? sse(tilt, start) : first * ease((t - SCORE - 0.3) / 1.0);
-      total.textContent = shown.toFixed(1);
-      score.style.opacity = String(ease((t - SCORE) / 0.3));
-      roundBox.style.opacity = String(ease((t - TRAIN) / 0.4));
-      rn.textContent = String(k);
-
-      // The two dials appear with the first nudge and turn with the line.
-      dialsBox.style.opacity = String(ease((t - TRAIN) / 0.4));
-      turn(0, tilt, TILT_MAX); turn(1, start, START_MAX);
-      dialVals[0].textContent = tilt.toFixed(2);
-      dialVals[1].textContent = start.toFixed(1);
-
-      // The why-multiply card covers the chart, in two beats.
-      const cIn = ease((t - CARD) / 0.4) * (1 - ease((t - CARD_OUT) / 0.35));
-      card.style.opacity = String(cIn);
-      card.style.transform = `translateY(${(1 - ease((t - CARD) / 0.4)) * 6}%)`;
-      chart.style.opacity = String(1 - 0.9 * cIn);
-      foot.style.opacity = String(1 - cIn);
-      const strike = ease((t - CARD - 1.0) / 0.4);
-      $<HTMLElement>('.trl-strike').style.transform = `scaleX(${strike})`;
-      $<HTMLElement>('.trl-wrong').classList.toggle('is-struck', strike > 0.5);
-      $<HTMLElement>('.trl-stamp-bad').style.opacity = String(ease((t - CARD - 1.5) / 0.3));
-      $<HTMLElement>('.trl-right').style.opacity = String(ease((t - BEAT2 - 0.4) / 0.35));
-      $<HTMLElement>('.trl-stamp-good').style.opacity = String(ease((t - BEAT2 - 1.3) / 0.3));
-
-      // The end card replaces the chart.
-      const e = og ? 0 : ease((t - END) / 0.4);
-      main.style.opacity = String(1 - e);
-      end.style.opacity = og ? '0' : String(ease((t - END - 0.2) / 0.4));
-      $<HTMLElement>('.trl-end-1').style.opacity = String(ease((t - END - 0.3) / 0.4));
-      $<HTMLElement>('.trl-end-pic').style.opacity = String(ease((t - END - 0.6) / 0.4));
-      $<HTMLElement>('.trl-end-2').style.opacity = String(ease((t - END - 1.2) / 0.4));
-      $<HTMLElement>('.trl-end-3').style.opacity = String(ease((t - END - 2.0) / 0.4));
+      if (og) s = 0;
+      const into = s && !og ? ease((t - SHOTS[s][0]) / XF) : 1;
+      headline(layers[0], s, into);
+      if (s && into < 1) headline(layers[1], s - 1, 1 - into); else layers[1].style.opacity = '0';
+      for (const c of cards) {
+        const a = num(c, 'in'), b = num(c, 'out');
+        const e = a <= 0 ? 1 : ease((t - a) / SLIDE), l = ease((t - b) / SLIDE);
+        const on = og ? c.classList.contains('tnr-rec') : t >= a && t < b + SLIDE;
+        c.style.display = on ? '' : 'none';
+        if (!on) continue;
+        c.style.transform = og ? 'none' : `translateX(${(1 - e) * 108 - l * 108}%)`;
+        c.style.opacity = og ? '1' : String(Math.min(0.3 + 0.7 * e, 1 - 0.7 * l));
+        for (const el of $$('.tnr-pop', c)) {
+          const at = og ? -1 : num(el, 'at');
+          const k = (t - at) / 0.35;
+          el.style.visibility = t >= at ? 'visible' : 'hidden';
+          el.style.transform = `scale(${0.7 + 0.3 * pop(k)})`;
+          el.style.opacity = String(ease(k * 1.6));
+        }
+      }
+      const e = ease((t - T.end) / 0.5);
+      main.style.opacity = String(og ? 1 : 1 - e);
+      end.style.opacity = String(og ? 0 : ease((t - T.end - 0.3) / 0.5));
+      $('.tnr-end-1').style.opacity = String(ease((t - T.end - 0.4) / 0.5));
+      $('.tnr-end-2').style.opacity = String(ease((t - T.end - 1.4) / 0.5));
+      $('.tnr-end-3').style.opacity = String(ease((t - T.end - 2.5) / 0.5));
     }
-    (window as any).__trainingReel = { draw, total: TOTAL };
+    (window as any).__trainingReel = { draw, total: T.total };
   }
 </script>
 
 <style is:global>
-  .trl { display: none; }
-  body:has(.trl[data-reel], .trl[data-og]) header.top { display: none; }
-  .trl[data-reel], .trl[data-og] {
+  .tnr { display: none; }
+  body:has(.tnr[data-reel], .tnr[data-og]) header.top { display: none; }
+  .tnr[data-reel], .tnr[data-og] {
     position: fixed; inset: 0; z-index: 2147483647; margin: 0 !important; max-width: none !important; width: 100vw; height: 100vh; box-sizing: border-box;
-    padding: 4.4cqw 4.4cqw 3cqw; display: flex; flex-direction: column; overflow: hidden; container-type: inline-size;
+    padding: 4cqw 4.4cqw 3cqw; display: flex; flex-direction: column; overflow: hidden; container-type: inline-size;
     color: var(--text); font: 500 4cqw/1.3 Inter, sans-serif;
     background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--violet) 16%, transparent), transparent 60%),
       radial-gradient(100% 70% at 100% 100%, color-mix(in srgb, var(--teal) 14%, transparent), transparent 60%), var(--bg);
   }
-  .trl p { margin: 0; }
-  .trl-main { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
-  .trl-head { display: grid; align-items: end; height: 33cqw; margin-bottom: 2cqw; }
-  .trl-layer { grid-area: 1 / 1; display: grid; gap: 1.6cqw; }
-  .trl-hl { font: 700 7.6cqw/1.08 "Space Grotesk", sans-serif; letter-spacing: -0.02em; color: var(--text); }
-  .trl-layer.is-hook .trl-hl { font-size: 10.4cqw; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .trl-sub { font: 600 4.3cqw/1.3 Inter, sans-serif; color: var(--muted); min-height: 1.3em; }
-  .trl-layer.is-hook .trl-sub { font-size: 5.6cqw; color: var(--text); }
-  .trl-board { display: flex; gap: 2.4cqw; margin-bottom: 1.6cqw; }
-  .trl-score, .trl-round { display: flex; align-items: baseline; gap: 2.4cqw; padding: 1.8cqw 3.2cqw; border-radius: 2.4cqw; background: var(--bg-2); border: 0.3cqw solid var(--line); }
-  .trl-score span, .trl-round span { font: 800 4cqw/1 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-  .trl-score b, .trl-round b { font: 700 7.6cqw/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; color: var(--text); }
-  .trl-score b { min-width: 4.2ch; }
-  .trl-round b { min-width: 2ch; }
-  .trl-stage { position: relative; }
-  .trl-chart { display: block; width: 100%; height: auto; }
-  .trl-grid { stroke: var(--line); stroke-width: 2; }
-  .trl-tick { font: 600 48px Inter, sans-serif; fill: var(--muted); }
-  .trl-axis { font: 700 46px Inter, sans-serif; fill: var(--muted); }
-  .trl-line { stroke: var(--teal); stroke-width: 10; stroke-linecap: round; }
-  .trl-ghost { stroke-width: 5; stroke-dasharray: 16 14; }
-  .trl-dot { fill: var(--text); stroke: var(--bg); stroke-width: 4; }
-  .trl-chart .trl-dot { r: 15px; }
-  .trl-miss { stroke: var(--warn); stroke-width: 7; stroke-linecap: round; }
-  .trl-lab { font: 700 46px "Space Grotesk", sans-serif; fill: var(--muted); }
-  .trl-card { position: absolute; inset: 0 0 auto; display: grid; gap: 2cqw; padding: 3.4cqw 4.8cqw; border-radius: 3.4cqw; background: var(--card); border: 0.3cqw solid var(--line); opacity: 0; }
-  .trl-mini { display: block; width: 86%; justify-self: center; height: auto; }
-  .trl-minilab { font: 700 48px "Space Grotesk", sans-serif; fill: var(--warn); }
-  .trl-row { position: relative; display: grid; gap: 1cqw; }
-  .trl-k { font: 800 3.4cqw/1.2 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-  .trl-sum { font: 700 6.6cqw/1.15 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; }
-  .trl-wrong .trl-sum { justify-self: start; }
-  .trl-wrong.is-struck .trl-sum { color: var(--muted); }
-  .trl-strike { position: absolute; left: -1cqw; right: auto; bottom: 3.6cqw; width: 85%; height: 0.9cqw; border-radius: 1cqw; background: var(--pink); transform-origin: 0 50%; transform: scaleX(0); }
-  .trl-stamp { justify-self: start; font: 800 4.4cqw/1.2 "Space Grotesk", sans-serif; padding: 1cqw 2.6cqw; border-radius: 1.4cqw; border: 0.45cqw solid; transform: rotate(-2deg); opacity: 0; }
-  .trl-stamp-bad { color: var(--pink); border-color: var(--pink); margin-bottom: 1.4cqw; }
-  .trl-stamp-good { color: var(--ok); border-color: var(--ok); }
-  .trl-right { opacity: 0; }
-  .trl-dials { display: flex; justify-content: center; gap: 8cqw; margin-top: 0.6cqw; opacity: 0; }
-  .trl-dial { display: flex; align-items: center; gap: 2.4cqw; }
-  .trl-dial svg { width: 12cqw; height: 12cqw; }
-  .trl-dial p { display: grid; gap: 0.8cqw; }
-  .trl-dial span { font: 800 4cqw/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-  .trl-dial b { font: 700 7cqw/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; min-width: 3.4ch; }
-  .trl-knob { fill: var(--bg-2); stroke: var(--line); stroke-width: 6; }
-  .trl-needle { stroke: var(--teal); stroke-width: 10; stroke-linecap: round; }
-  .trl-hub { fill: var(--teal); }
-  .trl-foot { margin-top: 2cqw !important; font-size: 4.2cqw; font-weight: 600; color: var(--muted); }
-  .trl-end { position: absolute; inset: 0; display: grid; align-content: center; gap: 4.4cqw; padding: 0 7cqw; opacity: 0; pointer-events: none; }
-  .trl-end-1 { font: 700 9.4cqw/1.1 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
-  .trl-end-1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .trl-end-pic { display: block; width: 74%; height: auto; justify-self: center; opacity: 0; }
-  .trl-end-pic .trl-line { stroke-width: 9; }
-  .trl-end-2 { font: 600 5.6cqw/1.3 Inter, sans-serif; color: var(--text); }
-  .trl-end-3 { margin-top: 1cqw !important; font: 600 4.4cqw/1.4 Inter, sans-serif; color: var(--muted); }
-  .trl-end-3 b { font: 700 6cqw/1.3 "Space Grotesk", sans-serif; color: var(--text); }
-  .trl-og { display: none; }
-  /* The link preview (1200x630): the title on the left, the finished chart with the first guess on the right. */
-  .trl[data-og] { padding: 3.4cqw 4cqw; }
-  .trl[data-og] .trl-main { display: grid; grid-template-columns: 0.85fr 1.15fr; grid-template-rows: auto 1fr; column-gap: 3cqw; align-content: center; }
-  .trl[data-og] .trl-head, .trl[data-og] .trl-foot, .trl[data-og] .trl-card, .trl[data-og] .trl-dials { display: none; }
-  .trl[data-og] .trl-board { grid-column: 2; grid-row: 1; margin-bottom: 1cqw; gap: 1.4cqw; }
-  .trl[data-og] .trl-score, .trl[data-og] .trl-round { padding: 0.8cqw 1.6cqw; gap: 1.2cqw; border-radius: 1.2cqw; border-width: 0.15cqw; }
-  .trl[data-og] .trl-score span, .trl[data-og] .trl-round span { font-size: 1.5cqw; }
-  .trl[data-og] .trl-score b, .trl[data-og] .trl-round b { font-size: 3.6cqw; }
-  .trl[data-og] .trl-stage { grid-column: 2; grid-row: 2; }
-  .trl[data-og] .trl-og { display: grid; gap: 2.4cqw; grid-column: 1; grid-row: 1 / 3; align-self: center; position: absolute; left: 4cqw; top: 0; bottom: 0; width: 38%; align-content: center; }
-  .trl-og-1 { font: 700 6.4cqw/1.05 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
-  .trl-og-1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .trl-og-2 { font: 600 2.4cqw/1.35 Inter, sans-serif; color: var(--text); }
-  .trl-og-3 { font: 600 1.8cqw/1.35 Inter, sans-serif; color: var(--muted); }
-  .trl[data-og] .trl-end { display: none; }
+  .tnr p { margin: 0; }
+  .tnr-main { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .tnr-head { display: grid; align-items: end; min-height: 18.2cqw; margin-bottom: 3cqw; }
+  .tnr-hl { grid-area: 1 / 1; font: 700 8.2cqw/1.1 "Space Grotesk", sans-serif; letter-spacing: -0.02em; color: var(--text); }
+  .tnr-hl.is-hook span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tnr-stage { position: relative; flex: none; height: 90.5cqw; overflow: hidden; border-radius: 3.4cqw; }
+  .tnr-card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 3cqw; padding: 4.4cqw 4.4cqw; border-radius: 3.4cqw; border: 0.3cqw solid var(--line); background: var(--bg-2); overflow: hidden; }
+  .tnr-tag { font: 700 3.8cqw/1.3 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .tnr-sent { font: 700 9cqw/1.15 "Space Grotesk", sans-serif; }
+  .tnr-sent b { color: var(--teal); }
+  .tnr-bars { list-style: none; margin: 4cqw 0 2cqw !important; padding: 0 !important; display: grid; gap: 8cqw; }
+  .tnr-bars li { margin: 0 !important; display: grid; grid-template-columns: 19cqw 1fr 15cqw; gap: 2.6cqw; align-items: center; }
+  .tnr-w { font: 700 6.4cqw/1 "Space Grotesk", sans-serif; }
+  .tnr-ok .tnr-w { color: var(--teal); }
+  .tnr-bar { position: relative; height: 8cqw; border-radius: 99px; background: var(--card); }
+  .tnr-bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: color-mix(in srgb, var(--muted) 55%, transparent); }
+  .tnr-ok .tnr-bar i { background: var(--teal); }
+  .tnr-bar s { position: absolute; top: -1.6cqw; bottom: -1.6cqw; width: 1cqw; margin-left: -0.5cqw; border-radius: 1cqw; background: var(--warn); }
+  .tnr-p { position: relative; text-align: right; }
+  .tnr-p b { font: 700 6.6cqw/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums; }
+  .tnr-bar em { position: absolute; left: 0; top: 100%; margin-top: 2.2cqw; white-space: nowrap; font: 700 4cqw/1.2 Inter, sans-serif; font-style: normal; color: var(--warn); transform-origin: 0 0; }
+  .tnr-foot { margin-top: 4cqw !important; font-size: 4.6cqw; color: var(--muted); }
+  .tnr-foot b { color: var(--teal); }
+  .tnr-rec { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; gap: 0; }
+  .tnr-rhead { font: 700 5.4cqw/1.2 ui-monospace, Menlo, monospace; letter-spacing: .12em; text-align: center; padding-bottom: 2.6cqw !important; border-bottom: 0.4cqw dashed var(--line); }
+  .tnr-row { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "a turn" "m turn"; gap: 0.6cqw 3cqw; align-items: center; padding: 5cqw 0; border-bottom: 0.3cqw dotted var(--line); transform-origin: 0 50%; }
+  .tnr-a { grid-area: a; font: 700 6.4cqw/1.1 "Space Grotesk", sans-serif; }
+  .tnr-up .tnr-a { color: var(--teal); }
+  .tnr-math { grid-area: m; font: 700 6.8cqw/1.1 ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tnr-up .tnr-math b { color: var(--teal); } .tnr-down .tnr-math b { color: var(--pink); }
+  .tnr-turn { grid-area: turn; display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 2cqw; justify-items: end; }
+  .tnr-turn span { grid-column: 1; font-size: 4.2cqw; color: var(--muted); }
+  .tnr-turn b { grid-column: 1; font: 700 7cqw/1.1 ui-monospace, Menlo, monospace; }
+  .tnr-turn svg { grid-column: 2; grid-row: 1 / 3; width: 4.4cqw; }
+  .tnr-up .tnr-turn b { color: var(--teal); } .tnr-up path { fill: var(--teal); }
+  .tnr-down .tnr-turn b { color: var(--pink); } .tnr-down path { fill: var(--pink); }
+  .tnr-key { display: none; }
+  .tnr-rkey, .tnr-rlist li { display: grid; grid-template-columns: 10cqw 1.3fr 1fr; gap: 3cqw; align-items: center; }
+  .tnr-rkey span { font: 700 3.8cqw/1.3 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .tnr-rlist { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 3cqw; }
+  .tnr-rounds { justify-content: flex-start; }
+  .tnr-rlist li { margin: 0 !important; transform-origin: 0 50%; }
+  .tnr-n { display: grid; place-items: center; width: 8.6cqw; height: 8.6cqw; border-radius: 50%; background: var(--card); border: 0.3cqw solid var(--line); font: 700 4.2cqw Inter, sans-serif; }
+  .tnr-rbar { position: relative; height: 8.6cqw; border-radius: 1.6cqw; background: var(--card); overflow: hidden; }
+  .tnr-rbar i { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--teal) 60%, var(--card)); }
+  .tnr-rbar b { position: relative; display: block; padding: 0 2cqw; font: 700 5.4cqw/8.6cqw Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .tnr-rturn { display: flex; align-items: center; gap: 2cqw; min-width: 0; }
+  .tnr-rturn i { position: relative; height: 2cqw; background: var(--teal); border-radius: 1cqw 0 0 1cqw; max-width: calc(100% - 20cqw); }
+  .tnr-rturn i::after { content: ""; position: absolute; right: -2.4cqw; top: -1.6cqw; border: 2.6cqw solid transparent; border-left: 2.6cqw solid var(--teal); border-right: 0; }
+  .tnr-rturn b { flex: none; margin-left: 2.8cqw; font: 700 5.4cqw Inter, sans-serif; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .tnr-sub { margin-top: 2.4cqw !important; font-size: 3.2cqw; font-weight: 600; color: var(--muted); }
+  .tnr-end { position: absolute; inset: 0; display: grid; align-content: center; gap: 5cqw; padding: 0 7cqw; opacity: 0; pointer-events: none; }
+  .tnr-end-1, .tnr-end-2 { font: 700 9cqw/1.08 "Space Grotesk", sans-serif; letter-spacing: -0.02em; }
+  .tnr-end-2 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tnr-end-3 { margin-top: 4cqw !important; font: 600 4.4cqw/1.4 Inter, sans-serif; color: var(--muted); }
+  .tnr-end-3 b { font: 700 6cqw/1.3 "Space Grotesk", sans-serif; color: var(--text); }
+  /* The link preview (1200x630): the hook on the left, the receipt on the right. */
+  .tnr[data-og] { padding: 3.6cqw 4.4cqw 2.4cqw; }
+  .tnr[data-og] .tnr-main { display: grid; grid-template-columns: 1fr 1.1fr; grid-template-rows: 1fr auto; column-gap: 4cqw; }
+  .tnr[data-og] .tnr-head { min-height: 0; margin: 0; align-items: center; }
+  .tnr[data-og] .tnr-hl { font-size: 6.4cqw; }
+  .tnr[data-og] .tnr-stage { height: auto; border-radius: 2cqw; }
+  .tnr[data-og] .tnr-card { padding: 1.6cqw 2.4cqw; border-radius: 2cqw; border-width: 0.2cqw; }
+  .tnr[data-og] .tnr-rhead { font-size: 2.2cqw; padding-bottom: 1cqw !important; border-bottom-width: 0.2cqw; }
+  .tnr[data-og] .tnr-row { padding: 1.2cqw 0; gap: 0.3cqw 1.6cqw; border-bottom-width: 0.15cqw; }
+  .tnr[data-og] .tnr-a { font-size: 2.6cqw; }
+  .tnr[data-og] .tnr-math { font-size: 3.1cqw; }
+  .tnr[data-og] .tnr-turn span { font-size: 1.7cqw; } .tnr[data-og] .tnr-turn b { font-size: 2.9cqw; }
+  .tnr[data-og] .tnr-turn svg { width: 2.2cqw; transform: scaleY(.5); }
+  .tnr[data-og] .tnr-sub { grid-column: 1 / -1; font-size: 1.6cqw; margin-top: 1.4cqw !important; }
+  .tnr[data-og] .tnr-end { display: none; }
 </style>
