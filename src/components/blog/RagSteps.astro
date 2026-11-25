@@ -1,0 +1,183 @@
+---
+// Retrieval in numbered steps, all on the same map of stored passages, read top to bottom.
+// 1. Every passage gets a spot (one passage's full text is shown next to its dot).
+// 2. Your search gets a spot too. When it scrolls into view, the search chip drops onto the map and
+//    shrinks into its purple diamond.
+// 3. Grab the closest few. A ring grows around the diamond, lines reach the nearest passages (worked
+//    out here from the positions), and they're listed as what gets pasted into the conversation.
+// 4. Closest isn't always right. Same map, a different search, and the nearest page is the wrong one.
+// Each step animates once when it scrolls into view. Without JavaScript or with reduced motion, every
+// step shows its finished state. Drawn in SVG so it scales to any width.
+interface P { label: string; x: number; y: number; text?: string }
+interface Props {
+  passages: P[];
+  example: string;
+  good: { note: string; x: number; y: number; pasted: string };
+  bad: { note: string; x: number; y: number; verdict: string };
+  k?: number;
+  caption?: string;
+}
+const { passages, example, good, bad, k = 3, caption } = Astro.props;
+const W = 100, H = 72;
+const nearest = (x: number, y: number) => passages.map((q) => ({ q, d: Math.hypot(q.x - x, q.y - y) })).sort((a, b) => a.d - b.d).slice(0, k);
+const g = nearest(good.x, good.y), b = nearest(bad.x, bad.y);
+const ex = passages.find((p) => p.label === example)!;
+const right = (p: P) => p.x > 80;
+const chip = (note: string, x: number, y: number) => {
+  const w = Math.min(94, note.length * 2.1 + 6);
+  return { w, x: Math.max(2, Math.min(W - w - 2, x - w / 2)), dx: x, dy: y };
+};
+const cg = chip(good.note, good.x, good.y), cb = chip(bad.note, bad.x, bad.y);
+---
+<figure class="rag panel bleed">
+  <ol class="rag-steps">
+    <li class="rag-step">
+      <p class="rag-h"><span class="rag-n">1</span>Every passage gets a spot on a map.</p>
+      <svg class="rag-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="A map with one dot per stored passage. Passages about similar things sit close together.">
+        {passages.map((q, i) => (
+          <g class={`rag-dot${q === ex ? ' rag-ex' : ''}`} style={`--d:${i * 0.12}s`}>
+            {q === ex && <circle class="rag-halo" cx={q.x} cy={q.y} r="4" />}
+            <circle cx={q.x} cy={q.y} r="1.6" />
+            <text x={right(q) ? q.x - 3 : q.x + 3} y={q.y + 1.3} text-anchor={right(q) ? 'end' : 'start'}>{q.label}</text>
+          </g>
+        ))}
+      </svg>
+      <p class="rag-say">Each dot is one short passage from the help docs. This one is <q>{ex.text}</q> Passages about similar things end up close together.</p>
+    </li>
+
+    <li class="rag-step">
+      <p class="rag-h"><span class="rag-n">2</span>Your search gets a spot too.</p>
+      <svg class="rag-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The search ${good.note} becomes a purple diamond on the same map, near Refunds and Damaged.`}>
+        {passages.map((q) => (
+          <g class="rag-dot rag-still">
+            <circle cx={q.x} cy={q.y} r="1.6" />
+            <text x={right(q) ? q.x - 3 : q.x + 3} y={q.y + 1.3} text-anchor={right(q) ? 'end' : 'start'}>{q.label}</text>
+          </g>
+        ))}
+        <g class="rag-fly" style={`--fx:${cg.dx - (cg.x + cg.w / 2)}px;--fy:${cg.dy - 9}px`}>
+          <rect x={cg.x} y="4.5" width={cg.w} height="9" rx="2" />
+          <text x={cg.x + cg.w / 2} y="10.4" text-anchor="middle">{good.note}</text>
+        </g>
+        <rect class="rag-pin" x={good.x - 2.6} y={good.y - 2.6} width="5.2" height="5.2" rx="1" transform={`rotate(45 ${good.x} ${good.y})`} />
+      </svg>
+      <p class="rag-say">The model's note, <code>{good.note}</code>, goes through the same map maker. It lands near the passages that mean something similar.</p>
+    </li>
+
+    <li class="rag-step">
+      <p class="rag-h"><span class="rag-n">3</span>Grab the {k} closest.</p>
+      <svg class="rag-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The ${k} passages nearest the search: ${g.map((n) => n.q.label).join(', ')}.`}>
+        <circle class="rag-ring" cx={good.x} cy={good.y} r={g[k - 1].d + 3} />
+        {g.map((n) => <line class="rag-reach" x1={good.x} y1={good.y} x2={n.q.x} y2={n.q.y} />)}
+        {passages.map((q) => {
+          const i = g.findIndex((n) => n.q === q);
+          return (
+            <g class={`rag-dot rag-still${i >= 0 ? ' rag-on' : ' rag-off'}`}>
+              <circle cx={q.x} cy={q.y} r={i >= 0 ? 2 : 1.4} />
+              <text x={right(q) ? q.x - 3 : q.x + 3} y={q.y + 1.3} text-anchor={right(q) ? 'end' : 'start'}>{i >= 0 ? `${i + 1}. ` : ''}{q.label}</text>
+            </g>
+          );
+        })}
+        <rect class="rag-pin rag-pin-still" x={good.x - 2.6} y={good.y - 2.6} width="5.2" height="5.2" rx="1" transform={`rotate(45 ${good.x} ${good.y})`} />
+      </svg>
+      <p class="rag-say"><b>Pasted into the conversation</b> {g.map((n, i) => <span class="rag-got">{i + 1}. {n.q.label}</span>)}</p>
+      <p class="rag-note">{good.pasted}</p>
+    </li>
+
+    <li class="rag-step rag-warn">
+      <p class="rag-h"><span class="rag-n">4</span>Closest isn't always right.</p>
+      <svg class="rag-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The search ${bad.note} lands nearest ${b[0].q.label}, which is the wrong page.`}>
+        <circle class="rag-ring" cx={bad.x} cy={bad.y} r={b[k - 1].d + 3} />
+        {b.map((n) => <line class="rag-reach" x1={bad.x} y1={bad.y} x2={n.q.x} y2={n.q.y} />)}
+        {passages.map((q) => {
+          const i = b.findIndex((n) => n.q === q);
+          return (
+            <g class={`rag-dot rag-still${i >= 0 ? ' rag-on' : ' rag-off'}${i === 0 ? ' rag-wrong' : ''}`}>
+              <circle cx={q.x} cy={q.y} r={i >= 0 ? 2 : 1.4} />
+              <text x={right(q) ? q.x - 3 : q.x + 3} y={q.y + 1.3} text-anchor={right(q) ? 'end' : 'start'}>{i >= 0 ? `${i + 1}. ` : ''}{q.label}</text>
+            </g>
+          );
+        })}
+        <g class="rag-fly" style={`--fx:${cb.dx - (cb.x + cb.w / 2)}px;--fy:${cb.dy - 9}px`}>
+          <rect x={cb.x} y="4.5" width={cb.w} height="9" rx="2" />
+          <text x={cb.x + cb.w / 2} y="10.4" text-anchor="middle">{bad.note}</text>
+        </g>
+        <rect class="rag-pin" x={bad.x - 2.6} y={bad.y - 2.6} width="5.2" height="5.2" rx="1" transform={`rotate(45 ${bad.x} ${bad.y})`} />
+      </svg>
+      <p class="rag-say">A different search, <code>{bad.note}</code>.</p>
+      <p class="rag-note">{bad.verdict}</p>
+    </li>
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.rag')) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) continue;
+    root.classList.add('rag-ready');
+    const io = new IntersectionObserver((es) => {
+      for (const e of es) if (e.isIntersecting) { e.target.classList.add('rag-go'); io.unobserve(e.target); }
+    }, { threshold: 0.55 });
+    root.querySelectorAll('.rag-step').forEach((el) => io.observe(el));
+  }
+</script>
+
+<style is:global>
+  .rag p { margin: 0; }
+  .rag-steps { list-style: none; margin: 0 auto; padding: 0; max-width: 560px; display: grid; gap: 16px; }
+  .rag-step { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: var(--bg-2); border: 1px solid var(--line); }
+  .rag-h { display: flex; gap: 10px; align-items: center; font: 700 1.1rem/1.3 "Space Grotesk", sans-serif; }
+  .rag-n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 0.95rem; background: var(--violet); color: var(--bg); }
+  .rag-warn .rag-n { background: var(--warn); }
+  .rag-map { width: 100%; height: auto; display: block; border-radius: 12px; overflow: visible; background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--muted) 30%, transparent) 1px, transparent 0) 0 0 / 16px 16px, var(--card); }
+  .rag-dot circle { fill: var(--teal); }
+  .rag-dot text { font: 600 3.6px Inter, sans-serif; fill: var(--text); }
+  .rag-off circle { fill: var(--muted); }
+  .rag-off text { fill: var(--muted); font-weight: 500; }
+  .rag-on text { font-weight: 800; }
+  .rag-wrong circle { fill: var(--warn); }
+  .rag-wrong text { fill: var(--warn); }
+  .rag-halo { fill: none !important; stroke: var(--teal); stroke-width: 0.6; stroke-dasharray: 1.2 1; }
+  .rag-fly rect { fill: var(--card); stroke: var(--violet); stroke-width: 0.6; }
+  .rag-fly text { font: 700 3.4px ui-monospace, SFMono-Regular, Menlo, monospace; fill: var(--violet); }
+  .rag-pin { fill: var(--violet); stroke: var(--bg); stroke-width: 0.6; }
+  .rag-ring { fill: color-mix(in srgb, var(--violet) 10%, transparent); stroke: var(--violet); stroke-width: 0.5; stroke-dasharray: 1.6 1.2; }
+  .rag-reach { stroke: var(--violet); stroke-width: 0.6; }
+  .rag-say { font-size: 0.97rem; line-height: 1.5; }
+  .rag-say q { font-style: italic; }
+  .rag-say code { font: 600 0.9rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--violet); overflow-wrap: anywhere; }
+  .rag-say b { display: block; font: 700 0.72rem/1.4 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .rag-got { display: inline-block; margin-right: 12px; font-weight: 700; }
+  .rag-note { font-size: 0.97rem; line-height: 1.45; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--teal) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--teal) 45%, transparent); }
+  .rag-warn .rag-note { background: color-mix(in srgb, var(--warn) 12%, var(--card)); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+
+  /* Finished state by default (no JS, reduced motion): the flying chip is hidden, everything else shows. */
+  .rag-fly { opacity: 0; }
+  /* Motion, step by step, once each step scrolls into view. */
+  .rag-ready .rag-step:not(.rag-go) .rag-dot:not(.rag-still),
+  .rag-ready .rag-step:not(.rag-go) .rag-pin,
+  .rag-ready .rag-step:not(.rag-go) .rag-ring,
+  .rag-ready .rag-step:not(.rag-go) .rag-reach { opacity: 0; }
+  .rag-go .rag-dot:not(.rag-still) { animation: rag-pop .4s ease-out both; animation-delay: var(--d); }
+  .rag-go .rag-dot:not(.rag-still) circle, .rag-go .rag-pin, .rag-go .rag-ring { transform-box: fill-box; transform-origin: center; }
+  .rag-go .rag-fly { transform-box: fill-box; transform-origin: center; animation: rag-fly 1.6s ease-in-out both; }
+  .rag-go .rag-pin:not(.rag-pin-still) { animation: rag-pin .4s ease-out 1.45s both; }
+  .rag-go .rag-ring { animation: rag-ring .7s ease-out .2s both; }
+  .rag-go .rag-reach { stroke-dasharray: 60; animation: rag-draw .6s ease-out .7s both; }
+  .rag-warn.rag-go .rag-ring { animation-delay: 1.7s; }
+  .rag-warn.rag-go .rag-reach { animation-delay: 2.2s; }
+  @keyframes rag-pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+  @keyframes rag-fly {
+    0% { opacity: 0; transform: translate(0, -4px); }
+    15%, 45% { opacity: 1; transform: none; }
+    95% { opacity: 1; transform: translate(var(--fx), var(--fy)) scale(.06); }
+    100% { opacity: 0; transform: translate(var(--fx), var(--fy)) scale(.04); }
+  }
+  @keyframes rag-pin { from { opacity: 0; transform: rotate(45deg) scale(.2); } to { opacity: 1; transform: rotate(45deg); } }
+  @keyframes rag-ring { from { opacity: 0; transform: scale(.1); } to { opacity: 1; transform: none; } }
+  @keyframes rag-draw { from { stroke-dashoffset: 60; opacity: 1; } to { stroke-dashoffset: 0; opacity: 1; } }
+  @media (max-width: 560px) {
+    .rag-step { padding: 12px 10px; }
+    .rag-dot text { font-size: 4.3px; }
+  }
+</style>

@@ -203,68 +203,6 @@
       "why": "To the model it’s more words on the page, and it may follow them. (A made-up example.)"
     }
   ],
-  "nearMatch": {
-    "passages": [
-      {
-        "label": "Refunds",
-        "x": 14,
-        "y": 16
-      },
-      {
-        "label": "Returns",
-        "x": 46,
-        "y": 10
-      },
-      {
-        "label": "Damaged",
-        "x": 32,
-        "y": 32
-      },
-      {
-        "label": "Track order",
-        "x": 90,
-        "y": 14
-      },
-      {
-        "label": "Passwords",
-        "x": 90,
-        "y": 36
-      },
-      {
-        "label": "Model 5 warranty",
-        "x": 58,
-        "y": 46
-      },
-      {
-        "label": "Warranty claims",
-        "x": 10,
-        "y": 58
-      },
-      {
-        "label": "Won't turn on",
-        "x": 90,
-        "y": 62
-      }
-    ],
-    "panels": [
-      {
-        "title": "A good match",
-        "note": "search(money back for broken toaster)",
-        "x": 19,
-        "y": 23,
-        "tone": "ok",
-        "verdict": "The closest passage is Refunds, and it shares no words with the search. Close in meaning is what counts."
-      },
-      {
-        "title": "The wrong page",
-        "note": "search(Model 7 blender warranty)",
-        "x": 52,
-        "y": 54,
-        "tone": "warn",
-        "verdict": "The closest passage is about Model 5. Nothing here is about Model 7. It gets pasted in anyway, and the model answers “Yes, it's covered for 2 years.” Smooth, and made up."
-      }
-    ]
-  },
   "threads": [
     {
       "me": "you",
@@ -407,6 +345,64 @@
           ]
         }
       ]
+    }
+  ],
+  "rag": {
+    "example": "Refunds",
+    "good": {
+      "note": "search(money back for broken toaster)",
+      "x": 19,
+      "y": 23,
+      "pasted": "The tool pastes those three passages, word for word, into the conversation. The closest one shares no words with your search. It's just close in meaning."
+    },
+    "bad": {
+      "note": "search(Model 7 blender warranty)",
+      "x": 52,
+      "y": 54,
+      "verdict": "The closest passage is about Model 5. Nothing here is about Model 7. It gets pasted in anyway, and the model answers “Yes, it's covered for 2 years.” Smooth, and made up."
+    }
+  },
+  "ragPassages": [
+    {
+      "label": "Refunds",
+      "x": 14,
+      "y": 16,
+      "text": "Refunds land on your card within 5 business days."
+    },
+    {
+      "label": "Returns",
+      "x": 36,
+      "y": 8
+    },
+    {
+      "label": "Damaged",
+      "x": 32,
+      "y": 32
+    },
+    {
+      "label": "Track order",
+      "x": 92,
+      "y": 20
+    },
+    {
+      "label": "Passwords",
+      "x": 90,
+      "y": 36
+    },
+    {
+      "label": "Model 5 warranty",
+      "x": 58,
+      "y": 46
+    },
+    {
+      "label": "Warranty claims",
+      "x": 10,
+      "y": 58
+    },
+    {
+      "label": "Won't turn on",
+      "x": 66,
+      "y": 62
     }
   ]
 }

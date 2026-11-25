@@ -19,7 +19,7 @@ import TextThreads from '../../components/blog/TextThreads.astro';
 import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
-import NearMatch from '../../components/blog/NearMatch.astro';
+import RagSteps from '../../components/blog/RagSteps.astro';
 import FixSplit from '../../components/blog/FixSplit.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import ToolsReel from '../../components/blog/ToolsReel.astro';
@@ -97,12 +97,14 @@ Someone in a closed room who can only pass notes under the door. A helper outsid
 
 Web search asks a regular search engine, the same kind you'd use. (Big ones use maps like the one below too, along with matching words.) For your own files and help docs, many tools build their own map. Here's that map.
 
-Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from part 1, but for whole passages, and it's a separate map. A separate model of its own hands out the spots. In this job it never writes a word. The note the model writes gets a spot too, and the tool grabs the passages sitting nearest to it. That's **retrieval**, the fancy word for finding and fetching.
+Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from part 1, but for whole passages. A separate model hands out the spots, and in this job it never writes a word. Finding and fetching the closest ones is called **retrieval**.
 
-<NearMatch
-  passages={d.nearMatch.passages}
-  panels={d.nearMatch.panels}
-  caption="The purple diamond is the search note. The lines go to the three passages sitting nearest to it. Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 5."
+<RagSteps
+  passages={d.ragPassages}
+  example={d.rag.example}
+  good={d.rag.good}
+  bad={d.rag.bad}
+  caption="Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 5."
 />
 
 Now, back in part 1, my first try at explaining AI went like this.
