@@ -1,146 +1,162 @@
 ---
-// How the tiny model makes a score, one rung at a time, so the nudge receipt that follows has something to
-// turn. The owner's ladder: a slope, then a slope with a starting point, then two directions, then more than
-// you can draw, then percentages. One picture, a Next button, one change per step (RagStory style).
-//   1. A dial is a slope. Blue's score against "sky" (not there, there). Steepness is the sky to blue dial.
-//   2. Add a start (a bias). The same line, lifted to the start, with step 1's line left as a ghost.
-//   3. Two clues. A 2 by 2 grid of blue's score (sky across, night down) with each direction's slope on its
-//      arrow. It's the flat tilted sheet seen from above, which reads better on a phone than a 3D drawing.
-//   4. Three clues and more. Can't draw it, so it's an "add the pushes" table for one sentence.
-//   5. Every answer, then percentages, landing on the opening picture's 41%.
-// Every number comes from the post's made-up starting dials (the same ones the receipt turns) through
-// src/lib/tiny-model.ts. Without JavaScript all five steps show as a still strip, top to bottom. Reduced
-// motion drops the fade between steps.
-import { pcts, scores, r2, type Model, type Sentence } from '../../lib/tiny-model';
-interface Props { model: Model; sky: Sentence; night: Sentence; caption?: string }
-const { model, sky, night, caption } = Astro.props;
-const A = 'blue';
-const s0 = model.start[A], ks = model.dials.sky[A], kn = model.dials.night[A], kg = model.dials.grass[A];
-const f = (x: number) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(1);
-const n1 = (x: number) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(1);
-// "0.5 + 1.0 − 0.5", the way you'd say it out loud.
-const sum = (xs: number[]) => xs.map((x, i) => (i === 0 ? n1(x) : `${x < 0 ? '−' : '+'} ${Math.abs(x).toFixed(1)}`)).join(' ');
+// The owner's ladder (slope, point-slope, two directions, many), moved onto the nudge: in training, the
+// slope that matters is "turn this dial a little, how much does the guess change?" One picture at a time
+// with a Next button (RagStory style), one idea per step, and a "Why it matters" line on each.
+//   1. A dial has a slope. Hands-on: drag the sky to blue dial and blue's chance bar moves. A small chart
+//      traces blue's chance against the dial (a real S-curve from softmax), with the current spot marked and
+//      a short tangent, "about +N points of blue per click here". One click is 0.1, part 1's slider notch.
+//   2. Point-slope. From the starting spot, the tangent predicts a small turn (3 clicks, nearly right) and a
+//      big one (30 clicks, it promises 114%, the real chance is 93%). So training takes small steps.
+//   3. Two dials. Sky to blue and sky to green each have their own slope on blue's chance (green's is
+//      negative), and for one click each the effects add (the sum matches the real change).
+//   4. Nine dials, then billions. Part 1's grid with each dial's slope on blue's chance. Dials whose word
+//      isn't in the sentence have a slope of zero. Gradient descent is named here.
+//   5. The payoff. Training follows the slope of the wrongness of the whole guess, not only blue's chance.
+//      Measured the standard way (cross-entropy, not named), that slope for each answer's dial is exactly
+//      should minus guessed. It does not claim the chance slope from step 1 equals that (it's p(1 - p)).
+// Every number comes from the post's made-up starting dials through src/lib/tiny-model.ts. Never "score".
+// Without JavaScript, all five steps show as a still strip and step 1's dial sits at its start. Reduced
+// motion drops the fade between steps and the bar transition.
+import { CLICK, chanceAt, chanceSlope, nudge, type Model, type Sentence } from '../../lib/tiny-model';
+interface Props { model: Model; sentence: Sentence; small: number; big: number; caption?: string }
+const { model, sentence, small, big, caption } = Astro.props;
+const A = sentence.answer, C = sentence.clues[0];
+const x0 = model.dials[C][A];
+const at = (x: number) => 100 * chanceAt(model, sentence, C, A, x);
+const p0 = at(x0);
+const k = chanceSlope(model, sentence, A); // points per click
+const perUnit = k / CLICK;
+const others = model.answers.filter((a) => a !== A);
+const slopeOf = Object.fromEntries(model.answers.map((a) => [a, chanceSlope(model, sentence, a)]));
+const o = others[0]; // sky to green, the other dial in step 3
+// Exact change in blue's chance with both dials one click up.
+const bothReal = (() => { const m = JSON.parse(JSON.stringify(model)); m.dials[C][A] += CLICK; m.dials[C][o] += CLICK; const pp = m.answers.map((a: string) => Math.exp(sentence.clues.reduce((t: number, c: string) => t + m.dials[c][a], 0))); return 100 * pp[0] / pp.reduce((x: number, y: number) => x + y, 0) - p0; })();
+const r = nudge(model, sentence);
+const sg = (x: number, d = 1) => (x > 0.00001 ? '+' : x < -0.00001 ? '−' : '') + Math.abs(x).toFixed(d);
+const pc = (x: number) => `${x.toFixed(1)}%`;
 
-// Chart for steps 1 and 2: x is "sky" not there (0) or there (1), y is blue's score.
-const W = 320, H = 236, L = 46, R = 300, T = 18, B = 186;
-const Y0 = 0, Y1 = 2;
-const sx = (x: number) => L + 24 + x * (R - L - 48);
-const sy = (y: number) => B - ((y - Y0) / (Y1 - Y0)) * (B - T);
-const ticks = [0, 0.5, 1, 1.5, 2];
-
-const nightRow = [
-  { name: 'start', v: s0, inS: true },
-  { name: 'sky', v: ks, inS: night.clues.includes('sky') },
-  { name: 'night', v: kn, inS: night.clues.includes('night') },
-  { name: 'grass', v: kg, inS: night.clues.includes('grass') },
-];
-const nightTotal = r2(nightRow.reduce((t, r) => t + (r.inS ? r.v : 0), 0));
-const skyScores = scores(model, sky.clues);
-const skyPct = pcts(model, sky.clues);
-const heads = [
-  'A dial is a slope.',
-  'Add a starting score.',
-  'Two clues, two slopes.',
-  'Three clues, then thousands.',
-  'Every answer, then percentages.',
-];
+// Charts: blue's chance (y) against the sky to blue dial (x).
+const W = 320, H = 222, L = 44, R = 306, T = 12, B = 174, X0 = -2, X1 = 4;
+const sx = (x: number) => L + ((x - X0) / (X1 - X0)) * (R - L);
+const mk = (ymax: number) => (y: number) => B - (y / ymax) * (B - T);
+const curve = (sy: (y: number) => number) => {
+  let d = '';
+  for (let x = X0; x <= X1 + 1e-9; x += 0.05) d += `${d ? 'L' : 'M'}${sx(x).toFixed(1)} ${sy(at(x)).toFixed(1)}`;
+  return d;
+};
+const sy1 = mk(100), sy2 = mk(120);
+const tan = (sy: (y: number) => number, x: number, a: number, b: number) => {
+  const p = at(x), s = (100 * chanceAt(model, sentence, C, A, x) * (1 - chanceAt(model, sentence, C, A, x)));
+  return { x1: sx(x + a), y1: sy(p + s * a), x2: sx(x + b), y2: sy(p + s * b) };
+};
+const xt = [-2, -1, 0, 1, 2, 3, 4];
+const smallLine = p0 + perUnit * small, smallReal = at(x0 + small);
+const bigLine = p0 + perUnit * big, bigReal = at(x0 + big);
+const cfg = { answer: A, x0, X0, X1, L, R, T, B, others: others.map((a) => model.dials[C][a]), click: CLICK };
 ---
-<figure class="sld panel bleed">
+<figure class="sld panel bleed" data-cfg={JSON.stringify(cfg)}>
   <div class="sld-box">
     <div class="sld-ctl" hidden>
       <button type="button" class="sld-back">Back</button>
-      <span class="sld-count">1 of {heads.length}</span>
+      <span class="sld-count">1 of 5</span>
       <button type="button" class="sld-next">Next</button>
     </div>
     <ol class="sld-steps">
       <li class="sld-step" data-i="0">
-        <p class="sld-head"><span>1</span>{heads[0]}</p>
-        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Blue's score is 0 without sky and ${n1(ks)} with sky. The line rises ${n1(ks)} for one sky.`}>
-          {ticks.map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="sld-tick" x={L - 8} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
-          <text class="sld-tick" x={sx(0)} y={B + 20} text-anchor="middle">no sky</text>
-          <text class="sld-tick" x={sx(1)} y={B + 20} text-anchor="middle">sky</text>
-          <text class="sld-axis" x={(L + R) / 2} y={H - 6} text-anchor="middle">Is "sky" in the sentence?</text>
-          <text class="sld-axis" x="12" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + B) / 2})`}>blue's score</text>
-          <line class="sld-run" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(0)} />
-          <line class="sld-rise" x1={sx(1)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
-          <line class="sld-line" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
-          <circle class="sld-pt" cx={sx(0)} cy={sy(0)} r="6" /><circle class="sld-pt" cx={sx(1)} cy={sy(ks)} r="6" />
-          <text class="sld-lab" x={sx(0) + 10} y={sy(0) - 10}>0</text>
-          <text class="sld-lab" x={sx(1) - 10} y={sy(ks) - 12} text-anchor="end">{n1(ks)}</text>
-          <text class="sld-lab sld-teal" x={sx(1) - 10} y={sy(ks / 2) + 14} text-anchor="end">up {n1(ks)}</text>
-          <text class="sld-lab sld-muted" x={(sx(0) + sx(1)) / 2} y={sy(0) - 8} text-anchor="middle">one step over</text>
-        </svg>
-        <p class="sld-say">The sky to blue dial is {n1(ks)}. Each time "sky" shows up, blue's score goes up {n1(ks)}. Up for each step over is a <b>slope</b>, and that's all a dial is.</p>
-      </li>
-      <li class="sld-step" data-i="1">
-        <p class="sld-head"><span>2</span>{heads[1]}</p>
-        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The same line, lifted so it starts at ${n1(s0)}. Blue's score is ${n1(s0)} without sky and ${n1(s0 + ks)} with sky.`}>
-          {ticks.map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy(v)} y2={sy(v)} /><text class="sld-tick" x={L - 8} y={sy(v) + 4} text-anchor="end">{v}</text></g>)}
-          <text class="sld-tick" x={sx(0)} y={B + 20} text-anchor="middle">no sky</text>
-          <text class="sld-tick" x={sx(1)} y={B + 20} text-anchor="middle">sky</text>
-          <text class="sld-axis" x={(L + R) / 2} y={H - 6} text-anchor="middle">Is "sky" in the sentence?</text>
-          <text class="sld-axis" x="12" y={(T + B) / 2} text-anchor="middle" transform={`rotate(-90 12 ${(T + B) / 2})`}>blue's score</text>
-          <line class="sld-line sld-ghost" x1={sx(0)} y1={sy(0)} x2={sx(1)} y2={sy(ks)} />
-          <line class="sld-rise sld-start" x1={sx(0)} y1={sy(0)} x2={sx(0)} y2={sy(s0)} />
-          <line class="sld-line" x1={sx(0)} y1={sy(s0)} x2={sx(1)} y2={sy(s0 + ks)} />
-          <circle class="sld-pt sld-pt-start" cx={sx(0)} cy={sy(s0)} r="7" /><circle class="sld-pt" cx={sx(1)} cy={sy(s0 + ks)} r="6" />
-          <text class="sld-lab sld-violet" x={sx(0) + 12} y={sy(s0) + 5}>start {n1(s0)}</text>
-          <text class="sld-lab" x={sx(1) - 10} y={sy(s0 + ks) - 12} text-anchor="end">{n1(s0 + ks)}</text>
-          <text class="sld-lab sld-muted" x={sx(0.78)} y={sy(ks * 0.78) + 30} text-anchor="middle">step 1's line</text>
-        </svg>
-        <p class="sld-say">Blue gets a starting score of {n1(s0)}, the point the line starts from. Then add {n1(ks)} if "sky" shows up. Same slope, higher start. (People call the start a <b>bias</b>. Part 1's dials left it at zero.)</p>
-      </li>
-      <li class="sld-step" data-i="2">
-        <p class="sld-head"><span>3</span>{heads[2]}</p>
-        <div class="sld-sheet" role="img" aria-label={`Blue's score with and without sky and night. No clues ${n1(s0)}. Sky only ${n1(s0 + ks)}. Night only ${n1(s0 + kn)}. Both ${n1(s0 + ks + kn)}.`}>
-          <span></span><span class="sld-across">sky's slope <b>{f(ks)}</b> →</span><span></span>
-          <span></span><span class="sld-colh">no sky</span><span class="sld-colh">sky</span><span></span>
-          <span class="sld-rowh">no night</span>
-          <b class="sld-cell" style={`--v:${(s0) / 2}`}>{n1(s0)}</b>
-          <b class="sld-cell" style={`--v:${(s0 + ks) / 2}`}>{n1(s0 + ks)}</b>
-          <span class="sld-down">night's slope <b>{f(kn)}</b> ↓</span>
-          <span class="sld-rowh">night</span>
-          <b class="sld-cell" style={`--v:${(s0 + kn) / 2}`}>{n1(s0 + kn)}</b>
-          <b class="sld-cell sld-both" style={`--v:${(s0 + ks + kn) / 2}`}>{n1(s0 + ks + kn)}</b>
+        <p class="sld-head"><span>1</span>A dial has a slope.</p>
+        <p class="sld-sub">"{sentence.text}&nbsp;___" with one dial, {C} → {A}.</p>
+        <div class="sld-live" hidden>
+          <label class="sld-knob"><span>{C} → {A}</span><input type="range" min={X0} max={X1} step={CLICK} value={x0} aria-label={`Dial from ${C} to ${A}`} /><output>{x0.toFixed(1)}</output></label>
+          <p class="sld-chance"><span>{A}'s chance</span><span class="sld-cbar"><i style={`width:${p0}%`}></i></span><b>{Math.round(p0)}%</b></p>
         </div>
-        <p class="sld-say">"The sky at night" has two clues, so two dials push on blue. Each direction has its own slope, and the pushes add. Bottom right is {sum([s0, ks, kn])} = {n1(s0 + ks + kn)}.</p>
+        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Blue's chance rises in an S shape as the sky to blue dial turns up. At ${x0} it is ${Math.round(p0)}%, and one click up adds about ${k.toFixed(1)} points.`}>
+          {[0, 25, 50, 75, 100].map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy1(v)} y2={sy1(v)} /><text class="sld-tick" x={L - 6} y={sy1(v) + 4} text-anchor="end">{v}%</text></g>)}
+          {xt.map((v) => <text class="sld-tick" x={sx(v)} y={B + 16} text-anchor="middle">{v}</text>)}
+          <text class="sld-axis" x={(L + R) / 2} y={H - 4} text-anchor="middle">the {C} → {A} dial</text>
+          <path class="sld-curve" d={curve(sy1)} />
+          <line class="sld-tan" {...tan(sy1, x0, -0.9, 0.9)} />
+          <circle class="sld-pt" cx={sx(x0)} cy={sy1(p0)} r="6" />
+          <text class="sld-lab sld-violet sld-tanlab" x={sx(x0) + 10} y={sy1(p0) + 22}>+{k.toFixed(1)} per click</text>
+        </svg>
+        <p class="sld-say sld-read">At {x0.toFixed(1)}, {A} gets {Math.round(p0)}%. One click up adds about <b>{k.toFixed(1)} points</b> here.</p>
+        <p class="sld-why"><b>Why it matters</b> The slope says which way to turn a dial, and roughly how much it helps. That's how training knows which way to turn.</p>
       </li>
+
+      <li class="sld-step" data-i="1">
+        <p class="sld-head"><span>2</span>The slope predicts a small turn.</p>
+        <p class="sld-sub">Back at {x0.toFixed(1)}. The dashed line follows the slope straight out.</p>
+        <svg class="sld-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`From ${x0}, the straight slope line predicts ${smallLine.toFixed(1)}% after a small turn, close to the real ${smallReal.toFixed(1)}%. After a big turn it predicts ${Math.round(bigLine)}%, but the real chance is ${Math.round(bigReal)}%.`}>
+          {[0, 25, 50, 75, 100].map((v) => <g><line class="sld-grid" x1={L} x2={R} y1={sy2(v)} y2={sy2(v)} /><text class="sld-tick" x={L - 6} y={sy2(v) + 4} text-anchor="end">{v}%</text></g>)}
+          <line class="sld-top" x1={L} x2={R} y1={sy2(100)} y2={sy2(100)} />
+          {xt.map((v) => <text class="sld-tick" x={sx(v)} y={B + 16} text-anchor="middle">{v}</text>)}
+          <text class="sld-axis" x={(L + R) / 2} y={H - 4} text-anchor="middle">the {C} → {A} dial</text>
+          <path class="sld-curve" d={curve(sy2)} />
+          <line class="sld-tan sld-dash" {...tan(sy2, x0, -0.4, big)} />
+          <circle class="sld-pt" cx={sx(x0)} cy={sy2(p0)} r="6" />
+          <line class="sld-gap" x1={sx(x0 + big)} x2={sx(x0 + big)} y1={sy2(bigLine)} y2={sy2(bigReal)} />
+          <circle class="sld-line-pt" cx={sx(x0 + small)} cy={sy2(smallLine)} r="5" />
+          <circle class="sld-real-pt" cx={sx(x0 + small)} cy={sy2(smallReal)} r="3" />
+          <circle class="sld-line-pt" cx={sx(x0 + big)} cy={sy2(bigLine)} r="5" />
+          <circle class="sld-real-pt" cx={sx(x0 + big)} cy={sy2(bigReal)} r="5" />
+          <text class="sld-lab sld-muted" x={L + 4} y={sy2(100) - 4}>100% is the top</text>
+        </svg>
+        <table class="sld-tab">
+          <thead><tr><th scope="col">turn</th><th scope="col">slope says</th><th scope="col">really</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">small, {Math.round(small / CLICK)} clicks</th><td class="sld-v">{pc(smallLine)}</td><td class="sld-r">{pc(smallReal)} <em class="sld-ok">close</em></td></tr>
+            <tr><th scope="row">big, {Math.round(big / CLICK)} clicks</th><td class="sld-v">{Math.round(bigLine)}%</td><td class="sld-r">{Math.round(bigReal)}% <em class="sld-no">way off</em></td></tr>
+          </tbody>
+        </table>
+        <p class="sld-key"><span class="sld-k-line"></span>what the slope says <span class="sld-k-real"></span>the real chance</p>
+        <p class="sld-why"><b>Why it matters</b> Training never needs the whole curve, only the slope where it's standing. So it takes small steps and checks again.</p>
+      </li>
+
+      <li class="sld-step" data-i="2">
+        <p class="sld-head"><span>3</span>Two dials, two slopes.</p>
+        <p class="sld-sub">Still "{sentence.text}&nbsp;___". Watch {A}'s chance.</p>
+        <table class="sld-tab sld-two">
+          <thead><tr><th scope="col">turn one click up</th><th scope="col">{A}'s chance</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">{C} → {A}</th><td class="sld-up">{sg(slopeOf[A])} points</td></tr>
+            <tr><th scope="row">{C} → {o}</th><td class="sld-down">{sg(slopeOf[o])} points</td></tr>
+          </tbody>
+          <tfoot><tr><th scope="row">both</th><td>{sg(slopeOf[A])} {sg(slopeOf[o]).replace('−', '− ')} = <b>{sg(slopeOf[A] + slopeOf[o])}</b><small>really {sg(bothReal)}</small></td></tr></tfoot>
+        </table>
+        <p class="sld-say">Pushing {o} up steals chance from {A}, so its slope is negative. Turn both a click and the two effects just add.</p>
+        <p class="sld-why"><b>Why it matters</b> Each dial can be judged on its own slope. Training doesn't have to try dials in combinations.</p>
+      </li>
+
       <li class="sld-step" data-i="3">
-        <p class="sld-head"><span>4</span>{heads[3]}</p>
-        <table class="sld-add">
-          <caption>Blue, for "{night.text}&nbsp;___"</caption>
-          <thead><tr><th scope="col">clue</th><th scope="col">dial</th><th scope="col">in it?</th><th scope="col">adds</th></tr></thead>
+        <p class="sld-head"><span>4</span>Nine dials, then billions.</p>
+        <p class="sld-sub">Part 1's nine dials, each with its slope on {A}'s chance.</p>
+        <table class="sld-grid9">
+          <thead><tr><th></th>{model.answers.map((a) => <th scope="col">{a}</th>)}</tr></thead>
           <tbody>
-            {nightRow.map((r) => (
-              <tr class={r.inS ? '' : 'sld-off'}>
-                <th scope="row">{r.name}</th>
-                <td class="sld-n">{f(r.v)}</td>
-                <td>{r.name === 'start' ? 'always' : r.inS ? 'yes' : 'no'}</td>
-                <td class="sld-n">{r.inS ? f(r.v) : '0'}</td>
+            {Object.keys(model.dials).map((c) => (
+              <tr class={sentence.clues.includes(c) ? '' : 'sld-off'}>
+                <th scope="row">{c}</th>
+                {model.answers.map((a) => {
+                  const v = sentence.clues.includes(c) ? slopeOf[a] : 0;
+                  return <td class={v > 0.05 ? 'sld-up' : v < -0.05 ? 'sld-down' : ''}>{v > 0.05 ? '↑' : v < -0.05 ? '↓' : ''}{Math.abs(v) < 0.05 ? '0' : sg(v)}</td>;
+                })}
               </tr>
             ))}
           </tbody>
-          <tfoot><tr><th scope="row" colspan="3">blue's score</th><td class="sld-n">{n1(nightTotal)}</td></tr></tfoot>
         </table>
-        <p class="sld-say">A third clue would need a third direction, and you can't draw that on a page. The rule doesn't change, though. Start, plus each clue's slope, added up. A real model adds up thousands of directions for every answer.</p>
+        <p class="sld-say">"Grass" and "night" aren't in the sentence, so turning their dials changes nothing. Their slope is zero. A real model has billions of dials, each with its own slope.</p>
+        <p class="sld-why"><b>Why it matters</b> Follow every dial's slope a little, over and over. That's all training is, and it has a name. <b>Gradient descent.</b></p>
       </li>
+
       <li class="sld-step" data-i="4">
-        <p class="sld-head"><span>5</span>{heads[4]}</p>
-        <table class="sld-add sld-pct">
-          <caption>"{sky.text}&nbsp;___"</caption>
-          <thead><tr><th scope="col">answer</th><th scope="col">start + sky</th><th scope="col">score</th><th scope="col">chance</th></tr></thead>
-          <tbody>
-            {model.answers.map((a, i) => (
-              <tr class={a === sky.answer ? 'sld-me' : ''}>
-                <th scope="row">{a}</th>
-                <td>{sum([model.start[a], model.dials.sky[a]])}</td>
-                <td class="sld-n">{n1(skyScores[i])}</td>
-                <td class="sld-n sld-big">{skyPct[i]}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p class="sld-say">Do the same for every answer, then turn the scores into shares the way part 1 did. Bigger score, bigger share. That's the {skyPct[model.answers.indexOf(sky.answer)]}% from the top.</p>
+        <p class="sld-head"><span>5</span>Follow how far off, not just {A}.</p>
+        <p class="sld-sub">Training watches the whole guess, so it follows the slope of how far off the guess was.</p>
+        <p class="sld-big">Measured the standard way, the slope of the wrongness for each answer's dial comes out to exactly <b>what it should have been minus what it guessed</b>.</p>
+        <ol class="sld-rows">
+          {model.answers.map((a, i) => (
+            <li class={r.diff[i] > 0 ? 'sld-up' : 'sld-down'}><span>{C} → {a}</span><span>{r.should[i]} − {r.pct[i]} =</span><b>{sg(r.diff[i], 0)} {r.diff[i] > 0 ? '↑' : '↓'}</b></li>
+          ))}
+        </ol>
+        <p class="sld-why"><b>Why it matters</b> One subtraction per answer gives every dial its direction and its size. The receipt below does the arithmetic.</p>
       </li>
     </ol>
   </div>
@@ -149,6 +165,7 @@ const heads = [
 
 <script>
   for (const root of document.querySelectorAll<HTMLElement>('.sld')) {
+    const C = JSON.parse(root.dataset.cfg!) as { answer: string; x0: number; X0: number; X1: number; L: number; R: number; T: number; B: number; others: number[]; click: number };
     const steps = [...root.querySelectorAll<HTMLElement>('.sld-step')];
     const back = root.querySelector<HTMLButtonElement>('.sld-back')!, next = root.querySelector<HTMLButtonElement>('.sld-next')!;
     const count = root.querySelector<HTMLElement>('.sld-count')!;
@@ -165,6 +182,33 @@ const heads = [
     next.addEventListener('click', () => show(cur === steps.length - 1 ? 0 : cur + 1));
     back.addEventListener('click', () => { if (cur > 0) show(cur - 1); });
     show(0);
+
+    // Step 1 is hands-on: the dial moves the bar, the dot on the curve, and the tangent.
+    const s1 = steps[0];
+    const live = s1.querySelector<HTMLElement>('.sld-live')!;
+    live.hidden = false;
+    const inp = live.querySelector('input')!, out = live.querySelector('output')!;
+    const bar = live.querySelector<HTMLElement>('.sld-cbar i')!, pct = live.querySelector('.sld-chance b')!;
+    const pt = s1.querySelector('.sld-pt')!, tanEl = s1.querySelector('.sld-tan')!, lab = s1.querySelector('.sld-tanlab')!, read = s1.querySelector('.sld-read')!;
+    const chance = (x: number) => { const e = [x, ...C.others].map(Math.exp); return e[0] / e.reduce((a, b) => a + b, 0); };
+    const sx = (x: number) => C.L + ((x - C.X0) / (C.X1 - C.X0)) * (C.R - C.L);
+    const sy = (y: number) => C.B - (y / 100) * (C.B - C.T);
+    function update() {
+      const x = +inp.value, p = chance(x), s = 100 * p * (1 - p);
+      out.textContent = x.toFixed(1);
+      bar.style.width = `${p * 100}%`;
+      pct.textContent = `${Math.round(p * 100)}%`;
+      pt.setAttribute('cx', String(sx(x))); pt.setAttribute('cy', String(sy(p * 100)));
+      tanEl.setAttribute('x1', String(sx(x - 0.9))); tanEl.setAttribute('y1', String(sy(p * 100 - s * 0.9)));
+      tanEl.setAttribute('x2', String(sx(x + 0.9))); tanEl.setAttribute('y2', String(sy(p * 100 + s * 0.9)));
+      const k = s * C.click;
+      const right = x > 2;
+      lab.setAttribute('x', String(sx(x) + (right ? -10 : 10))); lab.setAttribute('text-anchor', right ? 'end' : 'start');
+      lab.setAttribute('y', String(sy(p * 100) + (right ? -16 : 22)));
+      lab.textContent = `+${k.toFixed(1)} per click`;
+      read.innerHTML = `At ${x.toFixed(1)}, ${C.answer} gets ${Math.round(p * 100)}%. One click up adds about <b>${k.toFixed(1)} points</b> here.${k < 1 ? ' Flatter out here, so turning it does less.' : ''}`;
+    }
+    inp.addEventListener('input', update);
   }
 </script>
 
@@ -179,47 +223,66 @@ const heads = [
   @keyframes sld-in { from { opacity: 0; } }
   .sld-head { font: 700 1.25rem/1.3 "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 10px; }
   .sld-head span { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--violet) 22%, var(--card)); border: 2px solid var(--violet); font-size: 0.95rem; }
+  .sld-sub { color: var(--muted); font-size: 0.95rem; line-height: 1.45; }
   .sld-say { font-size: 1rem; line-height: 1.5; }
+  .sld-why { font-size: 0.98rem; line-height: 1.5; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--violet) 12%, var(--card)); border: 1px solid color-mix(in srgb, var(--violet) 40%, transparent); }
+  .sld-why > b:first-child { display: block; font: 700 0.72rem/1.4 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--violet); }
+  .sld-live[hidden] { display: none; }
+  .sld-live { display: grid; gap: 10px; }
+  .sld-knob { display: grid; grid-template-columns: auto 1fr 2.6em; gap: 10px; align-items: center; font: 700 1rem "Space Grotesk", sans-serif; }
+  .sld-knob input { width: 100%; height: 44px; margin: 0; accent-color: var(--teal); cursor: pointer; }
+  .sld-knob output { text-align: right; font: 700 1rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .sld-chance { display: grid; grid-template-columns: auto 1fr 3em; gap: 10px; align-items: center; font: 600 0.95rem Inter, sans-serif; }
+  .sld-chance b { text-align: right; font-size: 1.2rem; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .sld-cbar { height: 16px; border-radius: 99px; background: var(--bg-2); overflow: hidden; }
+  .sld-cbar i { display: block; height: 100%; background: var(--teal); border-radius: inherit; transition: width .15s; }
   .sld-chart { width: 100%; height: auto; display: block; }
   .sld-grid { stroke: var(--line); stroke-width: 1; }
-  .sld-tick { font: 600 13px Inter, sans-serif; fill: var(--muted); }
+  .sld-top { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .sld-tick { font: 600 12px Inter, sans-serif; fill: var(--muted); }
   .sld-axis { font: 700 13px Inter, sans-serif; fill: var(--text); }
-  .sld-line { stroke: var(--teal); stroke-width: 4; stroke-linecap: round; }
-  .sld-ghost { stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 6 6; opacity: .7; }
-  .sld-run, .sld-rise { stroke: var(--text); stroke-width: 2; stroke-dasharray: 4 4; opacity: .7; }
-  .sld-rise { stroke: var(--teal); opacity: 1; stroke-width: 3; }
-  .sld-start { stroke: var(--violet); }
-  .sld-pt { fill: var(--teal); stroke: var(--card); stroke-width: 2; }
-  .sld-pt-start { fill: var(--violet); }
-  .sld-lab { font: 700 15px "Space Grotesk", sans-serif; fill: var(--text); }
-  .sld-teal { fill: var(--teal); } .sld-violet { fill: var(--violet); } .sld-muted { fill: var(--muted); font-size: 12px; font-weight: 600; }
-  .sld-sheet { display: grid; grid-template-columns: auto 1fr 1fr 3.6em; gap: 8px; align-items: center; }
-  .sld-colh, .sld-rowh { font: 700 0.9rem/1.2 Inter, sans-serif; color: var(--muted); text-align: center; }
-  .sld-rowh { text-align: right; padding-right: 4px; }
-  .sld-cell { display: grid; place-items: center; min-height: 72px; border-radius: 14px; font: 700 1.6rem/1 "Space Grotesk", sans-serif; font-variant-numeric: tabular-nums;
-    background: color-mix(in srgb, var(--teal) calc(var(--v) * 60%), var(--bg-2)); border: 2px solid color-mix(in srgb, var(--teal) 40%, var(--line)); }
-  .sld-both { border-color: var(--teal); }
-  .sld-across { grid-column: 2 / 4; text-align: center; font: 700 0.95rem Inter, sans-serif; color: var(--teal); }
-  .sld-down { grid-column: 4; grid-row: 3 / 5; align-self: stretch; display: grid; place-content: center; text-align: center; line-height: 1.3; }
-  .sld-down { font: 700 0.85rem Inter, sans-serif; color: var(--pink); }
-  .sld-down b { display: block; }
-  .sld-across b, .sld-down b { font-size: 1.1rem; }
-  .sld-add { width: 100%; border-collapse: collapse; margin: 0 !important; font: 600 1rem/1.3 Inter, sans-serif; }
-  .sld-add caption { text-align: left; font: 700 1.05rem/1.3 "Space Grotesk", sans-serif; padding-bottom: 8px; caption-side: top; }
-  .sld-add th, .sld-add td { border: 0 !important; background: none !important; padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--line) !important; }
-  .sld-add thead th { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-  .sld-add tbody th, .sld-add tfoot th { font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; }
-  .sld-n { text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.1rem; }
-  .sld-off { color: var(--muted); }
-  .sld-off td { font-weight: 500; }
-  .sld-add tfoot th, .sld-add tfoot td { border-bottom: 0 !important; border-top: 2px solid var(--text) !important; color: var(--teal); }
-  .sld-big { font-size: 1.25rem; }
-  .sld-me th, .sld-me .sld-big { color: var(--teal); }
+  .sld-curve { fill: none; stroke: var(--teal); stroke-width: 3.5; stroke-linecap: round; }
+  .sld-tan { stroke: var(--violet); stroke-width: 4; stroke-linecap: round; }
+  .sld-dash { stroke-width: 2.5; stroke-dasharray: 6 5; }
+  .sld-pt { fill: var(--text); stroke: var(--card); stroke-width: 2; }
+  .sld-line-pt { fill: var(--violet); stroke: var(--card); stroke-width: 2; }
+  .sld-real-pt { fill: var(--teal); stroke: var(--card); stroke-width: 2; }
+  .sld-gap { stroke: var(--pink); stroke-width: 3; }
+  .sld-lab { font: 700 14px "Space Grotesk", sans-serif; fill: var(--text); }
+  .sld-violet { fill: var(--violet); } .sld-muted { fill: var(--muted); font-size: 11px; font-weight: 600; }
+  .sld-tab { width: 100%; border-collapse: collapse; margin: 0 !important; font: 600 1rem/1.3 Inter, sans-serif; }
+  .sld-tab th, .sld-tab td { border: 0 !important; border-bottom: 1px solid var(--line) !important; background: none !important; padding: 8px 6px; text-align: left; }
+  .sld-tab thead th { font: 700 0.72rem/1.3 Inter, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .sld-tab tbody th, .sld-tab tfoot th { font-family: "Space Grotesk", sans-serif; font-size: 1rem; }
+  .sld-tab td { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .sld-v { color: var(--violet); }
+  .sld-r em { display: block; font: 700 0.72rem Inter, sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .04em; }
+  .sld-ok { color: var(--ok); } .sld-no { color: var(--pink); }
+  .sld-two td { text-align: right; font-size: 1.1rem; }
+  .sld-two tfoot td b { font-size: 1.25rem; color: var(--teal); }
+  .sld-two tfoot td small { display: block; font: 600 0.8rem Inter, sans-serif; color: var(--muted); }
+  .sld-two tfoot th, .sld-two tfoot td { border-bottom: 0 !important; border-top: 2px solid var(--text) !important; }
+  .sld-up { color: var(--teal); } .sld-down { color: var(--pink); }
+  .sld-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
+  .sld-key span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+  .sld-k-line { background: var(--violet); } .sld-k-real { background: var(--teal); margin-left: 6px; }
+  .sld-grid9 { width: 100%; border-collapse: separate; border-spacing: 5px; margin: 0 !important; }
+  .sld-grid9 th { border: 0 !important; background: none !important; font: 700 0.95rem "Space Grotesk", sans-serif; padding: 2px; }
+  .sld-grid9 tbody th { text-align: right; padding-right: 6px; }
+  .sld-grid9 td { border: 0 !important; text-align: center; padding: 12px 2px; border-radius: 12px; background: var(--bg-2) !important; font: 700 1.05rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .sld-grid9 .sld-off td, .sld-grid9 .sld-off th { color: var(--muted); opacity: .6; }
+  .sld-big { font: 700 1.15rem/1.4 "Space Grotesk", sans-serif; }
+  .sld-big b { color: var(--teal); }
+  .sld-rows { list-style: none; margin: 0 !important; padding: 0 !important; display: grid; gap: 6px; }
+  .sld-rows li { margin: 0 !important; display: grid; grid-template-columns: 1fr auto 4em; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 10px; background: var(--bg-2); font: 600 1rem Inter, sans-serif; font-variant-numeric: tabular-nums; }
+  .sld-rows li span:first-child { font-family: "Space Grotesk", sans-serif; font-weight: 700; color: var(--text); }
+  .sld-rows li span:nth-child(2) { color: var(--text); }
+  .sld-rows b { text-align: right; font-size: 1.15rem; }
   .sld-ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .sld-ctl[hidden] { display: none; }
   .sld-ctl button { font: 700 1rem/1 Inter, sans-serif; padding: 12px 20px; min-height: 44px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
   .sld-next { border-color: var(--violet) !important; background: color-mix(in srgb, var(--violet) 22%, var(--card)) !important; }
   .sld-ctl button:disabled { opacity: .4; cursor: default; }
   .sld-count { font: 600 0.85rem Inter, sans-serif; color: var(--muted); }
-  @media (prefers-reduced-motion: reduce) { .sld-js .sld-step { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .sld-js .sld-step { animation: none; } .sld-cbar i { transition: none; } }
 </style>

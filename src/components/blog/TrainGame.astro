@@ -2,36 +2,37 @@
 // Part 4's one hands-on piece, the token-model version of the old bean FitLine game the owner liked. Part 1's
 // three sentences with their right answers (each as one bar split into its three answers, the right one
 // teal, with the right answer's chance big beside it), three dials the reader can turn (sky to blue, grass to green,
-// night to black, the ones that matter), and one big scoreboard number, the total wrongness (each
-// sentence's surprise, added up). Every other dial and every start stays at zero in this game, so three
-// sliders are enough on a phone.
+// night to black, the ones that matter), and one big scoreboard number, how far off it is, added up (for
+// each sentence, 100 minus the chance it gave the right answer, in points). Every other dial stays at zero
+// in this game, so three sliders are enough on a phone. The board is a plain readout. Training itself
+// follows the standard wrongness (should minus guessed), and the board drops every round with it.
 //
 // "Your turn": drag a dial and watch each sentence's bars and the total move. The night sentence is the
 // catch: "sky" is in it too, so night to black has to beat sky to blue. "Let it learn" starts the dials
 // over at zero and runs real rounds (gameRound in src/lib/tiny-model.ts: guess each sentence, nudge right
 // after it by step times should minus guessed, the same rule and step as the receipt). A round counter, a
-// trail of the total (3.30, 2.40, 1.84, ...), and an arrow on each dial sized by that round's turn show the
+// trail of the total (200, 183, 166, ...), and an arrow on each dial sized by that round's turn show the
 // nudges shrinking. The first five rounds go slowly, then faster. The reader's best total stays on the
 // board so the end reads you against training. Reset puts it all back. It isn't DialDemo: no grid of nine
 // knobs, and the lesson is the scoreboard, the rounds, and the arrows.
 //
-// Reduced motion: no bar or arrow transitions, and Let it learn jumps through rounds 1, 2, 3, 5, 10, 20 and
-// 30 with a pause at each. Without JavaScript, a still before and after (worked out here at build time)
+// Reduced motion: no bar or arrow transitions, and Let it learn jumps through rounds 1, 2, 3, 5, 10, 20, 40
+// and 60 with a pause at each. Without JavaScript, a still before and after (worked out here at build time)
 // shows instead.
-import { gameProbs, gameRound, gameWrong, type Moving, type Sentence } from '../../lib/tiny-model';
+import { gameProbs, gameRound, gameOff, type Moving, type Sentence } from '../../lib/tiny-model';
 interface Props { answers: string[]; sentences: Sentence[]; moving: Moving; step: number; rounds: number; min: number; max: number; caption?: string }
 const { answers, sentences, moving, step, rounds, min, max, caption } = Astro.props;
 const zero = Object.fromEntries(Object.keys(moving).map((c) => [c, 0]));
 let d = { ...zero };
 for (let i = 0; i < rounds; i++) d = gameRound(d, moving, answers, sentences, step).d;
-const before = gameWrong(zero, moving, answers, sentences), after = gameWrong(d, moving, answers, sentences);
+const before = gameOff(zero, moving, answers, sentences), after = gameOff(d, moving, answers, sentences);
 const right = (x: Record<string, number>, s: Sentence) => Math.round(gameProbs(x, moving, answers, s)[answers.indexOf(s.answer)] * 100);
 const cfg = { answers, sentences, moving, step, rounds };
 ---
 <figure class="tgm panel bleed" data-cfg={JSON.stringify(cfg)}>
   <div class="tgm-box">
     <div class="tgm-board">
-      <p class="tgm-score"><span>Total wrongness</span><b class="tgm-total">{before.toFixed(2)}</b><small class="tgm-best" hidden></small></p>
+      <p class="tgm-score"><span>How far off, added up</span><b class="tgm-total">{before.toFixed(0)}</b><small class="tgm-best" hidden></small></p>
       <p class="tgm-round"><span>Round</span><b class="tgm-rn">0</b></p>
     </div>
     <p class="tgm-trail" aria-hidden="true"></p>
@@ -66,7 +67,7 @@ const cfg = { answers, sentences, moving, step, rounds };
         <button type="button" class="tgm-learn">Let it learn</button>
         <button type="button" class="tgm-reset">Reset</button>
       </div>
-      <p class="tgm-status" aria-live="polite">Your turn. Drag a dial and get the total wrongness down. Then press Let it learn.</p>
+      <p class="tgm-status" aria-live="polite">Your turn. Drag a dial and get the big number down. Then press Let it learn.</p>
     </div>
 
     <table class="tgm-still">
@@ -75,7 +76,7 @@ const cfg = { answers, sentences, moving, step, rounds };
       <tbody>
         {Object.entries(moving).map(([c, a]) => <tr><th scope="row">{c} → {a} dial</th><td>0.0</td><td>{d[c].toFixed(1)}</td></tr>)}
         {sentences.map((s) => <tr><th scope="row">"{s.text}" gives {s.answer}</th><td>{right(zero, s)}%</td><td>{right(d, s)}%</td></tr>)}
-        <tr class="tgm-tot"><th scope="row">Total wrongness</th><td>{before.toFixed(2)}</td><td>{after.toFixed(2)}</td></tr>
+        <tr class="tgm-tot"><th scope="row">How far off, added up</th><td>{before.toFixed(0)}</td><td>{after.toFixed(0)}</td></tr>
       </tbody>
     </table>
   </div>
@@ -83,7 +84,7 @@ const cfg = { answers, sentences, moving, step, rounds };
 </figure>
 
 <script>
-  import { gameProbs, gameRound, gameWrong, type Moving, type Sentence } from '../../lib/tiny-model';
+  import { gameProbs, gameRound, gameOff, type Moving, type Sentence } from '../../lib/tiny-model';
   type Cfg = { answers: string[]; sentences: Sentence[]; moving: Moving; step: number; rounds: number };
   for (const root of document.querySelectorAll<HTMLElement>('.tgm')) {
     const C: Cfg = JSON.parse(root.dataset.cfg!);
@@ -100,8 +101,8 @@ const cfg = { answers, sentences, moving, step, rounds };
     let round = 0, timer = 0, mine = Infinity, hist: number[] = [];
 
     function render(turn?: Record<string, number>) {
-      const w = gameWrong(d, C.moving, C.answers, C.sentences);
-      total.textContent = w.toFixed(2);
+      const w = gameOff(d, C.moving, C.answers, C.sentences);
+      total.textContent = w.toFixed(0);
       rn.textContent = String(round);
       C.sentences.forEach((s, si) => {
         const p = gameProbs(d, C.moving, C.answers, s);
@@ -128,22 +129,22 @@ const cfg = { answers, sentences, moving, step, rounds };
           nd.querySelector<HTMLElement>('i')!.style.width = `${Math.min(100, Math.abs(t) * 100)}%`;
         }
       }
-      trail.textContent = hist.length ? hist.slice(0, 7).map((v) => v.toFixed(2)).join(' → ') + (hist.length > 7 ? ` → … → ${hist[hist.length - 1].toFixed(2)}` : '') : '';
+      trail.textContent = hist.length ? hist.slice(0, 7).map((v) => v.toFixed(0)).join(' → ') + (hist.length > 7 ? ` → … → ${hist[hist.length - 1].toFixed(0)}` : '') : '';
       return w;
     }
     function stop() { clearTimeout(timer); timer = 0; learn.textContent = 'Let it learn'; }
     function step() {
       const r = gameRound(d, C.moving, C.answers, C.sentences, C.step);
       d = r.d; round++;
-      hist.push(gameWrong(d, C.moving, C.answers, C.sentences));
+      hist.push(gameOff(d, C.moving, C.answers, C.sentences));
       render(r.turn);
       return r.turn;
     }
     // Slow for the first five rounds, then faster. Reduced motion shows only some rounds, with a pause at each.
-    const SHOW = [1, 2, 3, 5, 10, 20, 30];
+    const SHOW = [1, 2, 3, 5, 10, 20, 40, 60];
     function tick() {
       let turn: Record<string, number>;
-      if (reduce) { const goal = SHOW.find((n) => n > round) ?? C.rounds; while (round < goal - 1) { d = gameRound(d, C.moving, C.answers, C.sentences, C.step).d; round++; hist.push(gameWrong(d, C.moving, C.answers, C.sentences)); } }
+      if (reduce) { const goal = SHOW.find((n) => n > round) ?? C.rounds; while (round < goal - 1) { d = gameRound(d, C.moving, C.answers, C.sentences, C.step).d; round++; hist.push(gameOff(d, C.moving, C.answers, C.sentences)); } }
       turn = step();
       const big = Math.max(...Object.values(turn).map(Math.abs));
       status.textContent = round <= 5
@@ -151,14 +152,14 @@ const cfg = { answers, sentences, moving, step, rounds };
         : `Round ${round}. The guesses are close now, so the turns are small (biggest ${big.toFixed(2)}).`;
       if (round >= C.rounds) {
         stop();
-        status.textContent = `Done after ${round} rounds. Total wrongness ${hist[hist.length - 1].toFixed(2)}${mine < Infinity ? `, and your best was ${mine.toFixed(2)}` : ''}. Nobody told it where the dials go. It only had should minus guessed.`;
+        status.textContent = `Done after ${round} rounds. It's off by ${hist[hist.length - 1].toFixed(0)}${mine < Infinity ? `, and your best was ${mine.toFixed(0)}` : ''}. Nobody told it where the dials go. It only had should minus guessed.`;
         return;
       }
-      timer = window.setTimeout(tick, reduce ? 1100 : round < 5 ? 900 : 160);
+      timer = window.setTimeout(tick, reduce ? 1100 : round < 5 ? 900 : 120);
     }
     learn.addEventListener('click', () => {
       if (timer) { stop(); return; }
-      if (round >= C.rounds || round === 0) { d = zero(); round = 0; hist = [gameWrong(d, C.moving, C.answers, C.sentences)]; render(); }
+      if (round >= C.rounds || round === 0) { d = zero(); round = 0; hist = [gameOff(d, C.moving, C.answers, C.sentences)]; render(); }
       learn.textContent = 'Pause';
       timer = window.setTimeout(tick, reduce ? 300 : 500);
     });
@@ -174,7 +175,7 @@ const cfg = { answers, sentences, moving, step, rounds };
         const w = render();
         mine = Math.min(mine, w);
         best.hidden = false;
-        best.textContent = `Your best: ${mine.toFixed(2)}`;
+        best.textContent = `Your best: ${mine.toFixed(0)}`;
         const wrong = C.sentences.filter((s) => { const p = gameProbs(d, C.moving, C.answers, s); return C.answers[p.indexOf(Math.max(...p))] !== s.answer; });
         status.textContent = wrong.length ? `Still wrong: "${wrong.map((s) => s.text).join('", "')}".` : 'All three right. Can you get the total lower?';
       });
