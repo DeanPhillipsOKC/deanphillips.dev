@@ -347,21 +347,6 @@
       ]
     }
   ],
-  "rag": {
-    "example": "Refunds",
-    "good": {
-      "note": "search(money back for broken toaster)",
-      "x": 19,
-      "y": 23,
-      "pasted": "The tool pastes those three passages, word for word, into the conversation. The closest one shares no words with your search. It's just close in meaning."
-    },
-    "bad": {
-      "note": "search(Model 7 blender warranty)",
-      "x": 52,
-      "y": 54,
-      "verdict": "The closest passage is about Model 5. Nothing here is about Model 7. It gets pasted in anyway, and the model answers “Yes, it's covered for 2 years.” Smooth, and made up."
-    }
-  },
   "ragPassages": [
     {
       "label": "Refunds",

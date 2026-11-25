@@ -19,7 +19,7 @@ import TextThreads from '../../components/blog/TextThreads.astro';
 import Callout from '../../components/blog/Callout.astro';
 import NoDumbQuestions from '../../components/blog/NoDumbQuestions.astro';
 import QuoteCheck from '../../components/blog/QuoteCheck.astro';
-import RagSteps from '../../components/blog/RagSteps.astro';
+import RagStory from '../../components/blog/RagStory.astro';
 import FixSplit from '../../components/blog/FixSplit.astro';
 import GuessCards from '../../components/blog/GuessCards.astro';
 import ToolsReel from '../../components/blog/ToolsReel.astro';
@@ -99,12 +99,12 @@ Web search asks a regular search engine, the same kind you'd use. (Big ones use 
 
 Ahead of time, a program chops your documents into short pieces called **passages** and gives each one a spot on a map. It's like the word map from part 1, but for whole passages. A separate model hands out the spots, and in this job it never writes a word. Finding and fetching the closest ones is called **retrieval**.
 
-<RagSteps
+<RagStory
   passages={d.ragPassages}
-  example={d.rag.example}
-  good={d.rag.good}
-  bad={d.rag.bad}
-  caption="Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 5."
+  good={d.ragStory.good}
+  bad={d.ragStory.bad}
+  question={d.ragStory.question}
+  caption="Tap the dots, then Next. Every position and passage is made up, and this is a separate map from the model's word map. Real ones have hundreds or thousands of directions. How “nearest” gets measured is part 5."
 />
 
 Now, back in part 1, my first try at explaining AI went like this.
